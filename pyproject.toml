@@ -1,0 +1,26 @@
+# Reine Werkzeug-Konfiguration (Ruff, pytest). Kein [project]-Abschnitt:
+# dies ist eine Django-Anwendung, kein installierbares Paket — Abhängig-
+# keiten liegen in requirements/, nicht hier.
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+extend-exclude = ["**/migrations/*.py"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # import-Sortierung
+    "UP",  # pyupgrade
+    "B",   # flake8-bugbear
+    "DJ",  # flake8-django
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["apps", "config"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings.dev"
+python_files = ["test_*.py", "*_test.py"]
+testpaths = ["tests", "apps"]

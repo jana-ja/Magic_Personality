@@ -1,0 +1,4 @@
+-r base.txt
+
+# Produktionsspezifische Abhängigkeiten (App-Server, statische Dateien)
+# kommen mit Task 0.3 (Docker Compose) hinzu.

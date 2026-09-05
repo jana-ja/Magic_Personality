@@ -1,0 +1,4 @@
+# Kern-Abhängigkeiten, die in jeder Umgebung gebraucht werden.
+Django>=5.2,<5.3
+django-environ>=0.11,<0.12
+psycopg[binary]>=3.2,<3.3
