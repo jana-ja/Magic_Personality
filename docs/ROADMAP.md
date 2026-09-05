@@ -29,11 +29,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Lauffähiges Django-Projekt in der Struktur aus `ARCHITECTURE.md` §5.
 **Abhängig von:** —
 **Fertig, wenn:**
-- [ ] `config/settings/` in `base` / `dev` / `prod` getrennt, Konfiguration über Umgebungsvariablen (`django-environ`), keine Secrets im Repo.
-- [ ] Apps `core`, `colors`, `accounts`, `quiz`, `social` angelegt und registriert.
-- [ ] Ruff und pytest + pytest-django konfiguriert, ein Beispieltest läuft.
-- [ ] `.env.example` vorhanden, `.env` in `.gitignore`.
-- [ ] `python manage.py check` läuft fehlerfrei.
+- [x] `config/settings/` in `base` / `dev` / `prod` getrennt, Konfiguration über Umgebungsvariablen (`django-environ`), keine Secrets im Repo.
+- [x] Apps `core`, `colors`, `accounts`, `quiz`, `social` angelegt und registriert.
+- [x] Ruff und pytest + pytest-django konfiguriert, ein Beispieltest läuft.
+- [x] `.env.example` vorhanden, `.env` in `.gitignore`.
+- [x] `python manage.py check` läuft fehlerfrei.
 
 #### 0.2 · Eigenes User-Modell
 **Ziel:** `AbstractBaseUser` mit E-Mail als Anmeldefeld, ohne `username`.
