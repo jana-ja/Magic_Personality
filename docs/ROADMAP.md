@@ -39,10 +39,10 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** `AbstractBaseUser` mit E-Mail als Anmeldefeld, ohne `username`.
 **Abhängig von:** 0.1 · **Anforderungen:** FR-U1, FR-U2, D-26
 **Fertig, wenn:**
-- [ ] `accounts.User` mit `USERNAME_FIELD = "email"`, `PermissionsMixin`, eindeutiger E-Mail.
-- [ ] `AUTH_USER_MODEL` gesetzt, **bevor** die erste Migration erzeugt wird.
-- [ ] Argon2 als Passwort-Hasher aktiv.
-- [ ] `createsuperuser` funktioniert.
+- [x] `accounts.User` mit `USERNAME_FIELD = "email"`, `PermissionsMixin`, eindeutiger E-Mail.
+- [x] `AUTH_USER_MODEL` gesetzt, **bevor** die erste Migration erzeugt wird.
+- [x] Argon2 als Passwort-Hasher aktiv.
+- [x] `createsuperuser` funktioniert.
 
 > Kritischer Task: Django lässt das User-Modell später nicht ohne Weiteres austauschen. Muss vor jeder anderen Migration erledigt sein.
 

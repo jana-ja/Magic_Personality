@@ -88,9 +88,26 @@ DATABASES = {
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 
+# Nutzermodell ------------------------------------------------------------
+# Eigenes User-Modell (Task 0.2, D-26) — muss gesetzt sein, bevor die
+# erste Migration erzeugt wird. Django lässt das später nicht mehr
+# ohne Weiteres austauschen.
+
+AUTH_USER_MODEL = "accounts.User"
+
+
 # Passwörter ----------------------------------------------------------------
-# Der Argon2-Hasher (FR-U2) wird in Task 0.2 zusammen mit dem eigenen
-# User-Modell aktiviert.
+# Argon2 zuerst aktiv (FR-U2). Die übrigen Hasher bleiben als Fallback
+# gelistet, wie von Django empfohlen — sie werden für neue Passwörter
+# nicht mehr verwendet, können aber vorhandene Hashes noch prüfen.
+
+PASSWORD_HASHERS = [
+    "django.contrib.auth.hashers.Argon2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2PasswordHasher",
+    "django.contrib.auth.hashers.PBKDF2SHA1PasswordHasher",
+    "django.contrib.auth.hashers.BCryptSHA256PasswordHasher",
+    "django.contrib.auth.hashers.ScryptPasswordHasher",
+]
 
 AUTH_PASSWORD_VALIDATORS = [
     {
