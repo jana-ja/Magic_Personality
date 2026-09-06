@@ -1,4 +1,5 @@
 -r base.txt
 
-# Produktionsspezifische Abhängigkeiten (App-Server, statische Dateien)
-# kommen mit Task 0.3 (Docker Compose) hinzu.
+# App-Server und statische Dateien (ARCHITECTURE.md §3).
+gunicorn>=23.0,<24
+whitenoise>=6.7,<7

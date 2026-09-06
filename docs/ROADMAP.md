@@ -50,10 +50,10 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** `docker compose up` startet Anwendung und Datenbank.
 **Abhängig von:** 0.1 · **Anforderungen:** NFR-10
 **Fertig, wenn:**
-- [ ] `Dockerfile` (Python 3.12, Gunicorn, WhiteNoise), `compose.yaml` mit `web` und `db` (PostgreSQL 16).
-- [ ] Datenbankanbindung ausschließlich über `DATABASE_URL`.
-- [ ] `/healthz` prüft Datenbankverbindung und Migrationsstand.
-- [ ] Compose-Healthcheck auf `/healthz`.
+- [x] `Dockerfile` (Python 3.12, Gunicorn, WhiteNoise), `compose.yaml` mit `web` und `db` (PostgreSQL 16).
+- [x] Datenbankanbindung ausschließlich über `DATABASE_URL`.
+- [x] `/healthz` prüft Datenbankverbindung und Migrationsstand.
+- [x] Compose-Healthcheck auf `/healthz`.
 
 #### 0.4 · Basis-Layout und i18n
 **Ziel:** Grundtemplate, CSS-Fundament, aktive Sprachauflösung.

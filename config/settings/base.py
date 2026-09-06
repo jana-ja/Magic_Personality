@@ -47,6 +47,10 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # WhiteNoise (nur in Produktion, siehe config/settings/prod.py) wird
+    # hier bewusst nicht eingetragen: sonst bräuchte auch die lokale
+    # Entwicklung ohne Docker das Paket, das in requirements/prod.txt
+    # liegt.
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
