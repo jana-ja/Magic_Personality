@@ -152,3 +152,8 @@ Kein Bundler, kein npm, kein Tailwind. CSS von Hand mit Custom Properties.
 **Status:** Angenommen · 2026-09-06
 Nicht beim Containerstart.
 **Warum:** Sonst migrieren mehrere Worker gleichzeitig, und ein Fehlschlag zeigt sich erst im Log statt im Deployment.
+
+### D-30 · Lokales Docker Compose ohne Caddy, ohne TLS
+**Status:** Angenommen · 2026-09-06
+`compose.yaml` (Task 0.3) enthält nur `web` und `db`. `SECURE_SSL_REDIRECT` ist env-gesteuert mit Default `True`, lokal in `compose.yaml` explizit auf `False` gesetzt.
+**Warum:** ARCHITECTURE.md §2 zeigt drei Container (inklusive Caddy) für den *produktiven* Aufbau; Task 0.3 verlangt für die *lokale* Entwicklung ausdrücklich nur `web` und `db`. Ohne einen TLS-terminierenden Proxy davor würde `SECURE_SSL_REDIRECT=True` in einer Endlosschleife enden (Weiterleitung auf `https://`, das lokal nie ankommt). Caddy und die produktionsscharfe Einstellung (`SECURE_SSL_REDIRECT=True`) kommen mit Task 1.12.
