@@ -90,12 +90,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Die Content-Entitäten aus PRD §6.1.
 **Abhängig von:** 0.2 · **Anforderungen:** D-02, D-03, D-05, D-27
 **Fertig, wenn:**
-- [ ] `Color`, `ColorCombination`, `Trait`, `CombinationTrait`, `Perspective` inklusive Migrationen.
-- [ ] `ColorCombination.code` ist der kanonisch sortierte WUBRG-Code, eindeutig je Locale.
-- [ ] `CombinationTrait.leaning_toward` verweist auf eine Farbe oder ist leer.
-- [ ] `Perspective.from_color` leer bedeutet neutrale Sicht.
-- [ ] Eine Datenmigration legt die fünf Farben und **alle 31 Kombinationen** an.
-- [ ] Test: es existieren genau 31 Kombinationen, alle Codes sind kanonisch sortiert.
+- [x] `Color`, `ColorCombination`, `Trait`, `CombinationTrait`, `Perspective` inklusive Migrationen.
+- [x] `ColorCombination.code` ist der kanonisch sortierte WUBRG-Code, eindeutig je Locale.
+- [x] `CombinationTrait.leaning_toward` verweist auf eine Farbe oder ist leer.
+- [x] `Perspective.from_color` leer bedeutet neutrale Sicht.
+- [x] Eine Datenmigration legt die fünf Farben und **alle 31 Kombinationen** an.
+- [x] Test: es existieren genau 31 Kombinationen, alle Codes sind kanonisch sortiert.
 
 #### 1.2 · Farbrad-Logik
 **Ziel:** Nachbarschaft, Ally/Enemy und Geometrie an genau einer Stelle.
