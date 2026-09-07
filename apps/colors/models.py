@@ -15,7 +15,13 @@ from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
+from . import wheel
 from .utils import is_canonical
+
+
+def _wheel_positions(*codes):
+    """Wheel-Positionen für die angegebenen Farbcodes, in einer Abfrage."""
+    return dict(Color.objects.filter(code__in=codes).values_list("code", "wheel_position"))
 
 
 class Color(models.Model):
@@ -49,6 +55,10 @@ class ColorCombination(models.Model):
     zugleich die spätere URL (D-27, FR-C7) — z. B. "W", "WU", "WUBRG".
     """
 
+    class Relation(models.TextChoices):
+        ALLY = "ALLY", _("Ally")
+        ENEMY = "ENEMY", _("Enemy")
+
     code = models.CharField(max_length=5, db_index=True)
     locale = models.CharField(max_length=10, default="en")
 
@@ -78,6 +88,21 @@ class ColorCombination(models.Model):
     def color_codes(self):
         """Die einzelnen Farbcodes dieser Kombination, z. B. ["W", "U"]."""
         return list(self.code)
+
+    @property
+    def relation(self):
+        """
+        ALLY oder ENEMY bei einer Zweifarb-Kombination (FR-C9, D-04),
+        sonst None. Reine Berechnung aus Color.wheel_position — nie
+        gespeichert (ARCHITECTURE.md §6.3).
+        """
+        if self.size != 2:
+            return None
+        positions = _wheel_positions(*self.color_codes)
+        position_a, position_b = (positions[code] for code in self.color_codes)
+        if wheel.are_neighbors(position_a, position_b):
+            return self.Relation.ALLY
+        return self.Relation.ENEMY
 
     def clean(self):
         if not 1 <= len(self.code) <= 5:
@@ -121,8 +146,8 @@ class CombinationTrait(models.Model):
 
     Bei Einzelfarben zeigt `leaning_toward` auf einen der beiden
     Nachbarn oder ist leer (center). Bei allen Mehrfarb-Kombinationen
-    ist es immer leer — das wird hier strukturell erzwungen; *welcher*
-    Nachbar gültig ist, prüft erst Task 1.2 (Farbrad-Logik).
+    ist es immer leer. Ob ein angegebener Nachbar tatsächlich einer
+    ist, prüft clean() über die Farbrad-Logik aus Task 1.2.
 
     Trägt bewusst keine eigene locale-Spalte (anders als Perspective):
     reiner Junction-Table ohne eigenen Textinhalt, die Sprache ergibt
@@ -149,10 +174,19 @@ class CombinationTrait(models.Model):
     def clean(self):
         if self.combination_id and self.trait_id and self.combination.locale != self.trait.locale:
             raise ValidationError("combination and trait must share the same locale.")
-        if self.leaning_toward and self.combination_id and len(self.combination.code) != 1:
-            raise ValidationError(
-                {"leaning_toward": "leaning_toward is only valid for single-color combinations."}
-            )
+
+        if self.leaning_toward and self.combination_id:
+            if len(self.combination.code) != 1:
+                raise ValidationError(
+                    {"leaning_toward": "only valid for single-color combinations."}
+                )
+            positions = _wheel_positions(self.combination.code, self.leaning_toward)
+            if not wheel.are_neighbors(
+                positions[self.combination.code], positions[self.leaning_toward]
+            ):
+                raise ValidationError(
+                    {"leaning_toward": "must be a wheel-neighbor of the combination's color."}
+                )
 
 
 class Perspective(models.Model):
@@ -185,8 +219,10 @@ class Perspective(models.Model):
         return f"{self.combination} — {viewpoint}"
 
     def clean(self):
-        if self.combination_id and len(self.combination.code) != 2:
-            raise ValidationError({"combination": "Perspective requires a two-color combination."})
+        if self.combination_id and self.combination.relation != ColorCombination.Relation.ENEMY:
+            raise ValidationError(
+                {"combination": "Perspective requires a two-color ENEMY combination."}
+            )
         if self.from_color and self.combination_id and self.from_color not in self.combination.code:
             raise ValidationError(
                 {"from_color": "from_color must be one of the combination's own colors."}

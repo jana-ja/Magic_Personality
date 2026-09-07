@@ -163,3 +163,8 @@ Nicht beim Containerstart.
 Der `build`-Job aus `.github/workflows/ci.yml` baut das Docker-Image auf jedem Push und jedem PR (fängt einen kaputten Dockerfile-Build sofort ab, unabhängig vom Branch), meldet sich bei der GitHub Container Registry aber nur an und veröffentlicht auch nur, wenn `github.ref == 'refs/heads/main'`.
 **Warum:** ARCHITECTURE.md §11.3 nennt "Image-Build" als CI-Schritt, legt aber keine Branch-Policy fest. Ein Image bei jedem Feature-Branch-Push zu veröffentlichen würde die Registry mit nicht-deploybaren Zwischenständen zumüllen.
 Zunächst lokal per `act` verifiziert (inkl. Postgres-Service-Container und einem absichtlich roten Lauf), dann live auf GitHub bestätigt (`github.com/jana-ja/Magic_Personality`) — der erste echte Lauf schlug beim Registry-Push mit `permission_denied: read_package` fehl. Ursache war ein verwaistes GHCR-Package `magic_personality` aus einem zuvor gelöschten, gleichnamigen Repository: gelöschte Repos nehmen ihre Packages nicht mit, und ein neues Repo gleichen Namens wird der alten Zugriffsliste nicht automatisch hinzugefügt. Nach Löschen des verwaisten Packages lief der Workflow durch.
+
+### D-32 · `Perspective` erzwingt jetzt tatsächlich ein Enemy-Paar
+**Status:** Angenommen · 2026-09-08
+`Perspective.clean()` prüft seit Task 1.2 `combination.relation == Relation.ENEMY` statt nur "zwei Farben". Task 1.1 hatte das bewusst offengelassen (die Ally/Enemy-Berechnung existierte noch nicht) und dies im Code als TODO für Task 1.2 vermerkt.
+**Warum:** PRD §6.1 spezifiziert `Perspective.combination` explizit als "2-Farb-**Enemy**-Kombination" — mit der jetzt vorhandenen Farbrad-Logik (Task 1.2) lässt sich das direkt und korrekt erzwingen, statt nur strukturell "irgendeine Zweierkombination" zuzulassen.

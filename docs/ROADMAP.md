@@ -101,9 +101,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Nachbarschaft, Ally/Enemy und Geometrie an genau einer Stelle.
 **Abhängig von:** 1.1 · **Anforderungen:** FR-C9, D-04
 **Fertig, wenn:**
-- [ ] Eine Konstante beschreibt die Radposition; Nachbarschaft, Feindschaft und SVG-Koordinaten leiten sich daraus ab.
-- [ ] `ColorCombination.relation` liefert bei zwei Farben ALLY oder ENEMY, sonst nichts.
-- [ ] Tests gegen die tatsächlichen zehn Paare: fünf Ally, fünf Enemy.
+- [x] Eine Konstante beschreibt die Radposition; Nachbarschaft, Feindschaft und SVG-Koordinaten leiten sich daraus ab.
+- [x] `ColorCombination.relation` liefert bei zwei Farben ALLY oder ENEMY, sonst nichts.
+- [x] Tests gegen die tatsächlichen zehn Paare: fünf Ally, fünf Enemy.
 
 #### 1.3 · Seed-Mechanismus
 **Ziel:** Content aus versionierten Dateien einspielen.
