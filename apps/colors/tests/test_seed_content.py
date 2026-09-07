@@ -2,8 +2,8 @@
 Tests für `manage.py seed_content` (Task 1.3, D-28).
 
 Nutzt ausschließlich eigene, kleine Test-Fixtures über --path — nie
-die echte seeds/colors_en.json, die aktuell leer ist (Task 1.4 füllt
-sie) und sich unabhängig von diesen Tests ändern wird.
+die echte seeds/colors_en.json, die sich unabhängig von diesen Tests
+ändert. Deren *Inhalt* prüft test_seed_file_en.py (Task 1.4).
 """
 
 import json

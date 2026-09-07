@@ -178,3 +178,13 @@ Zunächst lokal per `act` verifiziert (inkl. Postgres-Service-Container und eine
 **Status:** Angenommen · 2026-09-08
 Die Produktions-Seed-Datei für Task 1.3 enthält `"combinations": []`. Alle Mechanik-Tests (Idempotenz, Validierung, Fehlerfälle) laufen gegen eigene, kleine Fixtures über `--path`, nie gegen diese Datei.
 **Warum:** docs/ROADMAP.md trennt Task 1.3 (Mechanismus) bewusst von Task 1.4 (Content erfassen, "größter inhaltlicher Einzelposten... eigene Sitzung, nicht mit einem Coding-Task vermischen"). 31 Einträge mit leerem Inhalt vorab anzulegen hätte keinen Mehrwert gegenüber der bereits vorhandenen Datenmigration (Task 1.1) geboten und das Risiko erhöht, unfertigen Platzhaltertext versehentlich für echten Content zu halten.
+
+### D-35 · Namen für 3er-, 4er- und Fünffarb-Kombinationen aus dem MTG-Sprachgebrauch
+**Status:** Angenommen · 2026-09-07
+Task 1.4 verlangt für diese 16 Kombinationen nur einen Namen. Die zehn Dreifarb-Namen (Esper, Grixis, Jund, Naya, Bant, Abzan, Jeskai, Sultai, Mardu, Temur) nennt die Quelle selbst. Die fünf Vierfarb-Namen (Artifice, Growth, Altruism, Aggression, Chaos) und der Fünffarb-Name (WUBRG) stehen dort nicht und stammen aus dem etablierten MTG-Sprachgebrauch.
+**Warum:** Die Namen sind die einzige Verbindung zwischen unserer Ansicht und dem, was Spielende ohnehin sagen — sie zu erfinden würde die Ansicht für genau die Zielgruppe unbrauchbar machen, die den Farbkreis schon kennt. Es handelt sich um Bezeichner, nicht um übernommenen Fließtext; D-12 (paraphrasieren) bleibt für alle Inhaltstexte unberührt.
+
+### D-36 · Eigenschaftsnamen sind projektweit eindeutig, statt zwischen Farben geteilt
+**Status:** Angenommen · 2026-09-07
+Keine zwei Kombinationen in `seeds/colors_en.json` verwenden denselben `traits[].name`. Wo sich Inhalte überschneiden, tragen sie unterschiedliche Namen — z. B. "Fairness" (White) neben "Procedural Fairness" (WU) oder "Protectiveness" (White) neben "Empathy" (Red).
+**Warum:** `(name, locale)` ist der natürliche Schlüssel (D-33). Derselbe Name in zwei Kombinationen wäre **eine** `Trait`-Zeile mit **einer** Beschreibung und **einem** Typ — die zweite Nennung im Seed würde die erste stillschweigend überschreiben, statt eine zweite Eigenschaft anzulegen. Das ist als geteilte Eigenschaft grundsätzlich zulässig und gewollt, aber nur, wenn Beschreibung und Typ wirklich für beide passen. Solange es keinen inhaltlichen Grund für eine geteilte Zeile gibt, ist die eindeutige Benennung die risikoärmere Wahl; ein Test in `apps/colors/tests/test_seed_file_en.py` hält sie fest.

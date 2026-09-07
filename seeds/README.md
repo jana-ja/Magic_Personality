@@ -73,8 +73,8 @@ der Kommandozeile passen, sonst bricht der Import ab.
 ```
 
 (Die Beispielwerte oben sind frei erfunden, nur zur Veranschaulichung
-des Formats — die echten, aus der Quelle paraphrasierten Inhalte
-kommen mit Task 1.4.)
+des Formats. Die echten Inhalte stehen seit Task 1.4 in
+`colors_en.json` — siehe „Herkunft der Inhalte" am Ende.)
 
 ## Felder
 
@@ -148,3 +148,34 @@ nennt), statt fehlerhafte Daten still zu übernehmen:
 
 Ein fehlgeschlagener Import ändert **nichts** an der Datenbank — der
 gesamte Lauf ist eine einzige Transaktion.
+
+## Herkunft der Inhalte
+
+`colors_en.json` ist mit Task 1.4 aus
+<https://homosabiens.substack.com/p/the-mtg-color-wheel> (Duncan
+Sabien) erfasst worden. Die Texte sind **paraphrasiert, nicht wörtlich
+übernommen** (D-12); der Artikel wird in der Anwendung sichtbar als
+Quelle genannt (PRD §9). Was aus welchem Abschnitt des Artikels kommt:
+
+| Feld | Abschnitt der Quelle |
+|---|---|
+| `goal`, `means` (Einzelfarben) | Der Einleitungssatz je Farbe („White seeks …, through …") |
+| `guiding_question` (Einzelfarben) | „A \<color\> agent, when presented with a decision or quandary, asks …" |
+| `traits` (Einzelfarben) | Die Wortlisten („Other words associated with …") und die Absätze „From a negative perspective …" |
+| `name`, `archetype`, `guiding_question` (Zweierkombinationen) | „Allies in Arms" und „Opposites in Harmony", inklusive der dort genannten Kürzel (Azorius, Orzhov …) |
+| `traits` (Ally-Paare) | Das jeweils gemeinsame Anliegen der beiden verbündeten Farben |
+| `perspectives` (Feindpaare) | „Colors in Conflict" — die drei Sichten je Konflikt |
+| `name` (3–5 Farben) | Die Dreifarb-Namen aus „Triple Major"; Vierfarb- und Fünffarb-Namen aus dem etablierten MTG-Sprachgebrauch (D-35) |
+
+Nicht übernommen wurden die Beispielfiguren aus Pop-Kultur, die
+Big-Five-Zuordnungen und die Anwendungsbeispiele des Artikels — sie
+haben im Datenmodell (PRD §6.1) keinen Platz.
+
+Eine inhaltliche Nebenbedingung, die das Format allein nicht erzwingt:
+**`traits[].name` ist projektweit eindeutig** (D-36). Derselbe Name in
+zwei Kombinationen ist über den natürlichen Schlüssel `(name, locale)`
+(D-33) *eine* Zeile mit *einer* Beschreibung — die zweite Nennung
+überschreibt die erste stillschweigend. Geteilte Eigenschaften sind
+damit möglich, aber nur sinnvoll, wenn Beschreibung und Typ wirklich
+für beide Kombinationen passen. `apps/colors/tests/test_seed_file_en.py`
+prüft das mit.

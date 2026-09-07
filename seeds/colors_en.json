@@ -1,4 +1,636 @@
 {
   "locale": "en",
-  "combinations": []
+  "combinations": [
+    {
+      "code": "W",
+      "name": "White",
+      "goal": "Peace — a world in which suffering has been designed out.",
+      "means": "Order: rules, coordination, shared restraint, and the willingness to hold oneself to them.",
+      "guiding_question": "What is the right thing to do here?",
+      "archetype": "",
+      "traits": [
+        {
+          "name": "Sense of Duty",
+          "description": "Treats an obligation as binding even when nobody is watching and nothing is gained by keeping it.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Protectiveness",
+          "description": "Puts itself between the vulnerable and whatever threatens them, without being asked to.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Fairness",
+          "description": "Applies to itself the same standard it asks of everyone else, and expects that to be reciprocated.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Self-Righteousness",
+          "description": "Mistakes its own moral framework for the moral framework, and has trouble stepping outside it.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Intolerance of Ambiguity",
+          "description": "Struggles wherever a situation refuses to sort itself into clear categories; under pressure it forces the pieces to fit.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Formality",
+          "description": "Prefers explicit forms, stated expectations and named procedures to improvisation.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Systematic Planning",
+          "description": "Wants the pieces mapped out and fitted together before anyone starts building.",
+          "type": "STRENGTH",
+          "leaning_toward": "U"
+        },
+        {
+          "name": "Proceduralism",
+          "description": "Keeps following the procedure past the point where it still serves the purpose it was written for.",
+          "type": "WEAKNESS",
+          "leaning_toward": "U"
+        },
+        {
+          "name": "Devotion to Community",
+          "description": "Measures a choice by what it does for the group rather than by what it does for oneself.",
+          "type": "STRENGTH",
+          "leaning_toward": "G"
+        },
+        {
+          "name": "Deference to Tradition",
+          "description": "Trusts an inherited practice partly on the grounds that it has already lasted a long time.",
+          "type": "NEUTRAL",
+          "leaning_toward": "G"
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "U",
+      "name": "Blue",
+      "goal": "Perfection — the best version of a thing, reached once it is fully understood.",
+      "means": "Knowledge: study, analysis, and the patient application of whatever has been learned.",
+      "guiding_question": "What does careful thought say is the sensible move?",
+      "archetype": "",
+      "traits": [
+        {
+          "name": "Curiosity",
+          "description": "Wants to know how something works whether or not the answer will ever be useful.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Rigour",
+          "description": "Checks its own reasoning before it trusts the conclusion.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Foresight",
+          "description": "Plays out the consequences several steps past the move currently on the table.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Analysis Paralysis",
+          "description": "Keeps collecting information long after enough of it was available to decide — often to avoid the decision.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Dismissal of the Unmeasurable",
+          "description": "Treats whatever resists explanation or measurement as though it were not quite real.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Detachment",
+          "description": "Steps back from a situation in order to see it clearly, at the price of no longer being inside it.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Love of Elegant Systems",
+          "description": "Takes real pleasure in a structure where every part has exactly one clear job.",
+          "type": "STRENGTH",
+          "leaning_toward": "W"
+        },
+        {
+          "name": "Pedantry",
+          "description": "Insists on the exact formulation in situations where the rough one would have done fine.",
+          "type": "WEAKNESS",
+          "leaning_toward": "W"
+        },
+        {
+          "name": "Subtlety",
+          "description": "Prefers the indirect move that leaves everyone else unsure what actually happened.",
+          "type": "NEUTRAL",
+          "leaning_toward": "B"
+        },
+        {
+          "name": "Aloofness",
+          "description": "Holds a distance that reads as superiority, whether or not it was meant that way.",
+          "type": "WEAKNESS",
+          "leaning_toward": "B"
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "B",
+      "name": "Black",
+      "goal": "Satisfaction — actually getting what one wants, rather than what one is supposed to want.",
+      "means": "Ruthlessness: accepting whatever a goal costs, and recognising no limit that does not come from one's own interests.",
+      "guiding_question": "What leaves me better off?",
+      "archetype": "",
+      "traits": [
+        {
+          "name": "Ambition",
+          "description": "Wants more, and says so, instead of pretending the wanting isn't there.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Self-Reliance",
+          "description": "Assumes that whatever needs doing will end up having to be done by oneself, and plans on that basis.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Decisiveness",
+          "description": "Commits to a course while everyone else is still weighing it.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Ruthlessness",
+          "description": "Treats other people as terrain to be crossed rather than as ends in their own right.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Short-Term Transactionalism",
+          "description": "Under pressure, refuses any investment that does not visibly pay back at once — often driving off exactly the help it needed.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Amorality",
+          "description": "Does not experience morality as a real constraint; it neither obeys it nor rebels against it.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Calculation",
+          "description": "Works out where an action leads before taking it, and picks the one that lands best.",
+          "type": "STRENGTH",
+          "leaning_toward": "U"
+        },
+        {
+          "name": "Manipulativeness",
+          "description": "Arranges what other people know so that they choose what it wanted them to choose.",
+          "type": "WEAKNESS",
+          "leaning_toward": "U"
+        },
+        {
+          "name": "Insistence on Autonomy",
+          "description": "Will pay a real price rather than let anyone else hold the reins.",
+          "type": "STRENGTH",
+          "leaning_toward": "R"
+        },
+        {
+          "name": "Impatience with Obligation",
+          "description": "Feels being depended upon as a cage, and starts pulling away from it.",
+          "type": "WEAKNESS",
+          "leaning_toward": "R"
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "R",
+      "name": "Red",
+      "goal": "Freedom — room to follow whatever feels most alive.",
+      "means": "Action: doing the thing now, in the moment, instead of deliberating about it first.",
+      "guiding_question": "What do I actually want to do right now?",
+      "archetype": "",
+      "traits": [
+        {
+          "name": "Passion",
+          "description": "Throws its whole self at whatever it currently cares about.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Spontaneity",
+          "description": "Acts on an impulse while it is still warm, rather than filing it away for later.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Empathy",
+          "description": "Picks up what another person is feeling quickly, without needing it explained.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Recklessness",
+          "description": "Commits before it has looked at what the commitment will cost.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Volatility",
+          "description": "Under strain it amplifies its own feelings and then follows them, treating the intensity itself as justification.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Restlessness",
+          "description": "Cannot sit for long in quiet, emptiness or boredom without needing to break it.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Defiance",
+          "description": "Pushes back the moment something starts to feel like coercion.",
+          "type": "STRENGTH",
+          "leaning_toward": "B"
+        },
+        {
+          "name": "Fear of Commitment",
+          "description": "Avoids settling on anything, because settling closes off the futures it did not pick.",
+          "type": "WEAKNESS",
+          "leaning_toward": "B"
+        },
+        {
+          "name": "Candour",
+          "description": "Says the true thing plainly, without arranging it first.",
+          "type": "STRENGTH",
+          "leaning_toward": "G"
+        },
+        {
+          "name": "Guilelessness",
+          "description": "Has no second layer — what it shows is what it is.",
+          "type": "NEUTRAL",
+          "leaning_toward": "G"
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "G",
+      "name": "Green",
+      "goal": "Harmony — being at peace with the world roughly as it already is.",
+      "means": "Acceptance: taking up one's place in the existing order rather than trying to remake it.",
+      "guiding_question": "How has this always been done, and what did that wisdom know?",
+      "archetype": "",
+      "traits": [
+        {
+          "name": "Serenity",
+          "description": "Stays steady when things go badly, because it never expected the world to be otherwise.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Humility",
+          "description": "Assumes a long-standing arrangement probably knows something it does not yet know.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Groundedness",
+          "description": "Stays attached to what is actually in front of it rather than to the version it planned for.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Passivity",
+          "description": "Lets a situation run its course even where acting would clearly have helped.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Fatalism",
+          "description": "Takes what happened as what had to happen, and stops looking for the alternative.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        },
+        {
+          "name": "Conservatism",
+          "description": "Wants a strong reason before anything established gets changed.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Instinctiveness",
+          "description": "Trusts its gut reading of a situation over the argued one.",
+          "type": "STRENGTH",
+          "leaning_toward": "R"
+        },
+        {
+          "name": "Feralness",
+          "description": "Is comfortable outside the civilised frame and not embarrassed about it.",
+          "type": "NEUTRAL",
+          "leaning_toward": "R"
+        },
+        {
+          "name": "Stewardship",
+          "description": "Looks after something it expects to hand on to whoever comes next.",
+          "type": "STRENGTH",
+          "leaning_toward": "W"
+        },
+        {
+          "name": "Insistence on Roles",
+          "description": "Has a place ready for everyone, and takes it badly when someone refuses to occupy theirs.",
+          "type": "WEAKNESS",
+          "leaning_toward": "W"
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "WU",
+      "name": "Azorius",
+      "goal": "",
+      "means": "",
+      "guiding_question": "How do we work out what is right — and show our working?",
+      "archetype": "The Architect",
+      "traits": [
+        {
+          "name": "Design Mindset",
+          "description": "Believes almost any problem gives way to a well-drawn structure, and reaches for one first.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Procedural Fairness",
+          "description": "Trusts a rule that binds everyone equally more than a judgement made case by case.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Bureaucratic Drift",
+          "description": "Ends up serving the process it built instead of the purpose it built the process for.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "UB",
+      "name": "Dimir",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What is the most effective route to what I want?",
+      "archetype": "The Self-Made",
+      "traits": [
+        {
+          "name": "Growth Mindset",
+          "description": "Refuses to treat its origins, or the role society has ready for it, as a ceiling.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Enlightened Self-Interest",
+          "description": "Cooperates readily — because cooperating pays, not because it is owed.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Arrogance",
+          "description": "Quietly assumes that whatever it has not yet grasped was probably not worth grasping.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "BR",
+      "name": "Rakdos",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What is standing between me and what I want?",
+      "archetype": "The Free Agent",
+      "traits": [
+        {
+          "name": "Fierce Autonomy",
+          "description": "Defends its own room to move, and grants everyone else the same by default.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Unapologetic Appetite",
+          "description": "Wants what it wants openly, including the wants other people would rather not hear named.",
+          "type": "NEUTRAL",
+          "leaning_toward": null
+        },
+        {
+          "name": "Disregard for Consequences",
+          "description": "Discounts the bill that arrives later against the thing that is available now.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "RG",
+      "name": "Gruul",
+      "goal": "",
+      "means": "",
+      "guiding_question": "Where am I really, and where is this pulling me?",
+      "archetype": "The Wild Heart",
+      "traits": [
+        {
+          "name": "Authenticity",
+          "description": "Would rather be disliked as itself than accepted as something it is not.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Presence",
+          "description": "Is genuinely here — in this moment, with these people, without a frame in the way.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Suspicion of Abstraction",
+          "description": "Distrusts an argument partly for being an argument, and misses the good ones along with the bad.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "WG",
+      "name": "Selesnya",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What is fair here, and what will still be standing in a generation?",
+      "archetype": "The Caretaker",
+      "traits": [
+        {
+          "name": "Sense of the Common Good",
+          "description": "Takes for granted that some things are worth more than one's own share of them.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Sustaining Care",
+          "description": "Keeps the ordinary web of obligations and small kindnesses in working repair.",
+          "type": "STRENGTH",
+          "leaning_toward": null
+        },
+        {
+          "name": "Lost Purpose",
+          "description": "Carries on the good work long after it stopped checking whether the work still does good.",
+          "type": "WEAKNESS",
+          "leaning_toward": null
+        }
+      ],
+      "perspectives": []
+    },
+    {
+      "code": "WB",
+      "name": "Orzhov",
+      "goal": "",
+      "means": "",
+      "guiding_question": "Who counts as one of us?",
+      "archetype": "The Insider",
+      "traits": [],
+      "perspectives": [
+        {
+          "from_color": "W",
+          "text": "Reads the disagreement as good against evil: whoever puts themselves above the group has simply defected on everyone else."
+        },
+        {
+          "from_color": "B",
+          "text": "Reads it as sovereignty against dependency: a group has to earn allegiance, and one that demands it for free is coercing."
+        },
+        {
+          "from_color": null,
+          "text": "Whether the individual exists to serve the group or the group exists to serve the individual — which of the two is owed the sacrifice."
+        }
+      ]
+    },
+    {
+      "code": "WR",
+      "name": "Boros",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What needs doing here — and what would a decent person do about it?",
+      "archetype": "The Champion",
+      "traits": [],
+      "perspectives": [
+        {
+          "from_color": "W",
+          "text": "Reads the disagreement as order against chaos: without commitments that hold, nothing can be relied on and no trust can be built."
+        },
+        {
+          "from_color": "R",
+          "text": "Reads it as freedom against constraint: every standing rule is one more thing nobody chose, narrowing who one is still allowed to become."
+        },
+        {
+          "from_color": null,
+          "text": "Structure against flexibility — the same arrangement looks like scaffolding from one side and like a cage from the other."
+        }
+      ]
+    },
+    {
+      "code": "UR",
+      "name": "Izzet",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What could exist that does not exist yet?",
+      "archetype": "The Inventor",
+      "traits": [],
+      "perspectives": [
+        {
+          "from_color": "U",
+          "text": "Reads the disagreement as thinking clearly against reacting on the first impulse and calling it insight."
+        },
+        {
+          "from_color": "R",
+          "text": "Reads it as being warmly alive against being so guarded that nothing gets felt and nothing gets done."
+        },
+        {
+          "from_color": null,
+          "text": "Reason and feeling, each claiming to be the more trustworthy guide to what one should actually do."
+        }
+      ]
+    },
+    {
+      "code": "UG",
+      "name": "Simic",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What am I still not seeing?",
+      "archetype": "The Seeker",
+      "traits": [],
+      "perspectives": [
+        {
+          "from_color": "U",
+          "text": "Reads the disagreement as improvement against complacency: a system that has been understood is a system that can be made better."
+        },
+        {
+          "from_color": "G",
+          "text": "Reads it as equilibrium against destabilisation: pulling on a thread nobody understands unravels more than it ever repairs."
+        },
+        {
+          "from_color": null,
+          "text": "How much of what a person becomes was settled by nature and circumstance, and how much of it is still genuinely open."
+        }
+      ]
+    },
+    {
+      "code": "BG",
+      "name": "Golgari",
+      "goal": "",
+      "means": "",
+      "guiding_question": "What will this really cost, and who ends up paying it?",
+      "archetype": "The Scavenger",
+      "traits": [],
+      "perspectives": [
+        {
+          "from_color": "B",
+          "text": "Reads the disagreement as putting things to use against leaving them to rot untouched out of squeamishness."
+        },
+        {
+          "from_color": "G",
+          "text": "Reads it as protecting a living balance against strip-mining it for a gain that will not last."
+        },
+        {
+          "from_color": null,
+          "text": "Take what the world offers, or leave it standing — the argument over what the individual owes the environment it grew out of."
+        }
+      ]
+    },
+    { "code": "WUB", "name": "Esper" },
+    { "code": "WUR", "name": "Jeskai" },
+    { "code": "WUG", "name": "Bant" },
+    { "code": "WBR", "name": "Mardu" },
+    { "code": "WBG", "name": "Abzan" },
+    { "code": "WRG", "name": "Naya" },
+    { "code": "UBR", "name": "Grixis" },
+    { "code": "UBG", "name": "Sultai" },
+    { "code": "URG", "name": "Temur" },
+    { "code": "BRG", "name": "Jund" },
+    { "code": "WUBR", "name": "Artifice" },
+    { "code": "WUBG", "name": "Growth" },
+    { "code": "WURG", "name": "Altruism" },
+    { "code": "WBRG", "name": "Aggression" },
+    { "code": "UBRG", "name": "Chaos" },
+    { "code": "WUBRG", "name": "WUBRG" }
+  ]
 }

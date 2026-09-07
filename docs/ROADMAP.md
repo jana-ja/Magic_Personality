@@ -118,12 +118,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Die eigentlichen Inhalte aus der Quelle, paraphrasiert.
 **Abhängig von:** 1.3 · **Anforderungen:** PRD §9, D-12
 **Fertig, wenn:**
-- [ ] Für alle **fünf Einzelfarben**: Name, Ziel, Mittel, Guiding Question, Eigenschaften (center und zu beiden Nachbarn tendierend, je mit Typ).
-- [ ] Für alle **zehn Zweierkombinationen**: Name, Guiding Question, Archetype; bei Ally zusätzlich Eigenschaften.
-- [ ] Für alle **fünf Feindpaare**: je drei Perspektiven (A über B, B über A, neutral).
-- [ ] Für 3er-, 4er- und Fünffarb-Kombinationen: **nur der Name** (FR-C11, D-02).
-- [ ] Texte sind paraphrasiert, nicht wörtlich übernommen.
-- [ ] Die bestehende KI-generierte JSON-Datei wird ersetzt, nicht weiterverwendet.
+- [x] Für alle **fünf Einzelfarben**: Name, Ziel, Mittel, Guiding Question, Eigenschaften (center und zu beiden Nachbarn tendierend, je mit Typ).
+- [x] Für alle **zehn Zweierkombinationen**: Name, Guiding Question, Archetype; bei Ally zusätzlich Eigenschaften.
+- [x] Für alle **fünf Feindpaare**: je drei Perspektiven (A über B, B über A, neutral).
+- [x] Für 3er-, 4er- und Fünffarb-Kombinationen: **nur der Name** (FR-C11, D-02).
+- [x] Texte sind paraphrasiert, nicht wörtlich übernommen.
+- [x] Die bestehende KI-generierte JSON-Datei wird ersetzt, nicht weiterverwendet.
 
 > Größter inhaltlicher Einzelposten des Projekts. Nicht mit einem Coding-Task in derselben Sitzung vermischen.
 
