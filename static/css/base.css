@@ -1,0 +1,129 @@
+/*
+  CSS-Fundament (Task 0.4).
+
+  Bewusst ohne Build-Schritt (ARCHITECTURE.md §3, D-25): reines CSS mit
+  Custom Properties statt Utility-Klassen oder eines Präprozessors.
+  Farb-Token für die fünf MTG-Farben und das Fünfeck selbst kommen erst
+  mit Task 1.5 dazu — hier geht es nur um die Seitenchrome (Kopf,
+  Inhalt, Fuß) und die gemeinsamen Bausteine.
+*/
+
+:root {
+  --color-bg: #fafaf9;
+  --color-surface: #ffffff;
+  --color-text: #1c1917;
+  --color-muted: #57534e;
+  --color-border: #e7e5e4;
+  --color-accent: #4338ca;
+  --color-focus: #2563eb;
+
+  --font-sans:
+    system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-size-sm: 0.875rem;
+  --font-size-base: 1rem;
+  --font-size-lg: 1.25rem;
+  --line-height-base: 1.5;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 1rem;
+  --space-4: 1.5rem;
+  --space-5: 2rem;
+  --space-6: 3rem;
+
+  --max-content-width: 60rem;
+}
+
+/* Reset ------------------------------------------------------------- */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* Basis ---------------------------------------------------------------- */
+
+body {
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: var(--font-sans);
+  font-size: var(--font-size-base);
+  line-height: var(--line-height-base);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+/* Barrierefreiheit: "Skip to main content" -------------------------- */
+/* Unsichtbar, bis per Tastatur fokussiert — Standardmuster, damit
+   Tastaturnutzende Kopfzeile und spätere Farb-Navigation überspringen
+   können. */
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+  top: 0;
+  background: var(--color-surface);
+  color: var(--color-text);
+  padding: var(--space-2) var(--space-3);
+  z-index: 100;
+}
+
+.skip-link:focus {
+  left: var(--space-3);
+  top: var(--space-3);
+}
+
+/* Seitenchrome -------------------------------------------------------- */
+
+.site-header {
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+}
+
+.site-header__brand {
+  font-size: var(--font-size-lg);
+  font-weight: 600;
+  text-decoration: none;
+  color: var(--color-text);
+}
+
+.site-main {
+  max-width: var(--max-content-width);
+  margin-inline: auto;
+  padding: var(--space-5) var(--space-4);
+}
+
+.site-footer {
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) var(--space-4);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
+   Der eigentliche Layout-Unterschied für das Fünfeck kommt mit
+   Task 1.10 — dieser Breakpoint ist der gemeinsame Referenzpunkt, den
+   spätere Regeln wiederverwenden. */
+
+@media (max-width: 47.9375rem) {
+  .site-main {
+    padding: var(--space-4) var(--space-3);
+  }
+}

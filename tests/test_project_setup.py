@@ -40,3 +40,14 @@ def test_argon2_is_the_active_password_hasher():
     vorhandener Hashes mit älteren Verfahren.
     """
     assert settings.PASSWORD_HASHERS[0] == "django.contrib.auth.hashers.Argon2PasswordHasher"
+
+
+def test_locale_middleware_is_active():
+    """NFR-4/D-15: i18n-fähig ab v0.1, auch wenn v1 nur Englisch ausliefert."""
+    assert "django.middleware.locale.LocaleMiddleware" in settings.MIDDLEWARE
+
+
+def test_locale_paths_point_at_the_project_locale_directory():
+    from pathlib import Path
+
+    assert Path(settings.BASE_DIR, "locale") in [Path(p) for p in settings.LOCALE_PATHS]

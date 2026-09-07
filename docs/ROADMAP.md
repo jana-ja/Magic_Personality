@@ -59,10 +59,10 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Grundtemplate, CSS-Fundament, aktive Sprachauflösung.
 **Abhängig von:** 0.1 · **Anforderungen:** NFR-4, NFR-6, D-15, D-25
 **Fertig, wenn:**
-- [ ] Basis-Template mit Kopf-, Inhalts- und Fußbereich; HTMX eingebunden, CSRF-Token global über `hx-headers`.
-- [ ] CSS mit Custom Properties für Farben, Abstände, Typografie. Kein Build-Schritt, kein Node.
-- [ ] `LocaleMiddleware` aktiv, `locale/` angelegt, jeder Anzeigetext über `gettext`.
-- [ ] Ein Test stellt sicher, dass Templates keinen unübersetzten Anzeigetext enthalten (Stichprobe reicht).
+- [x] Basis-Template mit Kopf-, Inhalts- und Fußbereich; HTMX eingebunden, CSRF-Token global über `hx-headers`.
+- [x] CSS mit Custom Properties für Farben, Abstände, Typografie. Kein Build-Schritt, kein Node.
+- [x] `LocaleMiddleware` aktiv, `locale/` angelegt, jeder Anzeigetext über `gettext`.
+- [x] Ein Test stellt sicher, dass Templates keinen unübersetzten Anzeigetext enthalten (Stichprobe reicht).
 
 #### 0.5 · Zugangssperre
 **Ziel:** Ohne Invite-Code ist nichts erreichbar.

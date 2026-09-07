@@ -52,6 +52,10 @@ MIDDLEWARE = [
     # Entwicklung ohne Docker das Paket, das in requirements/prod.txt
     # liegt.
     "django.contrib.sessions.middleware.SessionMiddleware",
+    # NFR-4/D-15: i18n-fähig ab v0.1, auch wenn v1 nur Englisch
+    # ausliefert. Muss laut Django-Doku nach SessionMiddleware (braucht
+    # ggf. die Session) und vor CommonMiddleware stehen.
+    "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
@@ -72,6 +76,9 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                # Stellt u. a. LANGUAGE_CODE im Template bereit (siehe
+                # templates/base.html, <html lang="...">).
+                "django.template.context_processors.i18n",
             ],
         },
     },
@@ -132,12 +139,15 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalisierung -----------------------------------------------------
 # UI ist zunächst nur Englisch, aber i18n-fähig ab v0.1 (NFR-4, D-15).
-# LocaleMiddleware und Sprachkataloge kommen mit Task 0.4.
+# Projektweite Sprachkataloge statt app-eigener locale/-Verzeichnisse,
+# damit alle Übersetzungen an einer Stelle liegen.
 
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "Europe/Berlin"
 USE_I18N = True
 USE_TZ = True
+
+LOCALE_PATHS = [BASE_DIR / "locale"]
 
 
 # Statische Dateien -----------------------------------------------------

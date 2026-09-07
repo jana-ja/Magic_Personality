@@ -1,0 +1,28 @@
+{% load i18n static %}<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}{% translate "Magic Personality" %}{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/base.css' %}">
+  <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  {% block extra_head %}{% endblock %}
+</head>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+  <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
+
+  <header class="site-header">
+    <a class="site-header__brand" href="/">{% translate "Magic Personality" %}</a>
+  </header>
+
+  <main id="main-content" class="site-main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <p>{% translate "A small, private project about the Magic: The Gathering color wheel." %}</p>
+  </footer>
+
+  {% block extra_body %}{% endblock %}
+</body>
+</html>
