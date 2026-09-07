@@ -47,6 +47,11 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    # Zugangssperre (Task 0.5, FR-A1, D-09) — bewusst so früh wie
+    # möglich: gesperrte Anfragen werden umgeleitet, bevor Session,
+    # CSRF oder Auth überhaupt etwas damit tun. Läuft in jeder Umgebung
+    # (auch lokal, auch DEBUG=True) — FR-A1 kennt keine Ausnahme.
+    "apps.core.middleware.GateMiddleware",
     # WhiteNoise (nur in Produktion, siehe config/settings/prod.py) wird
     # hier bewusst nicht eingetragen: sonst bräuchte auch die lokale
     # Entwicklung ohne Docker das Paket, das in requirements/prod.txt
@@ -155,3 +160,27 @@ LOCALE_PATHS = [BASE_DIR / "locale"]
 STATIC_URL = "static/"
 STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / "staticfiles"
+
+
+# Zugangssperre (Task 0.5, D-09) -------------------------------------------
+# FR-A2: geteiltes Geheimnis, serverseitig konfigurierbar — kein
+# Default, ein fehlender Wert lässt die Anwendung beim Start
+# fehlschlagen statt unbemerkt mit einem leeren Code zu laufen.
+
+INVITE_CODE = env("INVITE_CODE")
+
+# FR-A3: langlebiges Cookie (ein Jahr), damit der Zugang auf einem
+# Gerät bestehen bleibt. Signiert über Djangos eigenen Signer (nutzt
+# SECRET_KEY) — der Wert selbst ist nicht geheim, aber ohne SECRET_KEY
+# nicht fälschbar.
+GATE_COOKIE_NAME = "mp_gate"
+GATE_COOKIE_SALT = "apps.core.gate"
+GATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
+
+# Rate Limiting auf der Code-Eingabe (FR-U6-artig, siehe
+# ARCHITECTURE.md §7 — "eigener Decorator für Registrierung und
+# Invite-Gate", nicht django-axes). Feste Werte statt Umgebungs-
+# variablen: das ist eine Abstimmungsgröße, kein Geheimnis und keine
+# Deployment-Variable.
+GATE_RATE_LIMIT_MAX_ATTEMPTS = 10
+GATE_RATE_LIMIT_WINDOW_SECONDS = 600

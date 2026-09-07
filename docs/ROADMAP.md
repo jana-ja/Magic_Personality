@@ -68,11 +68,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Ohne Invite-Code ist nichts erreichbar.
 **Abhängig von:** 0.4 · **Anforderungen:** FR-A1 bis FR-A4, D-09
 **Fertig, wenn:**
-- [ ] Middleware prüft ein signiertes Cookie; freigelistet sind nur Gate-View, `/healthz`, statische Dateien.
-- [ ] Code kommt aus einer Umgebungsvariable.
-- [ ] Rate Limiting auf der Code-Eingabe.
-- [ ] `X-Robots-Tag: noindex` als Header, dazu `robots.txt` mit `Disallow: /`.
-- [ ] Test: ohne Cookie ist **jede** URL gesperrt, auch unbekannte Pfade.
+- [x] Middleware prüft ein signiertes Cookie; freigelistet sind nur Gate-View, `/healthz`, statische Dateien.
+- [x] Code kommt aus einer Umgebungsvariable.
+- [x] Rate Limiting auf der Code-Eingabe.
+- [x] `X-Robots-Tag: noindex` als Header, dazu `robots.txt` mit `Disallow: /`.
+- [x] Test: ohne Cookie ist **jede** URL gesperrt, auch unbekannte Pfade.
 
 #### 0.6 · CI-Pipeline
 **Ziel:** Jeder Push wird automatisch geprüft.

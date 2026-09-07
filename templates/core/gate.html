@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Enter invite code" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "This is a private site" %}</h1>
+  <p>{% translate "Enter your invite code to continue." %}</p>
+
+  {% if error %}
+    <p class="gate-error" role="alert">{{ error }}</p>
+  {% endif %}
+
+  <form method="post" action="{% url 'gate' %}">
+    {% csrf_token %}
+    <input type="hidden" name="next" value="{{ next }}">
+    <label for="id_code">{% translate "Invite code" %}</label>
+    <input
+      type="password"
+      id="id_code"
+      name="code"
+      autocomplete="off"
+      autofocus
+      required
+    >
+    <button type="submit">{% translate "Continue" %}</button>
+  </form>
+{% endblock %}

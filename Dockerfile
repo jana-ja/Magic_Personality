@@ -27,6 +27,7 @@ RUN SECRET_KEY=build-time-placeholder-not-a-real-secret \
     ALLOWED_HOSTS=build-time-placeholder \
     DATABASE_URL=postgres://build:build@build-time-placeholder:5432/build \
     SECURE_SSL_REDIRECT=False \
+    INVITE_CODE=build-time-placeholder-not-a-real-secret \
     python manage.py collectstatic --noinput
 
 # Ohne Root laufen lassen.

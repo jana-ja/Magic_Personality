@@ -117,6 +117,41 @@ a {
   font-size: var(--font-size-sm);
 }
 
+/* Formulare (Task 0.5: Gate-Seite, später Login/Registrierung) -------- */
+
+form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-width: 24rem;
+}
+
+label {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+input,
+button {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+}
+
+button {
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent);
+  cursor: pointer;
+  width: fit-content;
+}
+
+.gate-error {
+  color: #b91c1c;
+  font-weight: 600;
+}
+
 /* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
    Der eigentliche Layout-Unterschied für das Fünfeck kommt mit
    Task 1.10 — dieser Breakpoint ist der gemeinsame Referenzpunkt, den
