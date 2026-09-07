@@ -131,6 +131,13 @@ class Trait(models.Model):
 
     class Meta:
         ordering = ["locale", "name"]
+        constraints = [
+            # (name, locale) ist der natürliche Schlüssel, über den der
+            # Seed-Mechanismus (Task 1.3) eine Eigenschaft wiedererkennt
+            # — hier auch auf DB-Ebene erzwungen, nicht nur als
+            # Konvention im Import-Code.
+            models.UniqueConstraint(fields=["name", "locale"], name="unique_trait_name_per_locale"),
+        ]
 
     def __str__(self):
         return self.name

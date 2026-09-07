@@ -168,3 +168,13 @@ Zunächst lokal per `act` verifiziert (inkl. Postgres-Service-Container und eine
 **Status:** Angenommen · 2026-09-08
 `Perspective.clean()` prüft seit Task 1.2 `combination.relation == Relation.ENEMY` statt nur "zwei Farben". Task 1.1 hatte das bewusst offengelassen (die Ally/Enemy-Berechnung existierte noch nicht) und dies im Code als TODO für Task 1.2 vermerkt.
 **Warum:** PRD §6.1 spezifiziert `Perspective.combination` explizit als "2-Farb-**Enemy**-Kombination" — mit der jetzt vorhandenen Farbrad-Logik (Task 1.2) lässt sich das direkt und korrekt erzwingen, statt nur strukturell "irgendeine Zweierkombination" zuzulassen.
+
+### D-33 · `Trait` bekommt (name, locale) als natürlichen Schlüssel, kein Slug-System
+**Status:** Angenommen · 2026-09-08
+`manage.py seed_content` (Task 1.3) erkennt eine Eigenschaft über `(name, locale)` wieder, nicht über eine externe ID/Slug. Ergänzend dazu jetzt ein echter DB-`UniqueConstraint` auf `Trait(name, locale)` (Migration `0003`), nicht nur eine Konvention im Import-Code.
+**Warum:** Ein Slug-System (wie es die alte, ersetzte JSON-Datei mit IDs wie `"authority"` nutzte) wäre für den überschaubaren, kuratierten Bestand dieses Projekts über-engineered. Bewusste Kehrseite: den `name` einer Eigenschaft zu ändern legt eine neue Zeile an, statt die alte umzubenennen — dokumentiert in `seeds/README.md`.
+
+### D-34 · `seeds/colors_en.json` startet leer, keine 31 Platzhalter-Einträge
+**Status:** Angenommen · 2026-09-08
+Die Produktions-Seed-Datei für Task 1.3 enthält `"combinations": []`. Alle Mechanik-Tests (Idempotenz, Validierung, Fehlerfälle) laufen gegen eigene, kleine Fixtures über `--path`, nie gegen diese Datei.
+**Warum:** docs/ROADMAP.md trennt Task 1.3 (Mechanismus) bewusst von Task 1.4 (Content erfassen, "größter inhaltlicher Einzelposten... eigene Sitzung, nicht mit einem Coding-Task vermischen"). 31 Einträge mit leerem Inhalt vorab anzulegen hätte keinen Mehrwert gegenüber der bereits vorhandenen Datenmigration (Task 1.1) geboten und das Risiko erhöht, unfertigen Platzhaltertext versehentlich für echten Content zu halten.

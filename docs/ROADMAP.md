@@ -109,10 +109,10 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Content aus versionierten Dateien einspielen.
 **Abhängig von:** 1.1 · **Anforderungen:** D-28
 **Fertig, wenn:**
-- [ ] JSON-Format unter `seeds/` dokumentiert (im Repo, nicht nur im Kopf).
-- [ ] `manage.py seed_content --locale en` ist **idempotent** — zweimaliger Lauf ändert nichts.
-- [ ] Unbekannte Felder oder unbekannte Farbcodes brechen mit klarer Fehlermeldung ab.
-- [ ] Test: Seed einspielen, zweiter Lauf erzeugt keine Änderung.
+- [x] JSON-Format unter `seeds/` dokumentiert (im Repo, nicht nur im Kopf).
+- [x] `manage.py seed_content --locale en` ist **idempotent** — zweimaliger Lauf ändert nichts.
+- [x] Unbekannte Felder oder unbekannte Farbcodes brechen mit klarer Fehlermeldung ab.
+- [x] Test: Seed einspielen, zweiter Lauf erzeugt keine Änderung.
 
 #### 1.4 · Content erfassen
 **Ziel:** Die eigentlichen Inhalte aus der Quelle, paraphrasiert.
