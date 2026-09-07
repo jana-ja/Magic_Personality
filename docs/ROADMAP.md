@@ -78,9 +78,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Jeder Push wird automatisch geprüft.
 **Abhängig von:** 0.3 · **Anforderungen:** ARCHITECTURE §11.3
 **Fertig, wenn:**
-- [ ] GitHub Actions: Ruff, `check --deploy`, pytest gegen ein Postgres-Service-Image, `makemigrations --check --dry-run`, Image-Build.
-- [ ] Image wird in die GitHub Container Registry veröffentlicht.
-- [ ] Ein absichtlich eingebauter Fehler lässt die Pipeline rot werden (einmal verifiziert, dann zurückgenommen).
+- [x] GitHub Actions: Ruff, `check --deploy`, pytest gegen ein Postgres-Service-Image, `makemigrations --check --dry-run`, Image-Build.
+- [x] Image wird in die GitHub Container Registry veröffentlicht.
+- [x] Ein absichtlich eingebauter Fehler lässt die Pipeline rot werden (einmal verifiziert, dann zurückgenommen).
 
 ---
 

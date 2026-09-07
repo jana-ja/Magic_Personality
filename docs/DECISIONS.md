@@ -157,3 +157,9 @@ Nicht beim Containerstart.
 **Status:** Angenommen · 2026-09-06
 `compose.yaml` (Task 0.3) enthält nur `web` und `db`. `SECURE_SSL_REDIRECT` ist env-gesteuert mit Default `True`, lokal in `compose.yaml` explizit auf `False` gesetzt.
 **Warum:** ARCHITECTURE.md §2 zeigt drei Container (inklusive Caddy) für den *produktiven* Aufbau; Task 0.3 verlangt für die *lokale* Entwicklung ausdrücklich nur `web` und `db`. Ohne einen TLS-terminierenden Proxy davor würde `SECURE_SSL_REDIRECT=True` in einer Endlosschleife enden (Weiterleitung auf `https://`, das lokal nie ankommt). Caddy und die produktionsscharfe Einstellung (`SECURE_SSL_REDIRECT=True`) kommen mit Task 1.12.
+
+### D-31 · CI baut das Image bei jedem Push, veröffentlicht aber nur von `main`
+**Status:** Angenommen · 2026-09-07
+Der `build`-Job aus `.github/workflows/ci.yml` baut das Docker-Image auf jedem Push und jedem PR (fängt einen kaputten Dockerfile-Build sofort ab, unabhängig vom Branch), meldet sich bei der GitHub Container Registry aber nur an und veröffentlicht auch nur, wenn `github.ref == 'refs/heads/main'`.
+**Warum:** ARCHITECTURE.md §11.3 nennt "Image-Build" als CI-Schritt, legt aber keine Branch-Policy fest. Ein Image bei jedem Feature-Branch-Push zu veröffentlichen würde die Registry mit nicht-deploybaren Zwischenständen zumüllen.
+**Offen:** Es existiert noch kein GitHub-Remote für dieses Repository. Verifiziert wurde die Pipeline deshalb lokal per `act` (inkl. Postgres-Service-Container und einem absichtlich roten Lauf) — ein echter Lauf auf GitHub selbst steht noch aus, bis das Repository dorthin gepusht wird.
