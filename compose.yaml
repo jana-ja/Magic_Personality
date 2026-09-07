@@ -11,6 +11,11 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-magic_personality}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-magic_personality}
       POSTGRES_DB: ${POSTGRES_DB:-magic_personality}
+    ports:
+      # Auf den Host gemappt, damit lokale Entwicklung ohne Docker
+      # (manage.py runserver, pytest) gegen "docker compose up db"
+      # laufen kann — genau das behauptet .env.example bereits.
+      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
