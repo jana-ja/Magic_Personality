@@ -157,6 +157,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 - [ ] **1 Farbe:** Name, Guiding Question, Eigenschaften (center und zu den Nachbarn tendierend), eigene Perspektive auf beide Feindfarben, Archetypen der vier Zweierkombinationen mit dieser Farbe.
 - [ ] **2 Farben:** Beziehungstyp, Name, Guiding Question, Archetype; bei Ally Eigenschaften, bei Enemy alle drei Perspektiven.
 - [ ] **3–5 Farben:** Name.
+- [ ] Die Linien am Fünfeck sind je Selektionszustand nach der Tabelle in PRD §5.2 beschriftet — einschließlich der Linien, die bewusst leer bleiben (D-37).
 - [ ] Eigenschaftstyp wird **nicht allein farblich** unterschieden (Symbol oder Beschriftung, NFR-6).
 - [ ] Fehlender Content erzeugt einen leeren Bereich, keinen Fehler.
 - [ ] Test: eine 3er-Kombination ohne Content rendert fehlerfrei.

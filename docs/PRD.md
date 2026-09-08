@@ -91,6 +91,27 @@ Fremde Profile ansehen, Suche nach Nickname und Farbkombination, Freundesliste. 
 | **2 Farben** | Beziehungstyp (Ally / Enemy) · Name · Guiding Question · Archetype · bei **Ally**: Eigenschaften · bei **Enemy**: alle drei Perspektiven (A über B, B über A, neutral). Am Fünfeck zusätzlich das gemeinsame Wort des Paares auf seiner Linie |
 | **3–5 Farben** | Name (weitere Inhalte folgen, sobald sie erfasst sind — siehe FR-C11) |
 
+**Beschriftung der Linien am Fünfeck**
+
+Nicht jede Linie trägt in jedem Zustand eine Beschriftung. Die Ecken
+zeigen immer Ziel und Mittel; die Linien folgen dieser Tabelle
+(Referenzzeichnungen: `docs/reference/`):
+
+| Selektion | Ally-Kanten mit Wort des Paares | Feind-Diagonalen mit Pol-Wörtern an beiden Enden | ohne Beschriftung |
+|---|---|---|---|
+| **0 Farben** | alle fünf | alle fünf, neutrale Sicht | — |
+| **1 Farbe X** | die beiden an X | die beiden an X, **aus X' eigener Sicht** | alle übrigen |
+| **2 Ally X+Y** | X–Y sowie die zweite Kante von X und die von Y | X und Y je zum **gemeinsamen** Feind, aus eigener Sicht; dazu die Diagonale zwischen den beiden übrigen Feinden, neutrale Sicht | X und Y zu ihrem jeweils **anderen** Feind |
+| **2 Enemy X+Y** | — | nur X–Y, neutrale Sicht, plus das Wort des Paares auf der Linie | alle übrigen |
+| **3–5 Farben** | noch offen (FR-C11) | noch offen (FR-C11) | — |
+
+Der Ally-Fall folgt derselben Logik wie der Artikel: Was ein
+verbündetes Paar teilt, zeigt sich an seinem **gemeinsamen** Feind —
+deshalb dort die eigene Sicht beider Farben. Wo das Paar auseinander
+zieht, zeigt sich an den beiden **übrigen** Feinden und der Achse
+zwischen ihnen. Die zwei Konflikte, die nur je eine der beiden Farben
+betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
+
 - **FR-C9** Ally/Enemy wird aus der Nachbarschaft im Farbrad **berechnet**, nicht gespeichert.
 - **FR-C10** Eigenschaften werden nach Typ (Strength / Weakness / Neutral) unterschieden. Die Unterscheidung wird **nicht allein farblich** kodiert (siehe NFR-6).
 - **FR-C11** Fehlender Content (z. B. Eigenschaften einer 3er-Kombination) führt zu einem leeren, aber fehlerfreien Bereich — nicht zu einem Fehler oder einer leeren Seite.
