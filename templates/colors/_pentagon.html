@@ -1,0 +1,32 @@
+{% load i18n static %}
+{% comment %} Das Fünfeck (Task 1.5, FR-C1 bis FR-C3). Bleibt in jedem
+   Selektionszustand sichtbar, deshalb ein eigener Baustein: Task 1.6
+   hängt die Auswahl daran, Task 1.7 die Beschriftungen der Linien. {% endcomment %}
+<svg class="pentagon"
+     viewBox="{{ view_box }}"
+     aria-labelledby="pentagon-title">
+  <title id="pentagon-title">{% translate "The five Magic colors on the color wheel" %}</title>
+
+  {% comment %} Außenkanten: verbündete Farben. Diagonalen: Feindpaare (D-04).
+     Beide Punktlisten kommen aus apps/colors/pentagon.py, damit die
+     Geometrie nur an einer Stelle steht. {% endcomment %}
+  <polygon class="pentagon__outline" points="{{ outline_points }}"/>
+  <polygon class="pentagon__star" points="{{ star_points }}"/>
+
+  {% for vertex in vertices %}
+    <g class="pentagon__vertex" data-color="{{ vertex.code }}">
+      <image class="pentagon__symbol"
+             href="{% static vertex.symbol %}"
+             x="{{ vertex.symbol_x }}" y="{{ vertex.symbol_y }}"
+             width="{{ vertex.symbol_size }}" height="{{ vertex.symbol_size }}"/>
+      {% comment %} font-size als Attribut, nicht im CSS: dieselbe Größe
+         geht in die Berechnung der viewBox ein (pentagon.NAME_SIZE),
+         beide dürfen nicht auseinanderlaufen. {% endcomment %}
+      <text class="pentagon__name"
+            x="{{ vertex.label_x }}" y="{{ vertex.label_y }}"
+            font-size="{{ name_size }}"
+            text-anchor="{{ vertex.text_anchor }}"
+            dominant-baseline="{{ vertex.baseline }}">{{ vertex.name }}</text>
+    </g>
+  {% endfor %}
+</svg>

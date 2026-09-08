@@ -1,0 +1,9 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Color Infos" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Color Infos" %}</h1>
+  {% include "colors/_pentagon.html" %}
+{% endblock %}

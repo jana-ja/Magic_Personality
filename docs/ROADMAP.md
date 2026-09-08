@@ -132,10 +132,10 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Das Fünfeck als SVG, ohne Interaktion.
 **Abhängig von:** 1.2, 0.4 · **Anforderungen:** FR-C1 bis FR-C3
 **Fertig, wenn:**
-- [ ] Spitze oben, im Uhrzeigersinn White, Blue, Black, Red, Green.
-- [ ] Je Farbe Symbol im Kreis plus Name.
-- [ ] Koordinaten stammen aus der Konstante aus 1.2, nicht aus fest eingetragenen Werten.
-- [ ] Mana-Symbole eingebunden, Fan-Content-Hinweis im Footer.
+- [x] Spitze oben, im Uhrzeigersinn White, Blue, Black, Red, Green.
+- [x] Je Farbe Symbol im Kreis plus Name.
+- [x] Koordinaten stammen aus der Konstante aus 1.2, nicht aus fest eingetragenen Werten.
+- [x] Mana-Symbole eingebunden, Fan-Content-Hinweis im Footer.
 
 #### 1.6 · Selektion und Routing
 **Ziel:** Auswahl funktioniert vollständig **ohne** JavaScript.
@@ -193,7 +193,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Pflichtangaben und Quellenkennzeichnung.
 **Abhängig von:** 0.4 · **Anforderungen:** PRD §9, D-12
 **Fertig, wenn:**
-- [ ] Footer: Quellenlink auf den Artikel, Fan-Content-Hinweis im vorgeschriebenen Wortlaut.
+- [ ] Footer: Quellenlink auf den Artikel. Der Fan-Content-Hinweis im vorgeschriebenen Wortlaut steht seit Task 1.5.
 - [ ] About-Seite mit Kontaktangabe.
 - [ ] Datenschutzseite als Platzhalter angelegt (Inhalt kommt mit 2.14, sobald personenbezogene Daten entstehen).
 

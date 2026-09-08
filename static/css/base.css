@@ -3,9 +3,8 @@
 
   Bewusst ohne Build-Schritt (ARCHITECTURE.md §3, D-25): reines CSS mit
   Custom Properties statt Utility-Klassen oder eines Präprozessors.
-  Farb-Token für die fünf MTG-Farben und das Fünfeck selbst kommen erst
-  mit Task 1.5 dazu — hier geht es nur um die Seitenchrome (Kopf,
-  Inhalt, Fuß) und die gemeinsamen Bausteine.
+  Die Seitenchrome (Kopf, Inhalt, Fuß) und die gemeinsamen Bausteine
+  stammen aus Task 0.4, das Fünfeck aus Task 1.5.
 */
 
 :root {
@@ -16,6 +15,13 @@
   --color-border: #e7e5e4;
   --color-accent: #4338ca;
   --color-focus: #2563eb;
+
+  /* Fünfeck (Task 1.5). Die Mana-Symbole bringen ihre eigene farbige
+     Scheibe mit, deshalb tauchen die fünf Farbwerte aus Color.hex hier
+     noch nicht auf — sie werden erst für die Hervorhebung der
+     Selektion gebraucht (Task 1.6, FR-C6). */
+  --pentagon-line: #292524;
+  --pentagon-line-width: 0.4;
 
   --font-sans:
     system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
@@ -161,4 +167,36 @@ button {
   .site-main {
     padding: var(--space-4) var(--space-3);
   }
+}
+
+/* Fünfeck (Task 1.5, FR-C1 bis FR-C3) ----------------------------------
+   Alle Maße im SVG sind viewBox-Einheiten, nicht Pixel: die Figur
+   skaliert als Ganzes mit ihrer Breite. Das eigenständige mobile
+   Layout kommt mit Task 1.10 (NFR-3). */
+
+.pentagon {
+  display: block;
+  width: 100%;
+  max-width: 34rem;
+  margin-inline: auto;
+}
+
+.pentagon__outline,
+.pentagon__star {
+  fill: none;
+  stroke: var(--pentagon-line);
+  stroke-width: var(--pentagon-line-width);
+  stroke-linejoin: round;
+}
+
+.pentagon__name {
+  fill: var(--color-text);
+  font-weight: 600;
+}
+
+/* Der Fan-Content-Hinweis steht im Fuß und darf dort ruhig leise sein,
+   muss aber lesbar bleiben (PRD §9). */
+.site-footer__fan-content {
+  max-width: var(--max-content-width);
+  font-size: var(--font-size-sm);
 }

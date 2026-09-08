@@ -21,6 +21,12 @@
 
   <footer class="site-footer">
     <p>{% translate "A small, private project about the Magic: The Gathering color wheel." %}</p>
+    {% comment %} Wortlaut nach der Wizards of the Coast Fan Content Policy
+       (PRD §9, D-12). Der Quellenlink auf den Artikel und die
+       Rechtstexte kommen mit Task 1.11. {% endcomment %}
+    <p class="site-footer__fan-content">
+      {% translate "Magic Personality is unofficial Fan Content permitted under the Wizards of the Coast Fan Content Policy. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. © Wizards of the Coast LLC." %}
+    </p>
   </footer>
 
   {% block extra_body %}{% endblock %}
