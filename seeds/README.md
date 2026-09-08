@@ -61,9 +61,17 @@ der Kommandozeile passen, sonst bricht der Import ab.
       "means": "",
       "guiding_question": "Who belongs, and who decides?",
       "archetype": "The Aristocrat",
+      "theme": "Hierarchie",
       "traits": [],
       "perspectives": [
-        { "from_color": "W", "text": "Sieht das Paar als moralische Ordnung." },
+        {
+          "from_color": "W",
+          "poles": [
+            { "color": "W", "term": "Ordnung" },
+            { "color": "B", "term": "Willkür" }
+          ],
+          "text": "Sieht das Paar als moralische Ordnung."
+        },
         { "from_color": "B", "text": "Sieht das Paar als nützliche Hierarchie." },
         { "from_color": null, "text": "Die Interessen der Gruppe gegen die des Einzelnen." }
       ]
@@ -100,6 +108,7 @@ Task 1.1s Datenmigration sie angelegt hat).
 | `means` | nein | Default `""`. Wie `goal`. |
 | `guiding_question` | nein | Default `""`. |
 | `archetype` | nein | Default `""`. Nur bei Zweierkombinationen sinnvoll befüllt. |
+| `theme` | nein | Default `""`. Das eine Wort auf der Linie zwischen zwei Farben im Fünfeck: bei Ally das gemeinsame Anliegen (`"Design"`), bei Enemy das, was beide zusammen ergeben (`"Tribalism"`). Wie `archetype` nur bei Zweierkombinationen sinnvoll — nicht erzwungen. |
 | `traits` | nein | Default `[]`. Nur bei Einzelfarben sinnvoll befüllt (FR-C-Tabelle in PRD §5.2). |
 | `perspectives` | nein | Default `[]`. Nur bei **Enemy**-Zweierkombinationen zulässig — bei jeder anderen Kombinationsgröße oder einem Ally-Paar bricht der Import ab (PRD §6.1: "2-Farb-Enemy-Kombination"). |
 
@@ -130,7 +139,21 @@ Slug-Systems.
 | Feld | Pflicht | Beschreibung |
 |---|---|---|
 | `from_color` | nein | `null` (neutrale Sicht) oder eine der beiden Farben der Kombination. Jede andere Farbe bricht ab. |
-| `text` | ja | |
+| `text` | ja | Der ausführliche Text. Steht **nicht** am Fünfeck, sondern im Info-Bereich. |
+| `poles` | nein | Default `[]`. Die kurzen Wörter am Fünfeck, siehe unten. |
+
+### Pol (`perspectives[].poles[]`)
+
+Ein Eintrag je Ende der Feind-Diagonale, also normalerweise genau zwei
+je Perspektive — auch bei der **neutralen** Sicht (`from_color: null`).
+Weiß sagt über das Paar W/B `"Good"` bei W und `"Evil"` bei B, Schwarz
+sagt `"Codependency"` bei W und `"Individualism"` bei B, die neutrale
+Sicht sagt `"Group"` und `"Individual"`.
+
+| Feld | Pflicht | Beschreibung |
+|---|---|---|
+| `color` | ja | Eine der beiden Farben der Kombination. Jede andere bricht ab. Bestimmt, an welchem Ende der Diagonale das Wort steht. |
+| `term` | ja | Ein Wort oder eine sehr kurze Wendung (`"Reason"`, `"Take it"`). |
 
 ## Validierung
 
@@ -144,7 +167,8 @@ nennt), statt fehlerhafte Daten still zu übernehmen:
   der gültigen Farben.
 - Alle Regeln aus den Modellen selbst (Tasks 1.1/1.2) — `leaning_toward`
   muss ein echter Rad-Nachbar sein, `Perspective` verlangt ein echtes
-  Enemy-Paar, `combination` und `trait`/`locale` müssen zusammenpassen.
+  Enemy-Paar, ein `poles[].color` muss zu den beiden Farben des Paares
+  gehören, `combination` und `trait`/`locale` müssen zusammenpassen.
 
 Ein fehlgeschlagener Import ändert **nichts** an der Datenbank — der
 gesamte Lauf ist eine einzige Transaktion.
@@ -159,12 +183,15 @@ Quelle genannt (PRD §9). Was aus welchem Abschnitt des Artikels kommt:
 
 | Feld | Abschnitt der Quelle |
 |---|---|
-| `goal`, `means` (Einzelfarben) | Der Einleitungssatz je Farbe („White seeks …, through …") |
+| `goal`, `means` (Einzelfarben) | Der Einleitungssatz je Farbe („White seeks …, through …"), auf ein Wort gekürzt — sie stehen an der Fünfeck-Ecke |
 | `guiding_question` (Einzelfarben) | „A \<color\> agent, when presented with a decision or quandary, asks …" |
 | `traits` (Einzelfarben) | Die Wortlisten („Other words associated with …") und die Absätze „From a negative perspective …" |
 | `name`, `archetype`, `guiding_question` (Zweierkombinationen) | „Allies in Arms" und „Opposites in Harmony", inklusive der dort genannten Kürzel (Azorius, Orzhov …) |
 | `traits` (Ally-Paare) | Das jeweils gemeinsame Anliegen der beiden verbündeten Farben |
-| `perspectives` (Feindpaare) | „Colors in Conflict" — die drei Sichten je Konflikt |
+| `perspectives[].text` (Feindpaare) | „Colors in Conflict" — die drei Sichten je Konflikt |
+| `perspectives[].poles` | Dieselben drei Sichten, in ihre beiden Hälften zerlegt; die neutralen zusätzlich aus der Fünfeck-Grafik des Artikels |
+| `theme` (Ally) | Das gemeinsame Anliegen aus „Allies in Arms“ (Design, Community, Progress, Independence, Authenticity) |
+| `theme` (Enemy) | Das Ergebnis der Kombination aus „Opposites in Harmony“ (Tribalism, Heroism, Creativity, Truth seeking, Profanity) |
 | `name` (3–5 Farben) | Die Dreifarb-Namen aus „Triple Major"; Vierfarb- und Fünffarb-Namen aus dem etablierten MTG-Sprachgebrauch (D-35) |
 
 Nicht übernommen wurden die Beispielfiguren aus Pop-Kultur, die
@@ -179,3 +206,8 @@ zwei Kombinationen ist über den natürlichen Schlüssel `(name, locale)`
 damit möglich, aber nur sinnvoll, wenn Beschreibung und Typ wirklich
 für beide Kombinationen passen. `apps/colors/tests/test_seed_file_en.py`
 prüft das mit.
+
+Wie die Felder am Fünfeck landen, zeigen die Referenzzeichnungen in
+`docs/reference/` — je eine für keine, eine und zwei selektierte Farben
+(Ally und Enemy). `apps/colors/tests/test_seed_file_en.py` pinnt den
+Default-Zustand (`default_0_selected.png`) Wort für Wort fest.

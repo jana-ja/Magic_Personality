@@ -67,6 +67,12 @@ class ColorCombination(models.Model):
     means = models.TextField(blank=True)
     guiding_question = models.TextField(blank=True)
     archetype = models.CharField(max_length=100, blank=True)
+    # Das eine Wort auf der Linie zwischen zwei Farben im Fünfeck: bei
+    # einem Ally-Paar das, worauf sich beide einigen ("Design"), bei
+    # einem Enemy-Paar das, was sie zusammen ergeben ("Tribalism").
+    # Wie archetype nur bei Zweierkombinationen sinnvoll befüllt —
+    # bewusst nicht erzwungen, siehe seeds/README.md.
+    theme = models.CharField(max_length=60, blank=True)
 
     class Meta:
         constraints = [
@@ -236,3 +242,44 @@ class Perspective(models.Model):
             )
         if self.combination_id and self.locale != self.combination.locale:
             raise ValidationError({"locale": "locale must match the combination's own locale."})
+
+
+class PerspectivePole(models.Model):
+    """
+    Ein einzelnes Wort an einem Ende einer Feind-Diagonale im Fünfeck,
+    aus dem Blickwinkel seiner `Perspective` (D-37).
+
+    Weiß über das Paar W/B sagt "Good" bei W und "Evil" bei B; Schwarz
+    sagt über dasselbe Paar "Individualism" bei B und "Codependency"
+    bei W; die neutrale Sicht sagt "Group" und "Individual". Je
+    Perspektive also genau zwei Zeilen, eine je Farbe des Paares.
+
+    Bewusst ein eigenes Modell statt zweier Spalten an `Perspective`:
+    die Zuordnung Wort -> Farbe *ist* hier der Inhalt. Über die
+    Position in einer Spalte wäre sie nur implizit, und ein
+    vertauschtes Paar ("Good" bei B) wäre eine Bedeutungsumkehr, die
+    keine Validierung finden könnte.
+
+    Trägt wie CombinationTrait keine eigene locale-Spalte: reiner
+    Anhang ohne eigenständigen Kontext, die Sprache kommt von der
+    Perspektive.
+    """
+
+    perspective = models.ForeignKey(Perspective, on_delete=models.CASCADE, related_name="poles")
+    color = models.CharField(max_length=1, choices=Color.Code.choices)
+    term = models.CharField(max_length=40)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["perspective", "color"], name="unique_pole_per_perspective_and_color"
+            ),
+        ]
+        ordering = ["perspective", "color"]
+
+    def __str__(self):
+        return f"{self.term} @ {self.color} ({self.perspective})"
+
+    def clean(self):
+        if self.perspective_id and self.color not in self.perspective.combination.code:
+            raise ValidationError({"color": "color must be one of the combination's own colors."})

@@ -121,6 +121,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 - [x] Für alle **fünf Einzelfarben**: Name, Ziel, Mittel, Guiding Question, Eigenschaften (center und zu beiden Nachbarn tendierend, je mit Typ).
 - [x] Für alle **zehn Zweierkombinationen**: Name, Guiding Question, Archetype; bei Ally zusätzlich Eigenschaften.
 - [x] Für alle **fünf Feindpaare**: je drei Perspektiven (A über B, B über A, neutral).
+- [x] Für alle **zehn Zweierkombinationen** das Fünfeck-Wort (`theme`); je Perspektive die beiden kurzen Pol-Wörter an den Enden der Diagonale (D-37).
 - [x] Für 3er-, 4er- und Fünffarb-Kombinationen: **nur der Name** (FR-C11, D-02).
 - [x] Texte sind paraphrasiert, nicht wörtlich übernommen.
 - [x] Die bestehende KI-generierte JSON-Datei wird ersetzt, nicht weiterverwendet.

@@ -8,8 +8,16 @@ verlangt die Definition of Done in docs/ROADMAP.md wörtlich.
 
 import pytest
 from django.core.exceptions import ValidationError
+from django.db.utils import IntegrityError
 
-from apps.colors.models import Color, ColorCombination, CombinationTrait, Perspective, Trait
+from apps.colors.models import (
+    Color,
+    ColorCombination,
+    CombinationTrait,
+    Perspective,
+    PerspectivePole,
+    Trait,
+)
 from apps.colors.utils import canonical_code
 
 pytestmark = pytest.mark.django_db
@@ -165,6 +173,54 @@ def test_perspective_accepts_the_neutral_viewpoint():
     combination = ColorCombination.objects.get(code="WB", locale="en")
 
     Perspective(combination=combination, text="...", locale="en").clean()  # raises nothing
+
+
+# PerspectivePole.clean() (Task 1.4, D-37) ----------------------------------
+# Ein Pol ist das eine Wort an einem Ende der Feind-Diagonale im
+# Fünfeck. Er gehört immer zu einer der beiden Farben seines Paares —
+# auch dann, wenn die Perspektive selbst die neutrale ist.
+
+
+def _white_black_perspective(from_color=""):
+    combination = ColorCombination.objects.get(code="WB", locale="en")
+    return Perspective.objects.create(
+        combination=combination, from_color=from_color, text="...", locale="en"
+    )
+
+
+def test_pole_color_must_belong_to_the_combination():
+    perspective = _white_black_perspective()
+
+    with pytest.raises(ValidationError):
+        PerspectivePole(perspective=perspective, color=Color.Code.RED, term="Chaos").clean()
+
+
+def test_pole_accepts_both_colors_of_the_pair():
+    perspective = _white_black_perspective(from_color=Color.Code.WHITE)
+
+    PerspectivePole(perspective=perspective, color=Color.Code.WHITE, term="Good").clean()
+    PerspectivePole(perspective=perspective, color=Color.Code.BLACK, term="Evil").clean()
+
+
+def test_the_neutral_viewpoint_also_carries_poles():
+    """
+    Anders als bei einem früheren Entwurf gehören Pole gerade *nicht*
+    nur zu den beiden Farbsichten: die neutrale Sicht auf W/B trägt
+    "Group" und "Individual" (D-37).
+    """
+    perspective = _white_black_perspective()
+
+    PerspectivePole(perspective=perspective, color=Color.Code.WHITE, term="Group").clean()
+
+
+def test_a_color_can_carry_only_one_pole_per_perspective():
+    perspective = _white_black_perspective(from_color=Color.Code.WHITE)
+    PerspectivePole.objects.create(perspective=perspective, color=Color.Code.WHITE, term="Good")
+
+    with pytest.raises(IntegrityError):
+        PerspectivePole.objects.create(
+            perspective=perspective, color=Color.Code.WHITE, term="Order"
+        )
 
 
 # ColorCombination.relation (Task 1.2, FR-C9, D-04) --------------------------

@@ -16,7 +16,13 @@ from django.core.exceptions import ValidationError
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction
 
-from apps.colors.models import ColorCombination, CombinationTrait, Perspective, Trait
+from apps.colors.models import (
+    ColorCombination,
+    CombinationTrait,
+    Perspective,
+    PerspectivePole,
+    Trait,
+)
 from apps.colors.utils import is_canonical
 
 ALLOWED_TOP_LEVEL_KEYS = {"locale", "combinations"}
@@ -27,11 +33,13 @@ ALLOWED_COMBINATION_KEYS = {
     "means",
     "guiding_question",
     "archetype",
+    "theme",
     "traits",
     "perspectives",
 }
 ALLOWED_TRAIT_KEYS = {"name", "description", "type", "leaning_toward"}
-ALLOWED_PERSPECTIVE_KEYS = {"from_color", "text"}
+ALLOWED_PERSPECTIVE_KEYS = {"from_color", "text", "poles"}
+ALLOWED_POLE_KEYS = {"color", "term"}
 
 
 class Command(BaseCommand):
@@ -72,6 +80,7 @@ class Command(BaseCommand):
         combinations_updated = 0
         traits_seen = 0
         perspectives_seen = 0
+        poles_seen = 0
 
         with transaction.atomic():
             for entry in data.get("combinations", []):
@@ -92,6 +101,7 @@ class Command(BaseCommand):
                         "means": entry.get("means", ""),
                         "guiding_question": entry.get("guiding_question", ""),
                         "archetype": entry.get("archetype", ""),
+                        "theme": entry.get("theme", ""),
                     },
                 )
                 self._full_clean_or_raise(combination, f"combination {code!r}")
@@ -103,14 +113,16 @@ class Command(BaseCommand):
                     traits_seen += 1
 
                 for perspective_entry in entry.get("perspectives", []):
-                    self._seed_perspective(combination, code, perspective_entry, locale)
+                    poles_seen += self._seed_perspective(
+                        combination, code, perspective_entry, locale
+                    )
                     perspectives_seen += 1
 
         self.stdout.write(
             self.style.SUCCESS(
                 f"{locale}: {combinations_created} Kombinationen neu, "
                 f"{combinations_updated} aktualisiert, {traits_seen} Eigenschaften, "
-                f"{perspectives_seen} Perspektiven verarbeitet."
+                f"{perspectives_seen} Perspektiven, {poles_seen} Pole verarbeitet."
             )
         )
 
@@ -151,9 +163,27 @@ class Command(BaseCommand):
             from_color=from_color,
             defaults={"text": text, "locale": locale},
         )
-        self._full_clean_or_raise(
-            perspective, f"perspective in combination {code!r} (from_color={from_color!r})"
+        where = f"perspective in combination {code!r} (from_color={from_color!r})"
+        self._full_clean_or_raise(perspective, where)
+
+        pole_entries = perspective_entry.get("poles", [])
+        for pole_entry in pole_entries:
+            self._seed_pole(perspective, pole_entry, where)
+        # Anzahl der Pole zurück an handle(), nur für die Abschlussmeldung.
+        return len(pole_entries)
+
+    def _seed_pole(self, perspective, pole_entry, where):
+        self._check_unknown_keys(pole_entry, ALLOWED_POLE_KEYS, f"pole in {where}")
+
+        color = pole_entry.get("color")
+        term = pole_entry.get("term")
+        if not color or not term:
+            raise CommandError(f"Pol in {where} braucht 'color' und 'term'.")
+
+        pole, _ = PerspectivePole.objects.update_or_create(
+            perspective=perspective, color=color, defaults={"term": term}
         )
+        self._full_clean_or_raise(pole, f"pole {color!r} in {where}")
 
     @staticmethod
     def _check_unknown_keys(data, allowed, where):

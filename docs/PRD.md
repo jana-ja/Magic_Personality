@@ -86,9 +86,9 @@ Fremde Profile ansehen, Suche nach Nickname und Farbkombination, Freundesliste. 
 
 | Selektion | Anzeige |
 |---|---|
-| **0 Farben** | Ziel und Mittel jeder der fünf Farben, am Fünfeck verortet |
-| **1 Farbe** | Name · Guiding Question · Eigenschaften (center bei der Farbe, tendierende Eigenschaften in Richtung des jeweiligen Nachbarn) · eigene Perspektive auf die beiden Feindfarben · Archetypen der vier Zweierkombinationen mit dieser Farbe |
-| **2 Farben** | Beziehungstyp (Ally / Enemy) · Name · Guiding Question · Archetype · bei **Ally**: Eigenschaften · bei **Enemy**: alle drei Perspektiven (A über B, B über A, neutral) |
+| **0 Farben** | Ziel und Mittel jeder der fünf Farben an ihrer Ecke; auf jeder Ally-Kante deren gemeinsames Anliegen; an beiden Enden jeder Feind-Diagonale die neutrale Sicht auf diesen Konflikt |
+| **1 Farbe** | Name · Guiding Question · Eigenschaften (center bei der Farbe, tendierende Eigenschaften in Richtung des jeweiligen Nachbarn) · eigene Perspektive auf die beiden Feindfarben · Archetypen der vier Zweierkombinationen mit dieser Farbe. Am Fünfeck tragen die beiden Feind-Diagonalen statt der neutralen Sicht die **eigene** Sicht dieser Farbe, an beiden Enden |
+| **2 Farben** | Beziehungstyp (Ally / Enemy) · Name · Guiding Question · Archetype · bei **Ally**: Eigenschaften · bei **Enemy**: alle drei Perspektiven (A über B, B über A, neutral). Am Fünfeck zusätzlich das gemeinsame Wort des Paares auf seiner Linie |
 | **3–5 Farben** | Name (weitere Inhalte folgen, sobald sie erfasst sind — siehe FR-C11) |
 
 - **FR-C9** Ally/Enemy wird aus der Nachbarschaft im Farbrad **berechnet**, nicht gespeichert.
@@ -171,7 +171,9 @@ Fremde Profile ansehen, Suche nach Nickname und Farbkombination, Freundesliste. 
 `code` (W/U/B/R/G) · `name` · `symbol` · `hex` · `wheel_position` (0–4, im Uhrzeigersinn ab White)
 
 **`ColorCombination`** — alle **31** Kombinationen, vollständig vorangelegt
-`colors` (Menge, 1–5) · `name` · `goal` · `means` · `guiding_question` · `archetype` · `locale`
+`colors` (Menge, 1–5) · `name` · `goal` · `means` · `guiding_question` · `archetype` · `theme` · `locale`
+
+> `theme` ist das eine Wort, das im Fünfeck auf der Linie zwischen zwei Farben steht — bei einem Ally-Paar ihr gemeinsames Anliegen, bei einem Feindpaar das, was beide zusammen ergeben. `goal` und `means` sind bewusst je ein Wort: sie stehen an der Fünfeck-Ecke.
 
 > Eine einzige Entität für n = 1..5, wie gewünscht. Felder ohne erfassten Inhalt bleiben leer — das ist bei 3er- und 4er-Kombinationen der Normalfall und kein Fehler.
 > Nicht enthalten: `symbol` (gehört zur Farbe, Kombinationen rendern die Symbole ihrer Farben) und `ally/enemy` (wird aus der Nachbarschaft berechnet, FR-C9).

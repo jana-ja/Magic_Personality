@@ -4,8 +4,8 @@
     {
       "code": "W",
       "name": "White",
-      "goal": "Peace — a world in which suffering has been designed out.",
-      "means": "Order: rules, coordination, shared restraint, and the willingness to hold oneself to them.",
+      "goal": "peace",
+      "means": "order",
       "guiding_question": "What is the right thing to do here?",
       "archetype": "",
       "traits": [
@@ -75,8 +75,8 @@
     {
       "code": "U",
       "name": "Blue",
-      "goal": "Perfection — the best version of a thing, reached once it is fully understood.",
-      "means": "Knowledge: study, analysis, and the patient application of whatever has been learned.",
+      "goal": "perfection",
+      "means": "knowledge",
       "guiding_question": "What does careful thought say is the sensible move?",
       "archetype": "",
       "traits": [
@@ -146,8 +146,8 @@
     {
       "code": "B",
       "name": "Black",
-      "goal": "Satisfaction — actually getting what one wants, rather than what one is supposed to want.",
-      "means": "Ruthlessness: accepting whatever a goal costs, and recognising no limit that does not come from one's own interests.",
+      "goal": "satisfaction",
+      "means": "ruthlessness",
       "guiding_question": "What leaves me better off?",
       "archetype": "",
       "traits": [
@@ -217,8 +217,8 @@
     {
       "code": "R",
       "name": "Red",
-      "goal": "Freedom — room to follow whatever feels most alive.",
-      "means": "Action: doing the thing now, in the moment, instead of deliberating about it first.",
+      "goal": "freedom",
+      "means": "action",
       "guiding_question": "What do I actually want to do right now?",
       "archetype": "",
       "traits": [
@@ -288,8 +288,8 @@
     {
       "code": "G",
       "name": "Green",
-      "goal": "Harmony — being at peace with the world roughly as it already is.",
-      "means": "Acceptance: taking up one's place in the existing order rather than trying to remake it.",
+      "goal": "harmony",
+      "means": "acceptance",
       "guiding_question": "How has this always been done, and what did that wisdom know?",
       "archetype": "",
       "traits": [
@@ -363,6 +363,7 @@
       "means": "",
       "guiding_question": "How do we work out what is right — and show our working?",
       "archetype": "The Architect",
+      "theme": "Design",
       "traits": [
         {
           "name": "Design Mindset",
@@ -392,6 +393,7 @@
       "means": "",
       "guiding_question": "What is the most effective route to what I want?",
       "archetype": "The Self-Made",
+      "theme": "Progress",
       "traits": [
         {
           "name": "Growth Mindset",
@@ -421,6 +423,7 @@
       "means": "",
       "guiding_question": "What is standing between me and what I want?",
       "archetype": "The Free Agent",
+      "theme": "Independence",
       "traits": [
         {
           "name": "Fierce Autonomy",
@@ -450,6 +453,7 @@
       "means": "",
       "guiding_question": "Where am I really, and where is this pulling me?",
       "archetype": "The Wild Heart",
+      "theme": "Authenticity",
       "traits": [
         {
           "name": "Authenticity",
@@ -479,6 +483,7 @@
       "means": "",
       "guiding_question": "What is fair here, and what will still be standing in a generation?",
       "archetype": "The Caretaker",
+      "theme": "Community",
       "traits": [
         {
           "name": "Sense of the Common Good",
@@ -508,18 +513,31 @@
       "means": "",
       "guiding_question": "Who counts as one of us?",
       "archetype": "The Insider",
+      "theme": "Tribalism",
       "traits": [],
       "perspectives": [
         {
           "from_color": "W",
+          "poles": [
+            { "color": "W", "term": "Good" },
+            { "color": "B", "term": "Evil" }
+          ],
           "text": "Reads the disagreement as good against evil: whoever puts themselves above the group has simply defected on everyone else."
         },
         {
           "from_color": "B",
+          "poles": [
+            { "color": "W", "term": "Codependency" },
+            { "color": "B", "term": "Individualism" }
+          ],
           "text": "Reads it as sovereignty against dependency: a group has to earn allegiance, and one that demands it for free is coercing."
         },
         {
           "from_color": null,
+          "poles": [
+            { "color": "W", "term": "Group" },
+            { "color": "B", "term": "Individual" }
+          ],
           "text": "Whether the individual exists to serve the group or the group exists to serve the individual — which of the two is owed the sacrifice."
         }
       ]
@@ -531,18 +549,31 @@
       "means": "",
       "guiding_question": "What needs doing here — and what would a decent person do about it?",
       "archetype": "The Champion",
+      "theme": "Heroism",
       "traits": [],
       "perspectives": [
         {
           "from_color": "W",
+          "poles": [
+            { "color": "W", "term": "Order" },
+            { "color": "R", "term": "Chaos" }
+          ],
           "text": "Reads the disagreement as order against chaos: without commitments that hold, nothing can be relied on and no trust can be built."
         },
         {
           "from_color": "R",
+          "poles": [
+            { "color": "W", "term": "Constraint" },
+            { "color": "R", "term": "Freedom" }
+          ],
           "text": "Reads it as freedom against constraint: every standing rule is one more thing nobody chose, narrowing who one is still allowed to become."
         },
         {
           "from_color": null,
+          "poles": [
+            { "color": "W", "term": "Structure" },
+            { "color": "R", "term": "Flexibility" }
+          ],
           "text": "Structure against flexibility — the same arrangement looks like scaffolding from one side and like a cage from the other."
         }
       ]
@@ -554,18 +585,31 @@
       "means": "",
       "guiding_question": "What could exist that does not exist yet?",
       "archetype": "The Inventor",
+      "theme": "Creativity",
       "traits": [],
       "perspectives": [
         {
           "from_color": "U",
+          "poles": [
+            { "color": "U", "term": "Clear thinking" },
+            { "color": "R", "term": "Short-sighted reacting" }
+          ],
           "text": "Reads the disagreement as thinking clearly against reacting on the first impulse and calling it insight."
         },
         {
           "from_color": "R",
+          "poles": [
+            { "color": "U", "term": "Cold heartlessness" },
+            { "color": "R", "term": "Warm aliveness" }
+          ],
           "text": "Reads it as being warmly alive against being so guarded that nothing gets felt and nothing gets done."
         },
         {
           "from_color": null,
+          "poles": [
+            { "color": "U", "term": "Reason" },
+            { "color": "R", "term": "Emotion" }
+          ],
           "text": "Reason and feeling, each claiming to be the more trustworthy guide to what one should actually do."
         }
       ]
@@ -577,18 +621,31 @@
       "means": "",
       "guiding_question": "What am I still not seeing?",
       "archetype": "The Seeker",
+      "theme": "Truth seeking",
       "traits": [],
       "perspectives": [
         {
           "from_color": "U",
+          "poles": [
+            { "color": "U", "term": "Optimization" },
+            { "color": "G", "term": "Complacency" }
+          ],
           "text": "Reads the disagreement as improvement against complacency: a system that has been understood is a system that can be made better."
         },
         {
           "from_color": "G",
+          "poles": [
+            { "color": "U", "term": "Destabilization" },
+            { "color": "G", "term": "Equilibrium" }
+          ],
           "text": "Reads it as equilibrium against destabilisation: pulling on a thread nobody understands unravels more than it ever repairs."
         },
         {
           "from_color": null,
+          "poles": [
+            { "color": "U", "term": "Nurture" },
+            { "color": "G", "term": "Nature" }
+          ],
           "text": "How much of what a person becomes was settled by nature and circumstance, and how much of it is still genuinely open."
         }
       ]
@@ -600,18 +657,31 @@
       "means": "",
       "guiding_question": "What will this really cost, and who ends up paying it?",
       "archetype": "The Scavenger",
+      "theme": "Profanity",
       "traits": [],
       "perspectives": [
         {
           "from_color": "B",
+          "poles": [
+            { "color": "B", "term": "Pragmatism" },
+            { "color": "G", "term": "Waste" }
+          ],
           "text": "Reads the disagreement as putting things to use against leaving them to rot untouched out of squeamishness."
         },
         {
           "from_color": "G",
+          "poles": [
+            { "color": "B", "term": "Exploitation" },
+            { "color": "G", "term": "Preservation" }
+          ],
           "text": "Reads it as protecting a living balance against strip-mining it for a gain that will not last."
         },
         {
           "from_color": null,
+          "poles": [
+            { "color": "B", "term": "Take it" },
+            { "color": "G", "term": "Leave it" }
+          ],
           "text": "Take what the world offers, or leave it standing — the argument over what the individual owes the environment it grew out of."
         }
       ]

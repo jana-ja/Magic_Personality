@@ -12,7 +12,13 @@ import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
-from apps.colors.models import ColorCombination, CombinationTrait, Perspective, Trait
+from apps.colors.models import (
+    ColorCombination,
+    CombinationTrait,
+    Perspective,
+    PerspectivePole,
+    Trait,
+)
 
 pytestmark = pytest.mark.django_db
 
@@ -177,6 +183,152 @@ def test_seed_creates_all_three_perspectives_for_an_enemy_pair(tmp_path):
         "B": "Black's view",
         "": "Neutral view",
     }
+
+
+def test_seed_creates_the_poles_of_a_perspective(tmp_path):
+    """Die zwei Wörter je Perspektive, jedes an seine Farbe gebunden (D-37)."""
+    data = {
+        "locale": "en",
+        "combinations": [
+            {
+                "code": "WB",
+                "perspectives": [
+                    {
+                        "from_color": "W",
+                        "text": "White's view",
+                        "poles": [
+                            {"color": "W", "term": "Good"},
+                            {"color": "B", "term": "Evil"},
+                        ],
+                    },
+                    {
+                        "from_color": None,
+                        "text": "Neutral view",
+                        "poles": [
+                            {"color": "W", "term": "Group"},
+                            {"color": "B", "term": "Individual"},
+                        ],
+                    },
+                ],
+            }
+        ],
+    }
+
+    _seed(tmp_path, data)
+
+    combination = ColorCombination.objects.get(code="WB", locale="en")
+    by_viewpoint = {
+        perspective.from_color: {pole.color: pole.term for pole in perspective.poles.all()}
+        for perspective in combination.perspectives.all()
+    }
+    assert by_viewpoint == {
+        "W": {"W": "Good", "B": "Evil"},
+        "": {"W": "Group", "B": "Individual"},
+    }
+
+
+def test_seed_rejects_a_pole_for_a_color_outside_the_pair(tmp_path):
+    message = _seed_raises(
+        tmp_path,
+        {
+            "locale": "en",
+            "combinations": [
+                {
+                    "code": "WB",
+                    "perspectives": [
+                        {
+                            "from_color": "W",
+                            "text": "...",
+                            "poles": [{"color": "R", "term": "Chaos"}],
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    assert "color" in message
+
+
+def test_unknown_pole_field_raises(tmp_path):
+    message = _seed_raises(
+        tmp_path,
+        {
+            "locale": "en",
+            "combinations": [
+                {
+                    "code": "WB",
+                    "perspectives": [
+                        {
+                            "from_color": "W",
+                            "text": "...",
+                            "poles": [{"color": "W", "term": "Good", "labl": "typo"}],
+                        }
+                    ],
+                }
+            ],
+        },
+    )
+    assert "labl" in message
+
+
+def test_a_pole_without_color_or_term_raises(tmp_path):
+    message = _seed_raises(
+        tmp_path,
+        {
+            "locale": "en",
+            "combinations": [
+                {
+                    "code": "WB",
+                    "perspectives": [{"from_color": "W", "text": "...", "poles": [{"color": "W"}]}],
+                }
+            ],
+        },
+    )
+    assert "term" in message
+
+
+def test_seeding_poles_twice_updates_in_place(tmp_path):
+    data = {
+        "locale": "en",
+        "combinations": [
+            {
+                "code": "WB",
+                "perspectives": [
+                    {
+                        "from_color": "W",
+                        "text": "...",
+                        "poles": [{"color": "W", "term": "Good"}],
+                    }
+                ],
+            }
+        ],
+    }
+    _seed(tmp_path, data)
+
+    data["combinations"][0]["perspectives"][0]["poles"][0]["term"] = "Order"
+    _seed(tmp_path, data)
+
+    assert [(pole.color, pole.term) for pole in PerspectivePole.objects.all()] == [("W", "Order")]
+
+
+def test_seed_stores_the_theme_of_a_combination(tmp_path):
+    _seed(
+        tmp_path,
+        {
+            "locale": "en",
+            "combinations": [
+                {"code": "WU", "name": "Azorius", "theme": "Design"},
+                {"code": "WB", "name": "Orzhov", "theme": "Tribalism"},
+            ],
+        },
+    )
+
+    themes = dict(
+        ColorCombination.objects.filter(code__in=["WU", "WB"], locale="en").values_list(
+            "code", "theme"
+        )
+    )
+    assert themes == {"WU": "Design", "WB": "Tribalism"}
 
 
 def test_seed_rejects_a_perspective_on_an_ally_pair(tmp_path):
