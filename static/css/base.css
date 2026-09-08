@@ -194,6 +194,46 @@ button {
   font-weight: 600;
 }
 
+/* Selektion (Task 1.6, FR-C4 bis FR-C7) ---------------------------------
+   Jede Ecke ist ein echter Link (D-24) — funktioniert ohne JavaScript.
+   Tastatur-Semantik (aria-pressed, Live-Region) kommt mit Task 1.9;
+   hier geht es nur um Verlinkung und Hervorhebung. */
+
+.pentagon__vertex {
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.pentagon__halo {
+  /* --mana kommt inline vom Server (Color.hex) — die einzige Stelle,
+     an der dieses Feld bisher gebraucht wird. Ohne Selektion oder bei
+     einer nicht ausgewählten Farbe unsichtbar (FR-C6: nur Auswahl wird
+     hervorgehoben, keine zusätzliche Deko im neutralen Zustand). */
+  fill: var(--mana);
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.pentagon__vertex--selected .pentagon__halo {
+  opacity: 0.35;
+}
+
+.pentagon__vertex--unselected {
+  /* "Zurückgenommen" (FR-C6), nicht versteckt — weiterhin lesbar und
+     als Link bedienbar, um eine Farbe wieder hinzuzunehmen. */
+  opacity: 0.4;
+}
+
+.pentagon__vertex:hover,
+.pentagon__vertex:focus-visible {
+  opacity: 1;
+}
+
+.pentagon-controls {
+  text-align: center;
+  margin-top: var(--space-3);
+}
+
 /* Der Fan-Content-Hinweis steht im Fuß und darf dort ruhig leise sein,
    muss aber lesbar bleiben (PRD §9). */
 .site-footer__fan-content {

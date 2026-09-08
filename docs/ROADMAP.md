@@ -141,13 +141,13 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Auswahl funktioniert vollständig **ohne** JavaScript.
 **Abhängig von:** 1.5 · **Anforderungen:** FR-C4 bis FR-C7, D-24
 **Fertig, wenn:**
-- [ ] `/colors/` und `/colors/<code>/` liefern jeden der 31 Codes gültig aus.
-- [ ] Jede Farbe ist ein Link auf die URL, die sich beim Umschalten dieser Farbe ergibt.
-- [ ] „Zurücksetzen" führt auf `/colors/`.
-- [ ] Nicht kanonische Codes (`/colors/uw/`) leiten dauerhaft auf die kanonische Form um.
-- [ ] Ungültige Codes ergeben 404.
-- [ ] Selektierte Farben sind hervorgehoben, nicht selektierte zurückgenommen.
-- [ ] Test: alle 31 Codes liefern Status 200.
+- [x] `/colors/` und `/colors/<code>/` liefern jeden der 31 Codes gültig aus.
+- [x] Jede Farbe ist ein Link auf die URL, die sich beim Umschalten dieser Farbe ergibt.
+- [x] „Zurücksetzen" führt auf `/colors/`.
+- [x] Nicht kanonische Codes (`/colors/uw/`) leiten dauerhaft auf die kanonische Form um.
+- [x] Ungültige Codes ergeben 404.
+- [x] Selektierte Farben sind hervorgehoben, nicht selektierte zurückgenommen.
+- [x] Test: alle 31 Codes liefern Status 200.
 
 #### 1.7 · Inhalte je Selektionsgröße
 **Ziel:** Die Tabelle aus PRD §5.2 vollständig.

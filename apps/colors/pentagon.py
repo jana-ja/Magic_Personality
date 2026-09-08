@@ -12,8 +12,8 @@ Farben stehen, kommt vollständig aus `Color.wheel_position` und
 `wheel.POSITION_COUNT`.
 
 Bewusst Django-unabhängig bis auf die Farbobjekte, die hereingereicht
-werden: `vertices()` liest von ihnen nur `code`, `name`, `symbol` und
-`wheel_position`.
+werden: `vertices()` liest von ihnen nur `code`, `name`, `symbol`,
+`hex` und `wheel_position`.
 """
 
 from dataclasses import dataclass
@@ -64,6 +64,12 @@ class Vertex:
     name: str
     #: Pfad relativ zu static/ — im Template durch {% static %} zu reichen.
     symbol: str
+    #: Identitätsfarbe der Farbe (Color.hex). Nicht für die
+    #: Kreisfüllung gedacht — die Mana-Symbole bringen ihre eigene
+    #: Scheibe mit (Task 1.5) — sondern für die Hervorhebung der
+    #: Selektion (Task 1.6, FR-C6): erster tatsächlicher Gebrauch
+    #: dieses seit Task 1.1 unbenutzten Felds.
+    hex: str
     x: float
     y: float
     label_x: float
@@ -134,6 +140,7 @@ def vertices(colors):
                 code=color.code,
                 name=color.name,
                 symbol=color.symbol,
+                hex=color.hex,
                 x=x,
                 y=y,
                 label_x=label_x,

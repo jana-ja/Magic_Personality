@@ -1,7 +1,19 @@
-{% load i18n static %}
-{% comment %} Das Fünfeck (Task 1.5, FR-C1 bis FR-C3). Bleibt in jedem
-   Selektionszustand sichtbar, deshalb ein eigener Baustein: Task 1.6
-   hängt die Auswahl daran, Task 1.7 die Beschriftungen der Linien. {% endcomment %}
+{% load i18n l10n static %}
+{% comment %} Das Fünfeck (Task 1.5, FR-C1 bis FR-C3) samt Selektion
+   (Task 1.6, FR-C4 bis FR-C7). Bleibt in jedem Selektionszustand
+   sichtbar, deshalb ein eigener Baustein: Task 1.7 hängt die
+   Beschriftung der Linien daran. {% endcomment %}
+{% comment %} localize off: SVG-Koordinaten sind Maschinenzahlen, keine
+   Anzeigetexte. Ohne das formatiert Django rohe Floats nach aktiver
+   Sprache — z. B. "23,336" statt "23.336" bei aktivem Deutsch (D-15
+   macht das ab Task 1.3 real erreichbar) — und macht jedes Attribut
+   damit ungültig. outline_points/star_points/view_box sind schon in
+   Python vorformatierte Strings und deshalb ungefährdet; alles, was
+   hier unten als rohe Zahl aus dem Vertex kommt, ist es nicht. Gilt
+   für den ganzen Block, damit Task 1.7s weitere Koordinaten (Pol-
+   Beschriftungen an den Diagonalen) denselben Schutz automatisch
+   mitbekommen. {% endcomment %}
+{% localize off %}
 <svg class="pentagon"
      viewBox="{{ view_box }}"
      aria-labelledby="pentagon-title">
@@ -13,20 +25,42 @@
   <polygon class="pentagon__outline" points="{{ outline_points }}"/>
   <polygon class="pentagon__star" points="{{ star_points }}"/>
 
-  {% for vertex in vertices %}
-    <g class="pentagon__vertex" data-color="{{ vertex.code }}">
+  {% for link in vertex_links %}
+    {% comment %} Echter Link auf die Toggle-URL dieser Farbe (FR-C4,
+       D-24: Progressive Enhancement statt JS-Insel) — funktioniert
+       ohne JavaScript. Tastatur-Semantik über aria-pressed & Co.
+       kommt mit Task 1.9. {% endcomment %}
+    <a class="pentagon__vertex{% if has_selection %}{% if link.is_selected %} pentagon__vertex--selected{% else %} pentagon__vertex--unselected{% endif %}{% endif %}"
+       data-color="{{ link.vertex.code }}"
+       href="{{ link.toggle_url }}"
+       aria-label="{{ link.vertex.name }}"
+       style="--mana: {{ link.vertex.hex }};">
+      {% comment %} Der Halo hinter dem Symbol nutzt Color.hex — erster
+         tatsächlicher Gebrauch dieses seit Task 1.1 unbenutzten Felds.
+         Sichtbar nur über CSS, wenn diese Ecke ausgewählt ist. {% endcomment %}
+      <circle class="pentagon__halo" cx="{{ link.vertex.x }}" cy="{{ link.vertex.y }}"
+              r="{{ link.vertex.symbol_size }}"/>
       <image class="pentagon__symbol"
-             href="{% static vertex.symbol %}"
-             x="{{ vertex.symbol_x }}" y="{{ vertex.symbol_y }}"
-             width="{{ vertex.symbol_size }}" height="{{ vertex.symbol_size }}"/>
+             href="{% static link.vertex.symbol %}"
+             x="{{ link.vertex.symbol_x }}" y="{{ link.vertex.symbol_y }}"
+             width="{{ link.vertex.symbol_size }}" height="{{ link.vertex.symbol_size }}"/>
       {% comment %} font-size als Attribut, nicht im CSS: dieselbe Größe
          geht in die Berechnung der viewBox ein (pentagon.NAME_SIZE),
          beide dürfen nicht auseinanderlaufen. {% endcomment %}
       <text class="pentagon__name"
-            x="{{ vertex.label_x }}" y="{{ vertex.label_y }}"
+            x="{{ link.vertex.label_x }}" y="{{ link.vertex.label_y }}"
             font-size="{{ name_size }}"
-            text-anchor="{{ vertex.text_anchor }}"
-            dominant-baseline="{{ vertex.baseline }}">{{ vertex.name }}</text>
-    </g>
+            text-anchor="{{ link.vertex.text_anchor }}"
+            dominant-baseline="{{ link.vertex.baseline }}">{{ link.vertex.name }}</text>
+    </a>
   {% endfor %}
 </svg>
+
+{% endlocalize %}
+
+{% if has_selection %}
+  {# FR-C5: "Auswahl zurücksetzen". Esc-Taste kommt mit Task 1.9. #}
+  <p class="pentagon-controls">
+    <a class="pentagon-controls__reset" href="{{ reset_url }}">{% translate "Reset selection" %}</a>
+  </p>
+{% endif %}
