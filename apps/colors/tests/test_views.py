@@ -175,10 +175,17 @@ def test_the_reset_link_leads_to_the_index(gated_client):
     assert f'href="{reverse("colors:index")}">Reset selection</a>' in html
 
 
-def test_no_reset_link_when_nothing_is_selected(gated_client):
+def test_the_reset_link_is_there_even_without_a_selection(gated_client):
+    """
+    Task 1.7 kehrt eine Task-1.6-Entscheidung um (D-41): Die Info-Box
+    ist jetzt ein reservierter Bereich, der immer da ist, auch ohne
+    Selektion — sonst würde die Seite beim Wählen der ersten Farbe
+    layoutmäßig springen. Der Reset-Link zeigt bei 0 Farben schlicht
+    wieder auf sich selbst.
+    """
     html = gated_client.get(reverse("colors:index")).content.decode()
 
-    assert "pentagon-controls" not in html
+    assert f'href="{reverse("colors:index")}">Reset selection</a>' in html
 
 
 def test_svg_coordinates_stay_machine_readable_under_a_non_english_locale(gated_client):
@@ -195,4 +202,7 @@ def test_svg_coordinates_stay_machine_readable_under_a_non_english_locale(gated_
     html = gated_client.get(reverse("colors:index")).content.decode()
 
     assert re.search(r'[xy]="[^"]*,[^"]*"', html) is None
-    assert 'viewBox="-70' in html
+    # Sanity: die viewBox ist da und sieht wie ein echtes, negativ
+    # beginnendes SVG-Fenster aus — kein exakter Wert, der bricht,
+    # sobald sich die Fünfeck-Konstanten ändern (Task 1.7).
+    assert re.search(r'viewBox="-\d+\.\d\d\d ', html)

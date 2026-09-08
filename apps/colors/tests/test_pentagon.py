@@ -126,7 +126,12 @@ def test_the_view_box_is_centred_horizontally(vertices):
     """
     min_x, _, max_x, _ = _view_box(vertices)
 
-    assert min_x == pytest.approx(-max_x)
+    # abs statt der viel engeren Standardtoleranz: view_box() rundet
+    # auf drei Nachkommastellen (ein SVG-Attribut, keine
+    # Berechnungsgrundlage mehr) — min_x und max_x können dadurch bis
+    # zu 0.001 auseinanderrunden, obwohl sie vor dem Runden exakt
+    # symmetrisch aus demselben half_width gebildet werden.
+    assert min_x == pytest.approx(-max_x, abs=0.002)
 
 
 def test_a_longer_color_name_widens_the_view_box(vertices):

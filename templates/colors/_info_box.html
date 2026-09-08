@@ -1,0 +1,82 @@
+{% load i18n %}
+{% comment %} Die Info-Box (Task 1.7, PRD §5.2). Immer da — auch ohne
+   Selektion — als reservierter Bereich: die erste Farbe zu wählen
+   verschiebt dadurch nichts auf der Seite. Nur der Inhalt wechselt
+   mit `box.kind`; FR-C11 gilt durchgehend — ein leeres Feld lässt
+   seinen Abschnitt einfach weg, statt einen Fehler zu zeigen.
+   {% endcomment %}
+<aside class="info-box" aria-label="{% translate 'Details' %}">
+  {% if box.kind == "none" %}
+    <p class="info-box__placeholder">
+      {% translate "Select 1–5 colors to see names, traits and perspectives here." %}
+    </p>
+
+  {% elif box.kind == "single" %}
+    <h2 class="info-box__title">{{ box.name }}</h2>
+    {% if box.guiding_question %}
+      <p class="info-box__question">“{{ box.guiding_question }}”</p>
+    {% endif %}
+    <div class="info-box__columns">
+      {% if box.allies %}
+        <div>
+          <div class="info-box__label">{% translate "Allies" %}</div>
+          {% for name in box.allies %}<div>{{ name }}</div>{% endfor %}
+        </div>
+      {% endif %}
+      {% if box.enemies %}
+        <div>
+          <div class="info-box__label">{% translate "Enemies" %}</div>
+          {% for name in box.enemies %}<div>{{ name }}</div>{% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+  {% elif box.kind == "ally" or box.kind == "enemy" %}
+    <span class="info-box__relation">{{ box.relation_label }}</span>
+    <h2 class="info-box__title">{{ box.name }}</h2>
+    {% if box.archetype %}
+      <p class="info-box__question">{{ box.archetype }}</p>
+    {% endif %}
+    {% if box.guiding_question %}
+      <p class="info-box__question">“{{ box.guiding_question }}”</p>
+    {% endif %}
+
+    {% if box.kind == "ally" %}
+      {% if box.common_enemy %}
+        <div class="info-box__fact">
+          <div class="info-box__label">{% translate "Common enemy" %}</div>
+          <div>{{ box.common_enemy }}</div>
+        </div>
+      {% endif %}
+      {% if box.conflict_text %}
+        <div class="info-box__fact">
+          <div class="info-box__label">{% translate "Neighbour ally conflict" %}</div>
+          <div>{{ box.conflict_text }}</div>
+        </div>
+      {% endif %}
+    {% else %}
+      {% for perspective in box.perspectives %}
+        <div class="perspective">
+          <div class="perspective__from">
+            {% if perspective.from_name %}
+              {% blocktranslate with name=perspective.from_name %}{{ name }}’s view{% endblocktranslate %}
+            {% else %}
+              {% translate "Neutral view" %}
+            {% endif %}
+          </div>
+          <p class="perspective__text">{{ perspective.text }}</p>
+        </div>
+      {% endfor %}
+    {% endif %}
+
+  {% elif box.kind == "many" and box.name %}
+    <h2 class="info-box__title">{{ box.name }}</h2>
+  {% endif %}
+
+  {% comment %} FR-C5: "Auswahl zurücksetzen" — immer da, auch ohne
+     etwas zurückzusetzen (dann zeigt der Link einfach wieder auf
+     /colors/). Esc-Taste kommt mit Task 1.9. {% endcomment %}
+  <div class="button-row">
+    <a class="button-row__button" href="{{ reset_url }}">{% translate "Reset selection" %}</a>
+  </div>
+</aside>

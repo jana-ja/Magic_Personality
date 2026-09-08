@@ -203,3 +203,28 @@ Die kurzen Wörter, die im Fünfeck an Kanten und Diagonalen stehen, sind zwei n
 **Status:** Angenommen · 2026-09-08
 `templates/colors/_pentagon.html` umschließt den gesamten `<svg>`-Block mit `{% localize off %}` … `{% endlocalize %}`.
 **Warum:** Bei Task 1.6 zeigte sich beim Testen mit einem auf Deutsch eingestellten Browser: Django formatiert rohe `float`-Werte im Template nach der aktiven Sprache — `23.336` wird zu `23,336`. Für Anzeigetext ist das erwünscht, für SVG-Koordinaten macht es das Attribut ungültig, ohne dass ein Fehler auftritt; die Figur zeichnet sich einfach falsch (Ecken kollabieren sichtbar auf einen Punkt). Betroffen sind nur roh übergebene `float`-Werte — `outline_points`, `star_points` und `view_box` sind in `pentagon.py` bereits zu Strings vorformatiert (`f"{x:.3f}"`) und daher immun, das war der Unterschied, an dem sich der Fehler eingrenzen ließ. `{% localize off %}` um den ganzen Block statt einzelner `|unlocalize`-Filter je Zahl, damit Task 1.7s weitere Koordinaten (Pol-Beschriftungen an den Diagonalen) automatisch denselben Schutz bekommen, statt dass er an jeder neuen Stelle erneut mitgedacht werden muss. Ein Regressionstest rendert die Seite mit aktivem Deutsch und prüft auf Komma-Dezimaltrenner in numerischen Attributen.
+
+### D-40 · 1-Farbe-Box zeigt Allies/Enemies statt Archetypen-Ausblick und Perspektiven-Text
+**Status:** Angenommen · 2026-09-08
+Die Info-Box bei einer selektierten Farbe zeigt eine Liste ihrer beiden Ally- und beiden Enemy-Farben (Namen, sonst nichts). Das ersetzt zwei ursprünglich in PRD §5.2 vorgesehene Inhalte für diesen Zustand: die vollständigen Archetypen-Namen der vier Zweierkombinationen mit dieser Farbe, und die eigene Perspektive (Fließtext) auf beide Feindfarben.
+**Warum:** In der Design-Runde zu Task 1.7 (mehrere Entwürfe, siehe die Artifact-Historie) hat sich gezeigt, dass beide Inhalte einen Klick entfernt ohnehin vollständig verfügbar sind — Guiding Question und Archetype einer Zweierkombination erscheinen beim Auswählen des jeweiligen Paares selbst, die Perspektiven-Texte beim Auswählen des jeweiligen Feindpaares. Die Allies/Enemies-Liste macht stattdessen sofort sichtbar, *wohin* ein weiterer Klick führen würde, ohne die Info-Box bei einer einzelnen Farbe mit vier Archetyp-Namen und zwei Textabsätzen zu überladen. PRD §5.2 ist entsprechend angepasst.
+
+### D-41 · Info-Box ist immer sichtbar, auch ohne Selektion
+**Status:** Angenommen · 2026-09-08
+Die Info-Box neben (Desktop) bzw. unter (Mobil) dem Fünfeck wird jetzt auch bei 0 Farben gerendert — mit einem Platzhaltertext und einem `Reset selection`-Link, der schlicht auf sich selbst zeigt. Ersetzt eine Task-1.6-Festlegung, nach der weder Box noch Reset-Link ohne Selektion erschienen.
+**Warum:** In der Design-Runde zu Task 1.7 hat sich die reservierte Fläche als die bessere Lösung erwiesen: Ohne sie verschiebt die erste getroffene Farbwahl das gesamte Seitenlayout (die Box erscheint neu und drängt den nachfolgenden Inhalt), mit ihr bleibt die Seitenstruktur über alle Selektionsgrößen hinweg stabil. Der zugehörige Task-1.6-Test (`test_no_reset_link_when_nothing_is_selected`) ist durch eine Prüfung der neuen Erwartung ersetzt.
+
+### D-42 · Halo-Farbe getrennt von der Identitätsfarbe, mit einer Ausnahme für Weiß
+**Status:** Angenommen · 2026-09-08
+`pentagon.py` bekommt eine eigene `HALO_OVERRIDES`-Konstante (`{"W": "#F4C430"}`) plus `halo_color()`. Der Selektions-Halo (Task 1.6, FR-C6) nutzt für vier Farben weiterhin direkt `Color.hex`, für Weiß einen kräftigeren, gelb gehaltenen Wert.
+**Warum:** Weiß' offizieller Mana-Hex-Wert (`#F8F6D8`) ist ein blasses Creme, das als weicher Halo auf dem Seitenhintergrund praktisch nicht zu erkennen ist — in der Design-Runde ausdrücklich bemängelt. `Color.hex` bleibt unverändert die echte, offizielle Identitätsfarbe (für spätere Verwendungszwecke wie FR-P3 relevant); der Kompromiss sitzt bewusst nur in der Präsentationsschicht (`pentagon.py`), nicht in den Stammdaten.
+
+### D-43 · Enemy-Diagonale trägt bei Selektion zusätzlich ihr eigenes Thema
+**Status:** Angenommen · 2026-09-08
+Bei zwei selektierten Enemy-Farben zeigt deren Diagonale zusätzlich zu den neutralen Pol-Wörtern das Thema der Kombination (`ColorCombination.theme`, z. B. "Tribalism" für WB) als Pill auf der Linienmitte — genau wie ein Ally-Paar sein gemeinsames Anliegen zeigt.
+**Warum:** PRD §5.2 hatte das für den Enemy-Fall bereits so festgelegt ("nur X–Y, neutrale Sicht, **plus das Wort des Paares auf der Linie**"), die frühen Entwürfe der Design-Runde hatten es aber schlicht vergessen umzusetzen — beim Bauen der echten Ansicht aufgefallen und nachgezogen, keine neue Festlegung.
+
+### D-44 · Fünfeck-Radius vergrößert, um Kollisionen der neuen Linienbeschriftungen zu vermeiden
+**Status:** Angenommen · 2026-09-08
+`pentagon.VERTEX_RADIUS` steigt von 34 auf 44; `THEME_LABEL_OUTWARD` und `POLE_LABEL_INSET` sind ebenfalls angepasst (mehr Abstand zwischen Kanten-Pill und Diagonalen-Pol nahe der Mitte).
+**Warum:** Beim Testen im echten Browser (nicht nur per pytest) überlappten sich bei 0 Farben zwei Beschriftungen desselben Bereichs — das Enemy-Pol-Wort "Individual" (auf der W–B-Diagonale) verdeckte einen Teil des Ally-Themas "Progress" (auf der U–B-Kante), da beide bei der ursprünglichen Fünfeck-Größe aus Task 1.5 zu dicht beieinander lagen. Ein automatisierter Kollisionstest (`elementFromPoint` an allen 15 Label-Mittelpunkten, siehe Testkommentare) bestätigt danach: keine Beschriftung deckt eine andere ab. `pentagon.py`s bestehende Tests referenzieren `VERTEX_RADIUS` symbolisch, keine Zahl war fest verdrahtet.

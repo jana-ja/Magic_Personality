@@ -1,18 +1,15 @@
 {% load i18n l10n static %}
 {% comment %} Das Fünfeck (Task 1.5, FR-C1 bis FR-C3) samt Selektion
-   (Task 1.6, FR-C4 bis FR-C7). Bleibt in jedem Selektionszustand
-   sichtbar, deshalb ein eigener Baustein: Task 1.7 hängt die
-   Beschriftung der Linien daran. {% endcomment %}
+   (Task 1.6, FR-C4 bis FR-C7) und Linienbeschriftung (Task 1.7,
+   D-37). Bleibt in jedem Selektionszustand sichtbar. {% endcomment %}
 {% comment %} localize off: SVG-Koordinaten sind Maschinenzahlen, keine
    Anzeigetexte. Ohne das formatiert Django rohe Floats nach aktiver
    Sprache — z. B. "23,336" statt "23.336" bei aktivem Deutsch (D-15
    macht das ab Task 1.3 real erreichbar) — und macht jedes Attribut
-   damit ungültig. outline_points/star_points/view_box sind schon in
-   Python vorformatierte Strings und deshalb ungefährdet; alles, was
-   hier unten als rohe Zahl aus dem Vertex kommt, ist es nicht. Gilt
-   für den ganzen Block, damit Task 1.7s weitere Koordinaten (Pol-
-   Beschriftungen an den Diagonalen) denselben Schutz automatisch
-   mitbekommen. {% endcomment %}
+   damit ungültig (D-39). outline_points/star_points/view_box sind
+   schon in Python vorformatierte Strings und deshalb ungefährdet;
+   alles, was hier unten als rohe Zahl aus Vertex/ThemeLabel/PoleLabel
+   kommt, ist es nicht. {% endcomment %}
 {% localize off %}
 <svg class="pentagon"
      viewBox="{{ view_box }}"
@@ -25,6 +22,31 @@
   <polygon class="pentagon__outline" points="{{ outline_points }}"/>
   <polygon class="pentagon__star" points="{{ star_points }}"/>
 
+  {% comment %} Das eine Wort auf einer Zweierlinie (D-37): bei einer
+     Ally-Kante das gemeinsame Anliegen, bei einer selektierten
+     Enemy-Diagonale deren eigenes Thema. Breite und Pill-Ecke sind
+     schon in Python berechnet (pentagon.ThemeLabel) — SVG-Rects
+     wachsen anders als HTML nicht von selbst mit ihrem Text mit.
+     {% endcomment %}
+  {% for label in theme_labels %}
+    <g class="pentagon__theme-label" transform="translate({{ label.x }},{{ label.y }})">
+      <rect x="{{ label.rect_x }}" y="{{ label.rect_y }}"
+            width="{{ label.width }}" height="{{ label.height }}"
+            rx="{{ label.height }}"/>
+      <text font-size="{{ label.size }}" text-anchor="middle" dominant-baseline="middle">{{ label.text }}</text>
+    </g>
+  {% endfor %}
+
+  {% comment %} Die Pol-Wörter an den Enden einer Feind-Diagonale (D-37). {% endcomment %}
+  {% for label in pole_labels %}
+    <g class="pentagon__pole-label" transform="translate({{ label.x }},{{ label.y }})">
+      <rect x="{{ label.rect_x }}" y="{{ label.rect_y }}"
+            width="{{ label.width }}" height="{{ label.height }}"
+            rx="1.5"/>
+      <text font-size="{{ label.size }}" text-anchor="middle" dominant-baseline="middle">{{ label.term }}</text>
+    </g>
+  {% endfor %}
+
   {% for link in vertex_links %}
     {% comment %} Echter Link auf die Toggle-URL dieser Farbe (FR-C4,
        D-24: Progressive Enhancement statt JS-Insel) — funktioniert
@@ -34,33 +56,28 @@
        data-color="{{ link.vertex.code }}"
        href="{{ link.toggle_url }}"
        aria-label="{{ link.vertex.name }}"
-       style="--mana: {{ link.vertex.hex }};">
-      {% comment %} Der Halo hinter dem Symbol nutzt Color.hex — erster
-         tatsächlicher Gebrauch dieses seit Task 1.1 unbenutzten Felds.
-         Sichtbar nur über CSS, wenn diese Ecke ausgewählt ist. {% endcomment %}
+       style="--halo: {{ link.vertex.halo }};">
+      {% comment %} Der Halo hinter dem Symbol nutzt Vertex.halo
+         (Task 1.6/1.7 — meist Color.hex, bei Weiß ein kräftigeres
+         Gelb, siehe pentagon.HALO_OVERRIDES). Sichtbar nur über CSS,
+         wenn diese Ecke ausgewählt ist. {% endcomment %}
       <circle class="pentagon__halo" cx="{{ link.vertex.x }}" cy="{{ link.vertex.y }}"
               r="{{ link.vertex.symbol_size }}"/>
       <image class="pentagon__symbol"
              href="{% static link.vertex.symbol %}"
              x="{{ link.vertex.symbol_x }}" y="{{ link.vertex.symbol_y }}"
              width="{{ link.vertex.symbol_size }}" height="{{ link.vertex.symbol_size }}"/>
-      {% comment %} font-size als Attribut, nicht im CSS: dieselbe Größe
-         geht in die Berechnung der viewBox ein (pentagon.NAME_SIZE),
-         beide dürfen nicht auseinanderlaufen. {% endcomment %}
-      <text class="pentagon__name"
-            x="{{ link.vertex.label_x }}" y="{{ link.vertex.label_y }}"
-            font-size="{{ name_size }}"
-            text-anchor="{{ link.vertex.text_anchor }}"
-            dominant-baseline="{{ link.vertex.baseline }}">{{ link.vertex.name }}</text>
+      {% comment %} Name, plus bei 0 Farben Ziel/Mittel darunter/darüber
+         (Task 1.7) — alle Zeilen samt Schriftgröße und y-Position
+         schon in Python berechnet (pentagon.Vertex.label_lines()),
+         weil dieselbe Größe auch in die viewBox einfließt. {% endcomment %}
+      {% for text, size, y in link.label_lines %}
+        <text class="pentagon__name{% if not forloop.first %} pentagon__name--extra{% endif %}"
+              x="{{ link.vertex.label_x }}" y="{{ y }}"
+              font-size="{{ size }}"
+              text-anchor="{{ link.vertex.text_anchor }}">{{ text }}</text>
+      {% endfor %}
     </a>
   {% endfor %}
 </svg>
-
 {% endlocalize %}
-
-{% if has_selection %}
-  {# FR-C5: "Auswahl zurücksetzen". Esc-Taste kommt mit Task 1.9. #}
-  <p class="pentagon-controls">
-    <a class="pentagon-controls__reset" href="{{ reset_url }}">{% translate "Reset selection" %}</a>
-  </p>
-{% endif %}

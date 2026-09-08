@@ -1,0 +1,38 @@
+{% load i18n %}
+{% comment %} Eigenschaften unterhalb von Fünfeck und Info-Box
+   (Task 1.7). Bei einer Farbe drei Spalten (leans-left / center /
+   leans-right — Bildschirmrichtung, nicht WUBRG-Reihenfolge), bei
+   einem Ally-Paar eine einzelne, zentrierte Box (die Traits eines
+   Paares tendieren zu keinem Nachbarn). Ganz weg, wenn es nichts zu
+   zeigen gibt (Enemy-Paare, 3–5 Farben, 0 Farben — FR-C11). {% endcomment %}
+{% if trait_groups.kind == "single" %}
+  <div class="trait-row">
+    <div class="trait-box trait-box--left">
+      <div class="trait-box__title">← {{ trait_groups.left_name }}</div>
+      <div class="trait-box__list">
+        {% for trait in trait_groups.left %}{% include "colors/_trait_chip.html" %}{% endfor %}
+      </div>
+    </div>
+    <div class="trait-box trait-box--center">
+      <div class="trait-box__title">{% translate "Center" %}</div>
+      <div class="trait-box__list">
+        {% for trait in trait_groups.center %}{% include "colors/_trait_chip.html" %}{% endfor %}
+      </div>
+    </div>
+    <div class="trait-box trait-box--right">
+      <div class="trait-box__title">{{ trait_groups.right_name }} →</div>
+      <div class="trait-box__list">
+        {% for trait in trait_groups.right %}{% include "colors/_trait_chip.html" %}{% endfor %}
+      </div>
+    </div>
+  </div>
+{% elif trait_groups.kind == "one-box" %}
+  <div class="trait-row trait-row--single">
+    <div class="trait-box trait-box--single">
+      <div class="trait-box__title">{{ trait_groups.title }}</div>
+      <div class="trait-box__list">
+        {% for trait in trait_groups.traits %}{% include "colors/_trait_chip.html" %}{% endfor %}
+      </div>
+    </div>
+  </div>
+{% endif %}

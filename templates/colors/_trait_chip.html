@@ -1,0 +1,8 @@
+{% comment %} Eine Eigenschaft (Task 1.7, NFR-6): Rahmenstil UND
+   Kürzel unterscheiden Strength/Weakness/Neutral, nie nur die Farbe.
+   Eigene Datei statt eines dritten `{% include %}` je Aufrufstelle,
+   weil `trait` hier aus dem umschließenden `{% for %}` kommt. {% endcomment %}
+<div class="trait-chip trait-chip--{{ trait.type|lower }}">
+  <span class="trait-chip__badge">{{ trait.type_label }}</span>
+  <span>{{ trait.name }}</span>
+</div>

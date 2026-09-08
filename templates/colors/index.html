@@ -5,5 +5,11 @@
 
 {% block content %}
   <h1>{% translate "Color Infos" %}</h1>
-  {% include "colors/_pentagon.html" %}
+  <div class="color-layout">
+    <div class="color-layout__pentagon">
+      {% include "colors/_pentagon.html" %}
+    </div>
+    {% include "colors/_info_box.html" %}
+  </div>
+  {% include "colors/_trait_row.html" %}
 {% endblock %}

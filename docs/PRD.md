@@ -87,9 +87,14 @@ Fremde Profile ansehen, Suche nach Nickname und Farbkombination, Freundesliste. 
 | Selektion | Anzeige |
 |---|---|
 | **0 Farben** | Ziel und Mittel jeder der fünf Farben an ihrer Ecke; auf jeder Ally-Kante deren gemeinsames Anliegen; an beiden Enden jeder Feind-Diagonale die neutrale Sicht auf diesen Konflikt |
-| **1 Farbe** | Name · Guiding Question · Eigenschaften (center bei der Farbe, tendierende Eigenschaften in Richtung des jeweiligen Nachbarn) · eigene Perspektive auf die beiden Feindfarben · Archetypen der vier Zweierkombinationen mit dieser Farbe. Am Fünfeck tragen die beiden Feind-Diagonalen statt der neutralen Sicht die **eigene** Sicht dieser Farbe, an beiden Enden |
-| **2 Farben** | Beziehungstyp (Ally / Enemy) · Name · Guiding Question · Archetype · bei **Ally**: Eigenschaften · bei **Enemy**: alle drei Perspektiven (A über B, B über A, neutral). Am Fünfeck zusätzlich das gemeinsame Wort des Paares auf seiner Linie |
-| **3–5 Farben** | Name (weitere Inhalte folgen, sobald sie erfasst sind — siehe FR-C11) |
+| **1 Farbe** | Name · Guiding Question · Eigenschaften (center, sowie in einer Zeile unterhalb von Fünfeck und Info-Box nach dem jeweiligen Nachbarn gruppiert — links/rechts folgt der Bildschirmposition, nicht der WUBRG-Reihenfolge) · die beiden Ally- und die beiden Enemy-Farben, benannt (D-40). Am Fünfeck tragen die beiden Feind-Diagonalen statt der neutralen Sicht die **eigene** Sicht dieser Farbe, an beiden Enden |
+| **2 Farben** | Beziehungstyp (Ally / Enemy) · Name · Guiding Question · Archetype · bei **Ally**: Eigenschaften (eine Eigenschaften-Zeile ohne Links/Rechts-Aufteilung, die Traits eines Paares tendieren zu keinem Nachbarn) sowie der gemeinsame Feind und die neutrale Sicht auf den Konflikt der beiden übrigen Nachbarn ("Neighbour ally conflict", D-40) · bei **Enemy**: alle drei Perspektiven (A über B, B über A, neutral). Am Fünfeck zusätzlich das gemeinsame Wort des Paares auf seiner Linie |
+| **3–5 Farben** | Name |
+
+Die Info-Box ist unabhängig von der Selektionsgröße immer sichtbar,
+auch bei 0 Farben (dort mit einem Platzhaltertext) — ein reservierter
+Bereich, damit die Seite beim Wählen der ersten Farbe nicht layoutmäßig
+springt (D-41, ersetzt eine Task-1.6-Festlegung).
 
 **Beschriftung der Linien am Fünfeck**
 

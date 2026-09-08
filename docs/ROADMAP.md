@@ -153,14 +153,14 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Die Tabelle aus PRD §5.2 vollständig.
 **Abhängig von:** 1.4, 1.6 · **Anforderungen:** FR-C8, FR-C10, FR-C11
 **Fertig, wenn:**
-- [ ] **0 Farben:** Ziel und Mittel aller fünf Farben, am Fünfeck verortet.
-- [ ] **1 Farbe:** Name, Guiding Question, Eigenschaften (center und zu den Nachbarn tendierend), eigene Perspektive auf beide Feindfarben, Archetypen der vier Zweierkombinationen mit dieser Farbe.
-- [ ] **2 Farben:** Beziehungstyp, Name, Guiding Question, Archetype; bei Ally Eigenschaften, bei Enemy alle drei Perspektiven.
-- [ ] **3–5 Farben:** Name.
-- [ ] Die Linien am Fünfeck sind je Selektionszustand nach der Tabelle in PRD §5.2 beschriftet — einschließlich der Linien, die bewusst leer bleiben (D-37).
-- [ ] Eigenschaftstyp wird **nicht allein farblich** unterschieden (Symbol oder Beschriftung, NFR-6).
-- [ ] Fehlender Content erzeugt einen leeren Bereich, keinen Fehler.
-- [ ] Test: eine 3er-Kombination ohne Content rendert fehlerfrei.
+- [x] **0 Farben:** Ziel und Mittel aller fünf Farben, am Fünfeck verortet.
+- [x] **1 Farbe:** Name, Guiding Question, Eigenschaften (center und in einer Zeile nach links/rechts tendierend gruppiert); Allies/Enemies benannt statt Archetypen-Ausblick und Perspektiven-Text (D-40).
+- [x] **2 Farben:** Beziehungstyp, Name, Guiding Question, Archetype; bei Ally Eigenschaften plus gemeinsamer Feind und Neighbour-Ally-Conflict (D-40), bei Enemy alle drei Perspektiven.
+- [x] **3–5 Farben:** Name.
+- [x] Die Linien am Fünfeck sind je Selektionszustand nach der Tabelle in PRD §5.2 beschriftet — einschließlich der Linien, die bewusst leer bleiben (D-37) und des Enemy-Themas auf der eigenen Diagonale (D-43).
+- [x] Eigenschaftstyp wird **nicht allein farblich** unterschieden (Symbol oder Beschriftung, NFR-6).
+- [x] Fehlender Content erzeugt einen leeren Bereich, keinen Fehler.
+- [x] Test: eine 3er-Kombination ohne Content rendert fehlerfrei.
 
 #### 1.8 · HTMX-Beschleunigung
 **Ziel:** Selektion ohne vollen Seitenaufbau.
