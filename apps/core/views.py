@@ -90,3 +90,19 @@ def gate(request):
 def robots_txt(request):
     """FR-A4: die Anwendung wird für Suchmaschinen gesperrt."""
     return HttpResponse("User-agent: *\nDisallow: /\n", content_type="text/plain")
+
+
+def about(request):
+    """About-Seite mit Kontaktangabe (Task 1.11, PRD §9)."""
+    return render(request, "core/about.html")
+
+
+def privacy(request):
+    """
+    Datenschutz-Platzhalter (Task 1.11, PRD §9). Der eigentliche
+    Inhalt (welche Daten, wo, wie lange, wie löschbar) kommt mit
+    Task 2.14, sobald mit Accounts personenbezogene Daten im
+    eigentlichen Sinn entstehen — vorher gibt es dafür nichts
+    Substanzielles zu beschreiben.
+    """
+    return render(request, "core/privacy.html")

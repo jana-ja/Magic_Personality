@@ -81,6 +81,24 @@ def test_the_footer_carries_the_fan_content_notice(gated_client):
     assert "Wizards of the Coast" in html
 
 
+def test_the_footer_links_to_the_source_article(gated_client):
+    """Task 1.11, PRD §9/D-12: der Artikel wird sichtbar als Quelle genannt."""
+    html = gated_client.get(reverse("colors:index")).content.decode()
+
+    assert 'href="https://homosabiens.substack.com/p/the-mtg-color-wheel"' in html
+    assert "Duncan Sabien" in html
+    # NFR-7: kein unnötiger Referrer an externe Seiten.
+    assert 'rel="noopener noreferrer"' in html
+
+
+def test_the_footer_links_to_about_and_privacy(gated_client):
+    """Task 1.11: Kontaktangabe und Datenschutz-Platzhalter sind erreichbar."""
+    html = gated_client.get(reverse("colors:index")).content.decode()
+
+    assert f'href="{reverse("about")}"' in html
+    assert f'href="{reverse("privacy")}"' in html
+
+
 # Task 1.6 · Selektion und Routing -------------------------------------
 
 

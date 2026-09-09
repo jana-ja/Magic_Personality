@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "About" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "About" %}</h1>
+  <p>
+    {% translate "Magic Personality is a small, private project built by one person for a closed circle of about 3 to 10 people. It is not a commercial product and is not intended for the public." %}
+  </p>
+  <p>
+    {% blocktranslate trimmed %}
+      Questions, feedback, or anything else about this site: <a href="mailto:janajansen.dev@gmail.com">janajansen.dev@gmail.com</a>.
+    {% endblocktranslate %}
+  </p>
+{% endblock %}

@@ -555,3 +555,17 @@ button {
   max-width: var(--max-content-width);
   font-size: var(--font-size-sm);
 }
+
+/* Quellenlink (Task 1.11, D-12) — dieselbe Zurückhaltung wie der
+   Fan-Content-Hinweis direkt darunter. */
+.site-footer__source {
+  max-width: var(--max-content-width);
+  font-size: var(--font-size-sm);
+}
+
+/* About/Privacy (Task 1.11) — kleine, leise Fußzeilen-Navigation. */
+.site-footer__links {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-2);
+}

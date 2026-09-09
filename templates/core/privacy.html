@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Privacy" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Privacy" %}</h1>
+  <p>
+    {% translate "This page is a placeholder. A full privacy notice — what data is stored, where, for how long, and how to have it deleted — will appear here once user accounts exist." %}
+  </p>
+  <p>
+    {% translate "In the meantime: this site currently stores a signed access cookie (no personal data in it) and the IP addresses of invite-code attempts, to prevent abuse. There are no user accounts, profiles, or other personal data yet." %}
+  </p>
+{% endblock %}

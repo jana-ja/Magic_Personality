@@ -193,9 +193,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Pflichtangaben und Quellenkennzeichnung.
 **Abhängig von:** 0.4 · **Anforderungen:** PRD §9, D-12
 **Fertig, wenn:**
-- [ ] Footer: Quellenlink auf den Artikel. Der Fan-Content-Hinweis im vorgeschriebenen Wortlaut steht seit Task 1.5.
-- [ ] About-Seite mit Kontaktangabe.
-- [ ] Datenschutzseite als Platzhalter angelegt (Inhalt kommt mit 2.14, sobald personenbezogene Daten entstehen).
+- [x] Footer: Quellenlink auf den Artikel. Der Fan-Content-Hinweis im vorgeschriebenen Wortlaut steht seit Task 1.5.
+- [x] About-Seite mit Kontaktangabe.
+- [x] Datenschutzseite als Platzhalter angelegt (Inhalt kommt mit 2.14, sobald personenbezogene Daten entstehen).
 
 #### 1.12 · Erstes Deployment
 **Ziel:** v0.1 läuft erreichbar auf dem kleinen Server.

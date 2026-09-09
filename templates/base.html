@@ -25,12 +25,26 @@
 
   <footer class="site-footer">
     <p>{% translate "A small, private project about the Magic: The Gathering color wheel." %}</p>
+    {% comment %} PRD §9/D-12: Inhalte sind paraphrasiert, nicht wörtlich
+       übernommen — der Artikel wird trotzdem sichtbar als Quelle
+       genannt. rel="noopener noreferrer" verhindert, dass beim Klick
+       unsere eigene Seiten-URL als Referrer an Substack geht (NFR-7,
+       "kein Tracking" gilt auch für das, was wir selbst weitergeben).
+       {% endcomment %}
+    <p class="site-footer__source">
+      {% blocktranslate trimmed %}
+        Color descriptions are paraphrased from <a href="https://homosabiens.substack.com/p/the-mtg-color-wheel" target="_blank" rel="noopener noreferrer">&quot;The MTG Color Wheel&quot;</a> by Duncan Sabien.
+      {% endblocktranslate %}
+    </p>
     {% comment %} Wortlaut nach der Wizards of the Coast Fan Content Policy
-       (PRD §9, D-12). Der Quellenlink auf den Artikel und die
-       Rechtstexte kommen mit Task 1.11. {% endcomment %}
+       (PRD §9, D-12). {% endcomment %}
     <p class="site-footer__fan-content">
       {% translate "Magic Personality is unofficial Fan Content permitted under the Wizards of the Coast Fan Content Policy. Not approved or endorsed by Wizards. Portions of the materials used are property of Wizards of the Coast. © Wizards of the Coast LLC." %}
     </p>
+    <nav class="site-footer__links" aria-label="{% translate 'More about this site' %}">
+      <a href="{% url 'about' %}">{% translate "About" %}</a>
+      <a href="{% url 'privacy' %}">{% translate "Privacy" %}</a>
+    </nav>
   </footer>
 
   {% block extra_body %}{% endblock %}
