@@ -67,16 +67,17 @@
              href="{% static link.vertex.symbol %}"
              x="{{ link.vertex.symbol_x }}" y="{{ link.vertex.symbol_y }}"
              width="{{ link.vertex.symbol_size }}" height="{{ link.vertex.symbol_size }}"/>
-      {% comment %} Name, plus bei 0 Farben Ziel/Mittel darunter/darüber
-         (Task 1.7) — alle Zeilen samt Schriftgröße und y-Position
-         schon in Python berechnet (pentagon.Vertex.label_lines()),
-         weil dieselbe Größe auch in die viewBox einfließt. {% endcomment %}
-      {% for text, size, y in link.label_lines %}
-        <text class="pentagon__name{% if not forloop.first %} pentagon__name--extra{% endif %}"
-              x="{{ link.vertex.label_x }}" y="{{ y }}"
-              font-size="{{ size }}"
-              text-anchor="{{ link.vertex.text_anchor }}">{{ text }}</text>
-      {% endfor %}
+      {% comment %} font-size als Attribut, nicht im CSS: dieselbe Größe
+         geht in die Berechnung der viewBox ein (pentagon.NAME_SIZE),
+         beide dürfen nicht auseinanderlaufen. Nur der Name — Ziel/
+         Mittel stehen seit Task 1.7/D-45 in der Info-Box statt hier,
+         damit das Fünfeck über jede Selektionsgröße hinweg identisch
+         bleibt. {% endcomment %}
+      <text class="pentagon__name"
+            x="{{ link.vertex.label_x }}" y="{{ link.vertex.label_y }}"
+            font-size="{{ name_size }}"
+            text-anchor="{{ link.vertex.text_anchor }}"
+            dominant-baseline="{{ link.vertex.baseline }}">{{ link.vertex.name }}</text>
     </a>
   {% endfor %}
 </svg>

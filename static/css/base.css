@@ -332,6 +332,12 @@ button {
   font-size: var(--font-size-sm);
 }
 
+.info-box__goal {
+  margin: 0 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
 .info-box__label {
   font-size: 0.7rem;
   font-weight: 700;

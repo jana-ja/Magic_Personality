@@ -47,22 +47,18 @@ def _url_for(url_code):
 @dataclass(frozen=True)
 class VertexLink:
     """
-    Eine Fünfeck-Ecke plus das, was Task 1.6/1.7 dazu brauchen: wohin
-    ein Klick führt (Toggle dieser Farbe, FR-C4), ob sie aktuell
-    ausgewählt ist (FR-C6) und ihre fertigen Textzeilen (Name, plus
-    Ziel/Mittel bei 0 Farben — `pentagon.Vertex.label_lines()`).
-    Eigene Klasse statt eines zweiten Dicts, weil Django-Templates
-    keinen Attributzugriff mit einem Variablen-Schlüssel können
-    (`dict.varname` sucht den *Namen* "varname", nicht dessen Wert) —
-    jede Ecke trägt ihre Verlinkung und ihre Zeilen deshalb direkt
-    bei sich.
+    Eine Fünfeck-Ecke plus das, was Task 1.6 dazu braucht: wohin ein
+    Klick führt (Toggle dieser Farbe, FR-C4) und ob sie aktuell
+    ausgewählt ist (FR-C6). Eigene Klasse statt eines zweiten Dicts,
+    weil Django-Templates keinen Attributzugriff mit einem
+    Variablen-Schlüssel können (`dict.varname` sucht den *Namen*
+    "varname", nicht dessen Wert) — jede Ecke trägt ihre Verlinkung
+    deshalb direkt bei sich.
     """
 
     vertex: pentagon.Vertex
     toggle_url: str
     is_selected: bool
-    #: [(Text, Schriftgröße, y)], siehe pentagon.Vertex.label_lines().
-    label_lines: list
 
 
 def pentagon_context(selected_colors=frozenset()):
@@ -84,7 +80,6 @@ def pentagon_context(selected_colors=frozenset()):
                 selection.canonical_url_code(selection.toggled(selected_colors, vertex.code))
             ),
             is_selected=vertex.code in selected_colors,
-            label_lines=vertex.label_lines(selection_content["vertex_extra"].get(vertex.code, ())),
         )
         for vertex in vertices
     ]
@@ -95,9 +90,12 @@ def pentagon_context(selected_colors=frozenset()):
         "vertex_links": vertex_links,
         "outline_points": pentagon.outline_points(vertices),
         "star_points": pentagon.star_points(vertices),
-        "view_box": pentagon.view_box(
-            vertices, selection_content["vertex_extra"], theme_labels, pole_labels
-        ),
+        # Absichtlich unabhängig von der Selektion (Task 1.7/D-45):
+        # `vertices` sind immer alle fünf, in derselben Reihenfolge —
+        # Fünfeck-Größe, -Position und Namens-Schriftgröße bleiben
+        # dadurch über jeden Selektionszustand hinweg identisch.
+        "view_box": pentagon.view_box(vertices, theme_labels, pole_labels),
+        "name_size": pentagon.NAME_SIZE,
         "theme_labels": theme_labels,
         "pole_labels": pole_labels,
         # Ob überhaupt eine Farbe gewählt ist. Bei 0 Farben ist keine

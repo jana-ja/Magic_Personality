@@ -19,14 +19,6 @@ pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("seeded_content")]
 # 0 Farben --------------------------------------------------------------
 
 
-def test_zero_colors_has_goal_and_means_for_every_vertex():
-    content = selection_content(set())
-
-    assert set(content["vertex_extra"]) == set("WUBRG")
-    for code, (goal, means) in content["vertex_extra"].items():
-        assert goal and means, code
-
-
 def test_zero_colors_labels_all_five_ally_edges_and_enemy_diagonals():
     content = selection_content(set())
 
@@ -46,13 +38,16 @@ def test_zero_colors_box_is_the_reserved_placeholder():
 # 1 Farbe -----------------------------------------------------------------
 
 
-def test_one_color_box_has_name_question_allies_and_enemies():
+def test_one_color_box_has_name_goal_means_question_allies_and_enemies():
     content = selection_content({"W"})
+    combo = ColorCombination.objects.get(code="W", locale="en")
 
     assert content["box"] == {
         "kind": "single",
         "name": "White",
-        "guiding_question": ColorCombination.objects.get(code="W", locale="en").guiding_question,
+        "goal": combo.goal,
+        "means": combo.means,
+        "guiding_question": combo.guiding_question,
         "allies": ["Green", "Blue"],
         "enemies": ["Black", "Red"],
     }
@@ -80,10 +75,16 @@ def test_one_color_pentagon_shows_its_own_ally_edges_and_own_view_of_enemies():
     assert terms == {"Good", "Evil", "Order", "Chaos"}
 
 
-def test_one_color_vertex_extra_is_empty_once_selected():
+def test_one_color_goal_and_means_are_short_single_words():
+    """
+    D-45: goal/means stehen als "goal through means" in der Info-Box,
+    nicht mehr am Fünfeck — trotzdem bleiben es die kurzen, in Task 1.4
+    bewusst auf ein Wort gekürzten Werte (nicht die Langfassung).
+    """
     content = selection_content({"W"})
 
-    assert content["vertex_extra"] == {}
+    assert content["box"]["goal"] == "peace"
+    assert content["box"]["means"] == "order"
 
 
 # 2 Farben, Ally ------------------------------------------------------------

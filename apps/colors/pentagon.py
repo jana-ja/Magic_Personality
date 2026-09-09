@@ -44,12 +44,6 @@ NAME_SIZE = 7
 NAME_CHAR_WIDTH = 0.62
 PADDING = 2
 
-#: Schriftgröße und Zeilenabstand zusätzlicher Textzeilen unter/über
-#: dem Namen — bislang nur Ziel und Mittel bei 0 Farben (Task 1.7,
-#: PRD §5.2). Kleiner als NAME_SIZE, sonst dieselben Einheiten.
-EXTRA_LINE_SIZE = 5
-EXTRA_LINE_GAP = 1.2
-
 #: Farbe des Halos, der eine Auswahl hervorhebt (Task 1.6, FR-C6).
 #: Meist Color.hex selbst — mit einer Ausnahme: Weiß' eigener Hex-Wert
 #: (#F8F6D8) ist ein blasses Creme und als weicher Farbfleck auf dem
@@ -119,47 +113,27 @@ class Vertex:
 
     @property
     def bounds(self):
-        """(min_x, min_y, max_x, max_y) für Scheibe und Name allein."""
-        return self.bounds_with(())
-
-    def label_lines(self, extra_lines=()):
         """
-        [(Text, Schriftgröße, y)] für Namen plus optionale weitere
-        Zeilen (Ziel/Mittel bei 0 Farben, Task 1.7) — gestapelt in
-        derselben Richtung wie der Name selbst: bei "auto" nach oben
-        wachsend, bei "hanging" nach unten, bei "middle" um den
-        Ankerpunkt zentriert. `x` ist für jede Zeile `self.label_x`
-        (`text-anchor` im Template übernimmt die waagerechte
-        Ausrichtung), deshalb hier nicht Teil des Tupels.
-        """
-        lines = (self.name, *extra_lines)
-        count = len(lines)
-        result = []
-        for index, text in enumerate(lines):
-            size = NAME_SIZE if index == 0 else EXTRA_LINE_SIZE
-            step = size + EXTRA_LINE_GAP
-            if self.baseline == "auto":
-                y = self.label_y - (count - 1 - index) * step
-            elif self.baseline == "hanging":
-                y = self.label_y + step * index + size * 0.8
-            else:
-                y = self.label_y + (index - (count - 1) / 2) * step + size * 0.32
-            result.append((text, size, y))
-        return result
+        (min_x, min_y, max_x, max_y) für Scheibe und Name.
 
-    def bounds_with(self, extra_lines):
-        """(min_x, min_y, max_x, max_y) für Scheibe, Name und die
-        angegebenen weiteren Zeilen zusammen (siehe `label_lines`)."""
-        lines = self.label_lines(extra_lines)
-        max_width = max(len(text) * size * NAME_CHAR_WIDTH for text, size, _ in lines)
-        left = {"start": 0.0, "middle": -max_width / 2, "end": -max_width}[self.text_anchor]
-        top = min(y - size for _, size, y in lines)
-        bottom = max(y for _, _, y in lines)
+        Bewusst nur davon abhängig, was für jede Farbe *immer* gilt
+        (Position, Symbolgröße, der eigene Name) — nichts davon
+        ändert sich mit der Selektion. Ziel/Mittel standen hier bis
+        Task 1.7 als zusätzliche Zeilen nur bei 0 Farben; das ließ
+        Fünfeck-Größe, -Position und Namens-Schriftgröße beim
+        Um-schalten der Selektion sichtbar springen. Jetzt stehen
+        Ziel/Mittel stattdessen in der Info-Box (nur bei 1 Farbe,
+        D-45) — das Fünfeck bleibt über jede Selektionsgröße hinweg
+        identisch.
+        """
+        name_width = len(self.name) * NAME_SIZE * NAME_CHAR_WIDTH
+        left = {"start": 0.0, "middle": -name_width / 2, "end": -name_width}[self.text_anchor]
+        top = {"auto": -NAME_SIZE, "middle": -NAME_SIZE / 2, "hanging": 0.0}[self.baseline]
         return (
             min(self.x - SYMBOL_RADIUS, self.label_x + left),
-            min(self.y - SYMBOL_RADIUS, top),
-            max(self.x + SYMBOL_RADIUS, self.label_x + left + max_width),
-            max(self.y + SYMBOL_RADIUS, bottom),
+            min(self.y - SYMBOL_RADIUS, self.label_y + top),
+            max(self.x + SYMBOL_RADIUS, self.label_x + left + name_width),
+            max(self.y + SYMBOL_RADIUS, self.label_y + top + NAME_SIZE),
         )
 
 
@@ -238,24 +212,25 @@ def _label_bounds(label):
     return (left, top, left + label.width, top + label.height)
 
 
-def view_box(vertices_to_fit, extra_lines=None, theme_labels=(), pole_labels=()):
+def view_box(vertices_to_fit, theme_labels=(), pole_labels=()):
     """
-    Der viewBox-String, der alle Ecken samt Namen (und optional
-    weiteren Zeilen je Ecke, Task 1.7 — siehe `Vertex.label_lines`)
-    sowie alle Linienbeschriftungen umschließt.
+    Der viewBox-String, der alle Ecken samt Namen sowie alle
+    Linienbeschriftungen umschließt.
 
     Nicht fest eingetragen, sondern aus den gezeichneten Elementen
     berechnet: Ein längerer Farbname (andere Sprache, Task 1.3/D-15)
     vergrößert das Fenster, statt am Rand abgeschnitten zu werden.
+    Die fünf Ecken sind dabei immer alle fünf, unabhängig von der
+    Selektion (Task 1.7/D-45) — das Ergebnis ändert sich deshalb
+    zwischen Selektionszuständen nur noch insoweit, wie
+    `theme_labels`/`pole_labels` es tun (in der Praxis kaum: sie
+    liegen geometrisch innerhalb des von den Ecken aufgespannten
+    Rahmens, siehe `apps/colors/tests/test_pentagon.py`).
 
-    `extra_lines`: optional {Farbcode: (Zeile, Zeile, …)}.
     `theme_labels`/`pole_labels`: die Listen aus den gleichnamigen
-    Funktionen oben — bei einer vollen 0-Farben-Beschriftung reichen
-    die Vertex-Ränder allein nicht immer aus (z. B. ein nach außen
-    geschobener Ally-Pill an einer kurzen Kante).
+    Funktionen unten.
     """
-    extra_lines = extra_lines or {}
-    boxes = [vertex.bounds_with(extra_lines.get(vertex.code, ())) for vertex in vertices_to_fit]
+    boxes = [vertex.bounds for vertex in vertices_to_fit]
     boxes += [_label_bounds(label) for label in theme_labels]
     boxes += [_label_bounds(label) for label in pole_labels]
     min_y = min(box[1] for box in boxes) - PADDING

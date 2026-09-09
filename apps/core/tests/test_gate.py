@@ -93,6 +93,19 @@ def test_correct_code_sets_a_signed_httponly_cookie_and_redirects(client):
     signing.loads(cookie.value, salt=settings.GATE_COOKIE_SALT)
 
 
+def test_logging_in_from_the_bare_root_path_reaches_color_infos(client):
+    """
+    Regression: "/" selbst hatte keine eigene Seite (config/urls.py).
+    Wer die bloße Startadresse aufruft (kein "next", da noch nichts
+    Bestimmtes angefragt wurde), landete nach dem Login wieder auf
+    "/" — und bekam dort einen 404 statt der Farbseite.
+    """
+    response = client.post(GATE_URL, {"code": settings.INVITE_CODE, "next": "/"}, follow=True)
+
+    assert response.status_code == 200
+    assert response.redirect_chain[-1] == ("/colors/", 302)
+
+
 def test_incorrect_code_shows_an_error_and_sets_no_cookie(client):
     response = client.post(GATE_URL, {"code": "wrong-code"})
 

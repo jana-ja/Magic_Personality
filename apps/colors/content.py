@@ -87,9 +87,6 @@ def selection_content(selected):
 
     Rückgabe (immer alle Schlüssel vorhanden, leer statt fehlend wenn
     nichts zu zeigen ist — FR-C11):
-      - `vertex_extra`: {Farbcode: (goal, means)} nur bei 0 Farben,
-        sonst `{}` — Ziel/Mittel stehen nur im leeren Zustand am
-        Fünfeck (PRD §5.2).
       - `theme_labels`: [(Paar-Code, Text)] fürs Wort auf einer Linie.
       - `pole_labels`: [(Paar-Code, Farbcode, Wort)] für die Pol-Wörter
         an den Enden einer Feind-Diagonale.
@@ -111,9 +108,6 @@ def selection_content(selected):
 
 
 def _content_for_none():
-    combos = _combinations(list(CANONICAL_ORDER))
-    vertex_extra = {code: (combos[code].goal, combos[code].means) for code in CANONICAL_ORDER}
-
     pair_combos = _combinations(ALLY_PAIRS + ENEMY_PAIRS)
     theme_labels = [
         (pair, pair_combos[pair].theme) for pair in ALLY_PAIRS if pair_combos[pair].theme
@@ -126,7 +120,6 @@ def _content_for_none():
             pole_labels += [(pair, pole.color, pole.term) for pole in perspective.poles.all()]
 
     return {
-        "vertex_extra": vertex_extra,
         "theme_labels": theme_labels,
         "pole_labels": pole_labels,
         "box": {"kind": "none"},
@@ -168,12 +161,15 @@ def _content_for_one(code):
         # stehen — keine weitere Verzweigung nötig.
 
     return {
-        "vertex_extra": {},
         "theme_labels": theme_labels,
         "pole_labels": pole_labels,
         "box": {
             "kind": "single",
             "name": combo.name,
+            # Nur hier gebraucht (D-45) — nicht mehr am Fünfeck, das
+            # sonst über die Selektionsgrößen hinweg springen würde.
+            "goal": combo.goal,
+            "means": combo.means,
             "guiding_question": combo.guiding_question,
             "allies": [names[left], names[right]],
             "enemies": [names[foe] for foe in foes],
@@ -240,7 +236,6 @@ def _content_for_ally(a, b, combo):
     ]
 
     return {
-        "vertex_extra": {},
         "theme_labels": theme_labels,
         "pole_labels": pole_labels,
         "box": {
@@ -278,7 +273,6 @@ def _content_for_enemy(pair, combo):
     perspectives.sort(key=lambda p: order.get(p["from_color"] or "", 3))
 
     return {
-        "vertex_extra": {},
         "theme_labels": theme_labels,
         "pole_labels": pole_labels,
         "box": {
@@ -297,7 +291,6 @@ def _content_for_many(selected):
     code = canonical_code(selected)
     combo = _combinations([code]).get(code)
     return {
-        "vertex_extra": {},
         "theme_labels": [],
         "pole_labels": [],
         "box": {"kind": "many", "name": combo.name if combo else ""},

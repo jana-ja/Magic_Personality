@@ -153,7 +153,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Die Tabelle aus PRD §5.2 vollständig.
 **Abhängig von:** 1.4, 1.6 · **Anforderungen:** FR-C8, FR-C10, FR-C11
 **Fertig, wenn:**
-- [x] **0 Farben:** Ziel und Mittel aller fünf Farben, am Fünfeck verortet.
+- [x] **0 Farben:** Ally-Themen und neutrale Enemy-Pole am Fünfeck; Ziel/Mittel stehen stattdessen in der Info-Box bei 1 Farbe, damit das Fünfeck über alle Selektionsgrößen hinweg identisch bleibt (D-45).
 - [x] **1 Farbe:** Name, Guiding Question, Eigenschaften (center und in einer Zeile nach links/rechts tendierend gruppiert); Allies/Enemies benannt statt Archetypen-Ausblick und Perspektiven-Text (D-40).
 - [x] **2 Farben:** Beziehungstyp, Name, Guiding Question, Archetype; bei Ally Eigenschaften plus gemeinsamer Feind und Neighbour-Ally-Conflict (D-40), bei Enemy alle drei Perspektiven.
 - [x] **3–5 Farben:** Name.

@@ -5,6 +5,8 @@ Geschäftslogik in `content.py` isoliert; hier geht es um das
 Zusammenspiel — landet das auch wirklich im ausgelieferten HTML.
 """
 
+import re
+
 import pytest
 from django.urls import reverse
 
@@ -16,11 +18,33 @@ pytestmark = [pytest.mark.django_db, pytest.mark.usefixtures("seeded_content")]
 # 0 Farben ----------------------------------------------------------------
 
 
-def test_zero_colors_shows_goal_and_means_at_every_vertex(gated_client):
+def test_zero_colors_does_not_show_goal_or_means_on_the_pentagon(gated_client):
+    """
+    D-45: Ziel/Mittel standen bis Task 1.7 als zusätzliche Zeile unter
+    dem Namen — das ließ das Fünfeck beim Umschalten der Selektion
+    sichtbar springen (Größe, Position, Namens-Schriftgröße). Jetzt
+    stehen sie nur noch in der Info-Box bei 1 Farbe.
+    """
     html = gated_client.get(reverse("colors:index")).content.decode()
 
     for text in ("peace", "order", "perfection", "knowledge", "harmony", "acceptance"):
-        assert f">{text}</text>" in html, text
+        assert f">{text}</text>" not in html, text
+
+
+def test_the_pentagon_is_identical_across_selection_sizes(gated_client):
+    """D-45: viewBox, Namens-Schriftgröße und Vertex-Positionen dürfen
+    sich zwischen Selektionszuständen nicht mehr unterscheiden."""
+
+    def _pentagon_signature(path):
+        html = gated_client.get(path).content.decode()
+        view_box = re.search(r'viewBox="([^"]+)"', html).group(1)
+        name_sizes = set(re.findall(r'class="pentagon__name"[^>]*font-size="([^"]+)"', html))
+        positions = re.findall(r'<image class="pentagon__symbol"[^>]*x="([^"]+)" y="([^"]+)"', html)
+        return view_box, name_sizes, positions
+
+    baseline = _pentagon_signature("/colors/")
+    for path in ("/colors/w/", "/colors/wu/", "/colors/wb/", "/colors/wub/"):
+        assert _pentagon_signature(path) == baseline, path
 
 
 def test_zero_colors_shows_the_reserved_placeholder_box(gated_client):
@@ -42,6 +66,12 @@ def test_zero_colors_labels_ally_edges_and_neutral_enemy_poles(gated_client):
 
 
 # 1 Farbe -------------------------------------------------------------------
+
+
+def test_one_color_box_shows_goal_through_means(gated_client):
+    html = gated_client.get("/colors/w/").content.decode()
+
+    assert "peace through order" in html
 
 
 def test_one_color_box_shows_allies_and_enemies_not_archetypes(gated_client):

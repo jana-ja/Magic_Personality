@@ -13,6 +13,11 @@
 
   {% elif box.kind == "single" %}
     <h2 class="info-box__title">{{ box.name }}</h2>
+    {% if box.goal and box.means %}
+      <p class="info-box__goal">
+        {% blocktranslate with goal=box.goal means=box.means %}{{ goal }} through {{ means }}{% endblocktranslate %}
+      </p>
+    {% endif %}
     {% if box.guiding_question %}
       <p class="info-box__question">“{{ box.guiding_question }}”</p>
     {% endif %}
