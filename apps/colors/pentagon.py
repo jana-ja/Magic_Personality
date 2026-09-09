@@ -257,18 +257,32 @@ THEME_LABEL_OUTWARD = 1.2
 POLE_LABEL_INSET = 0.22
 
 #: Schriftgrößen der Linienbeschriftungen (Task 1.7, D-37) — kleiner
-#: als NAME_SIZE, sonst dieselben Einheiten und dieselbe grobe
-#: Zeichenbreiten-Schätzung (NAME_CHAR_WIDTH) wie bei Vertex-Namen:
-#: ein `<rect>` als Pill-Hintergrund hinter dem `<text>` braucht in
-#: SVG eine explizite Breite, "wächst" anders als HTML nicht von
-#: selbst mit dem Text mit.
+#: als NAME_SIZE, sonst dieselben Einheiten wie bei Vertex-Namen: ein
+#: `<rect>` als Pill-Hintergrund hinter dem `<text>` braucht in SVG
+#: eine explizite Breite, "wächst" anders als HTML nicht von selbst
+#: mit dem Text mit.
 THEME_LABEL_SIZE = 4.2
 POLE_LABEL_SIZE = 3.6
 LABEL_PAD_X = 2.4
 
+#: Grobe Breite eines Zeichens in einem Pol-/Theme-Label, als
+#: Vielfaches der Schriftgröße — bewusst eigene, großzügigere
+#: Konstante statt NAME_CHAR_WIDTH (D-49). Diese Labels sind fett
+#: (Theme) bzw. kursiv (Pol, siehe `.pentagon__pole-label text` /
+#: `.pentagon__theme-label text` in base.css) und tragen mehrwortige
+#: Sätze statt einzelner Farbnamen — beides macht sie im Schnitt
+#: breiter, als NAME_CHAR_WIDTH (an kurzen, aufrechten Farbnamen
+#: kalibriert) annimmt. Gemessen an der echten Textbreite (SVG
+#: `getComputedTextLength()`, kursiv/fett, System-UI-Font) über alle
+#: 31 Kombinationen aus seeds/colors_en.json lag das breiteste Wort
+#: ("Good") bei ~0,68 Zeichenbreite je Schriftgröße — 0.75 lässt noch
+#: gut 10 % Spielraum für andere Schriftarten/Browser, ohne die Pills
+#: unnötig aufzublasen.
+LABEL_CHAR_WIDTH = 0.75
+
 
 def _label_width(text, size):
-    return len(text) * size * NAME_CHAR_WIDTH + LABEL_PAD_X * 2
+    return len(text) * size * LABEL_CHAR_WIDTH + LABEL_PAD_X * 2
 
 
 @dataclass(frozen=True)

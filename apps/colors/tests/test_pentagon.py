@@ -9,7 +9,7 @@ Ausrichtung stimmen und dass nichts aus dem Bildausschnitt ragt.
 import pytest
 
 from apps.colors import pentagon, wheel
-from apps.colors.models import Color
+from apps.colors.models import Color, ColorCombination, PerspectivePole
 
 pytestmark = pytest.mark.django_db
 
@@ -145,3 +145,110 @@ def test_a_longer_color_name_widens_the_view_box(vertices):
     after = _view_box(pentagon.vertices(Color.objects.all()))
 
     assert after[2] > before[2]
+
+
+# Pol-/Theme-Label-Breite (D-49) ---------------------------------------
+#
+# `pentagon._label_width()` schätzt die Pill-Breite aus der Zeichenzahl
+# (LABEL_CHAR_WIDTH) statt echte Schriftmetriken zu kennen — dieselbe
+# grundsätzliche Ungenauigkeit wie bei Vertex.bounds (Kommentar dort),
+# nur mit einer eigenen, großzügigeren Konstante, weil Pol-/Theme-Text
+# kursiv bzw. fett gesetzt ist und mehrwortige Sätze statt einzelner
+# Farbnamen trägt (D-49).
+#
+# MEASURED_*_TEXT_WIDTHS ist die unabhängige Gegenprobe: die echte,
+# im Browser gemessene Breite (SVG `getComputedTextLength()`, mit
+# genau dem Stil aus base.css — kursiv fürs Pol-, fett fürs
+# Theme-Label, System-UI-Font) für jeden Pol- und Theme-Text, der
+# aktuell in seeds/colors_en.json steht. Die begleitenden
+# "is_covered_by"-Tests stellen sicher, dass ein künftiger
+# Content-Import keinen Text stillschweigend ungeprüft lässt: Fehlt
+# ein Text in dieser Tabelle (oder steht einer zu viel darin), schlägt
+# der Abgleich fehl, statt einfach zu bestehen.
+
+MEASURED_POLE_TEXT_WIDTHS = {
+    "Chaos": 11.391,
+    "Clear thinking": 25.523,
+    "Codependency": 27.453,
+    "Cold heartlessness": 34.906,
+    "Complacency": 24.633,
+    "Constraint": 19.047,
+    "Destabilization": 27.195,
+    "Emotion": 14.867,
+    "Equilibrium": 20.500,
+    "Evil": 6.492,
+    "Exploitation": 21.656,
+    "Flexibility": 17.547,
+    "Freedom": 16.031,
+    "Good": 9.742,
+    "Group": 11.180,
+    "Individual": 17.719,
+    "Individualism": 24.039,
+    "Leave it": 14.250,
+    "Nature": 12.336,
+    "Nurture": 14.094,
+    "Optimization": 23.266,
+    "Order": 10.516,
+    "Pragmatism": 21.570,
+    "Preservation": 23.086,
+    "Reason": 13.336,
+    "Short-sighted reacting": 41.727,
+    "Structure": 17.188,
+    "Take it": 11.992,
+    "Warm aliveness": 28.477,
+    "Waste": 11.203,
+}
+MEASURED_THEME_TEXT_WIDTHS = {
+    "Authenticity": 27.242,
+    "Community": 25.180,
+    "Creativity": 21.789,
+    "Design": 15.289,
+    "Heroism": 18.430,
+    "Independence": 31.359,
+    "Profanity": 20.352,
+    "Progress": 19.797,
+    "Tribalism": 20.461,
+    "Truth seeking": 30.438,
+}
+
+# Mindest-Sicherheitsabstand: die berechnete Box muss die real
+# gemessene Textbreite um mindestens diesen Faktor überragen — ein
+# knapp reichender Wert wäre in einer anderen Schriftart/Browser schon
+# keiner mehr.
+MIN_SAFETY_MARGIN = 1.10
+
+
+@pytest.mark.usefixtures("seeded_content")
+def test_every_pole_text_is_covered_by_the_measured_widths():
+    """
+    Schlägt fehl, sobald `seeds/colors_en.json` einen Pol-Text
+    einführt oder entfernt, den MEASURED_POLE_TEXT_WIDTHS noch nicht
+    kennt — macht eine Lücke sichtbar, statt sie stillschweigend
+    ungeprüft zu lassen.
+    """
+    pole_terms = set(PerspectivePole.objects.values_list("term", flat=True))
+
+    assert pole_terms == set(MEASURED_POLE_TEXT_WIDTHS)
+
+
+@pytest.mark.usefixtures("seeded_content")
+def test_every_theme_text_is_covered_by_the_measured_widths():
+    theme_texts = set(
+        ColorCombination.objects.exclude(theme="").values_list("theme", flat=True)
+    )
+
+    assert theme_texts == set(MEASURED_THEME_TEXT_WIDTHS)
+
+
+@pytest.mark.parametrize("term,measured_width", sorted(MEASURED_POLE_TEXT_WIDTHS.items()))
+def test_no_pole_label_text_is_wider_than_its_box(term, measured_width):
+    box_width = pentagon._label_width(term, pentagon.POLE_LABEL_SIZE)
+
+    assert box_width >= measured_width * MIN_SAFETY_MARGIN
+
+
+@pytest.mark.parametrize("text,measured_width", sorted(MEASURED_THEME_TEXT_WIDTHS.items()))
+def test_no_theme_label_text_is_wider_than_its_box(text, measured_width):
+    box_width = pentagon._label_width(text, pentagon.THEME_LABEL_SIZE)
+
+    assert box_width >= measured_width * MIN_SAFETY_MARGIN
