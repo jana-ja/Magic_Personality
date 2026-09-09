@@ -6,6 +6,10 @@
   <title>{% block title %}{% translate "Magic Personality" %}{% endblock %}</title>
   <link rel="stylesheet" href="{% static 'css/base.css' %}">
   <script src="{% static 'js/htmx.min.js' %}" defer></script>
+  {% comment %} Kleine Ergänzung zu HTMX, kein eigenes Framework
+     (D-24) — siehe der Kommentar in main.js für den genauen Grund
+     (SVG-<a>-Elemente im Fünfeck, Task 1.8). {% endcomment %}
+  <script src="{% static 'js/main.js' %}" defer></script>
   {% block extra_head %}{% endblock %}
 </head>
 <body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>

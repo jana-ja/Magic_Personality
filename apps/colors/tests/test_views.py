@@ -169,10 +169,21 @@ def test_toggling_an_unselected_color_adds_it_to_the_selection(gated_client):
     assert _vertex_links(html)["U"] == "/colors/wu/"
 
 
+def _reset_link_href(html):
+    """
+    Href des Reset-Links, unabhängig von zusätzlichen Attributen
+    zwischen href und dem schließenden Tag (Task 1.8 fügt dort
+    hx-*-Attribute ein, siehe test_htmx.py).
+    """
+    match = re.search(r'<a[^>]*href="([^"]+)"[^>]*>Reset selection</a>', html)
+    assert match is not None, "Reset-Link nicht gefunden"
+    return match.group(1)
+
+
 def test_the_reset_link_leads_to_the_index(gated_client):
     html = gated_client.get("/colors/wu/").content.decode()
 
-    assert f'href="{reverse("colors:index")}">Reset selection</a>' in html
+    assert _reset_link_href(html) == reverse("colors:index")
 
 
 def test_the_reset_link_is_there_even_without_a_selection(gated_client):
@@ -185,7 +196,7 @@ def test_the_reset_link_is_there_even_without_a_selection(gated_client):
     """
     html = gated_client.get(reverse("colors:index")).content.decode()
 
-    assert f'href="{reverse("colors:index")}">Reset selection</a>' in html
+    assert _reset_link_href(html) == reverse("colors:index")
 
 
 def test_svg_coordinates_stay_machine_readable_under_a_non_english_locale(gated_client):

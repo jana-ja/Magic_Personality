@@ -50,11 +50,21 @@
   {% for link in vertex_links %}
     {% comment %} Echter Link auf die Toggle-URL dieser Farbe (FR-C4,
        D-24: Progressive Enhancement statt JS-Insel) — funktioniert
-       ohne JavaScript. Tastatur-Semantik über aria-pressed & Co.
+       ohne JavaScript. hx-* beschleunigt das nur (Task 1.8): hx-select
+       holt sich aus der ganz normal an dieser URL gerenderten vollen
+       Seite nur #colors-panel und tauscht dessen Inhalt gegen den
+       aktuellen aus, hx-push-url hält die Adressleiste synchron. Ohne
+       JavaScript bleibt href der einzige Weg — funktioniert dann als
+       normaler Seitenaufruf. Tastatur-Semantik über aria-pressed & Co.
        kommt mit Task 1.9. {% endcomment %}
     <a class="pentagon__vertex{% if has_selection %}{% if link.is_selected %} pentagon__vertex--selected{% else %} pentagon__vertex--unselected{% endif %}{% endif %}"
        data-color="{{ link.vertex.code }}"
        href="{{ link.toggle_url }}"
+       hx-get="{{ link.toggle_url }}"
+       hx-select="#colors-panel"
+       hx-target="#colors-panel"
+       hx-swap="innerHTML"
+       hx-push-url="true"
        aria-label="{{ link.vertex.name }}"
        style="--halo: {{ link.vertex.halo }};">
       {% comment %} Der Halo hinter dem Symbol nutzt Vertex.halo

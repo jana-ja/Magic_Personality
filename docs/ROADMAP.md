@@ -166,9 +166,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Selektion ohne vollen Seitenaufbau.
 **Abhängig von:** 1.7 · **Anforderungen:** D-24
 **Fertig, wenn:**
-- [ ] Klick tauscht nur das Info-Panel, `hx-push-url` aktualisiert die Adresse.
-- [ ] Vor- und Zurück-Navigation stellt den richtigen Zustand her.
-- [ ] Bei deaktiviertem JavaScript funktioniert weiterhin alles (nur als vollständiger Seitenaufruf).
+- [x] Klick tauscht nur das Info-Panel, `hx-push-url` aktualisiert die Adresse.
+- [x] Vor- und Zurück-Navigation stellt den richtigen Zustand her.
+- [x] Bei deaktiviertem JavaScript funktioniert weiterhin alles (nur als vollständiger Seitenaufruf).
 
 #### 1.9 · Tastatur und Barrierefreiheit
 **Ziel:** Bedienbar ohne Maus und mit Screenreader.

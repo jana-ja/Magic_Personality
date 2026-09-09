@@ -7,6 +7,7 @@ gettext läuft statt hart codiert im Template zu stehen — genau das
 verlangt die Definition of Done ("Stichprobe reicht").
 """
 
+from django.conf import settings
 from django.template import base as template_base
 from django.template.loader import render_to_string
 
@@ -20,6 +21,24 @@ def test_base_template_includes_htmx_and_csrf_header(rf):
 
     assert 'src="/static/js/htmx.min.js"' in html
     assert "X-CSRFToken" in html
+
+
+def test_base_template_includes_the_svg_anchor_htmx_workaround(rf):
+    """
+    Task 1.8: HTMX erkennt <a> innerhalb von <svg> nicht als Anchor
+    (SVGAElement statt HTMLAnchorElement) und lässt deshalb dessen
+    preventDefault() aus — ohne main.js liefe die native Navigation
+    parallel zum HTMX-Request (im Browser nachgewiesen). Reine
+    Präsenzprüfung hier; das eigentliche Verhalten braucht einen
+    echten Browser, siehe die Verifikation zu Task 1.8.
+    """
+    html = _render_base(rf.get("/"))
+
+    assert 'src="/static/js/main.js"' in html
+
+    main_js = (settings.BASE_DIR / "static" / "js" / "main.js").read_text(encoding="utf-8")
+    assert "SVGAElement" in main_js
+    assert "preventDefault" in main_js
 
 
 def test_base_template_has_header_main_and_footer_landmarks(rf):

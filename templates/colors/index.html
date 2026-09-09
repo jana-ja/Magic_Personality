@@ -5,11 +5,19 @@
 
 {% block content %}
   <h1>{% translate "Color Infos" %}</h1>
-  <div class="color-layout">
-    <div class="color-layout__pentagon">
-      {% include "colors/_pentagon.html" %}
+  {% comment %} Ein Wrapper um alles, was sich mit der Selektion ändert
+     (Fünfeck-Hervorhebung/-Beschriftung, Info-Box, Trait-Row) — das ist
+     das Ziel der HTMX-Beschleunigung aus Task 1.8/D-24: hx-select holt
+     sich aus der ganz normal gerenderten vollen Seite nur dieses eine
+     Element und tauscht dessen Inhalt aus, ohne dass die View dafür
+     einen eigenen Partial-Pfad bräuchte. {% endcomment %}
+  <div id="colors-panel">
+    <div class="color-layout">
+      <div class="color-layout__pentagon">
+        {% include "colors/_pentagon.html" %}
+      </div>
+      {% include "colors/_info_box.html" %}
     </div>
-    {% include "colors/_info_box.html" %}
+    {% include "colors/_trait_row.html" %}
   </div>
-  {% include "colors/_trait_row.html" %}
 {% endblock %}

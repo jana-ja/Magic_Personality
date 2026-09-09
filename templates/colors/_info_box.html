@@ -80,8 +80,17 @@
 
   {% comment %} FR-C5: "Auswahl zurücksetzen" — immer da, auch ohne
      etwas zurückzusetzen (dann zeigt der Link einfach wieder auf
-     /colors/). Esc-Taste kommt mit Task 1.9. {% endcomment %}
+     /colors/). Dieselbe HTMX-Beschleunigung wie die Fünfeck-Ecken
+     (Task 1.8) — dieser Link liegt selbst innerhalb von #colors-panel,
+     tauscht sich also beim Klick mit aus. Esc-Taste kommt mit
+     Task 1.9. {% endcomment %}
   <div class="button-row">
-    <a class="button-row__button" href="{{ reset_url }}">{% translate "Reset selection" %}</a>
+    <a class="button-row__button"
+       href="{{ reset_url }}"
+       hx-get="{{ reset_url }}"
+       hx-select="#colors-panel"
+       hx-target="#colors-panel"
+       hx-swap="innerHTML"
+       hx-push-url="true">{% translate "Reset selection" %}</a>
   </div>
 </aside>
