@@ -82,15 +82,19 @@
      etwas zurückzusetzen (dann zeigt der Link einfach wieder auf
      /colors/). Dieselbe HTMX-Beschleunigung wie die Fünfeck-Ecken
      (Task 1.8) — dieser Link liegt selbst innerhalb von #colors-panel,
-     tauscht sich also beim Klick mit aus. Esc-Taste kommt mit
-     Task 1.9. {% endcomment %}
+     tauscht sich also beim Klick mit aus. role="button" wie bei den
+     Ecken (Task 1.9), damit main.js ihm ebenfalls Leertaste beibringt;
+     zusätzlich per Esc erreichbar (id="reset-selection" ist main.js'
+     Anker dafür). {% endcomment %}
   <div class="button-row">
-    <a class="button-row__button"
+    <a id="reset-selection"
+       class="button-row__button"
        href="{{ reset_url }}"
        hx-get="{{ reset_url }}"
        hx-select="#colors-panel"
        hx-target="#colors-panel"
        hx-swap="innerHTML"
-       hx-push-url="true">{% translate "Reset selection" %}</a>
+       hx-push-url="true"
+       role="button">{% translate "Reset selection" %}</a>
   </div>
 </aside>

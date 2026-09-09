@@ -174,12 +174,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Bedienbar ohne Maus und mit Screenreader.
 **Abhängig von:** 1.8 · **Anforderungen:** FR-C5, FR-C8, NFR-5, NFR-6
 **Fertig, wenn:**
-- [ ] `W U B R G` schalten die jeweilige Farbe um, `Esc` setzt zurück.
-- [ ] Farben sind über Tab erreichbar, mit Enter und Leertaste bedienbar, sichtbar fokussiert.
-- [ ] `aria-pressed` spiegelt den Zustand.
-- [ ] Live-Region sagt nach dem Austausch den neuen Kombinationsnamen an.
-- [ ] Hervorhebung schaltet sofort um, bevor die Antwort eintrifft.
-- [ ] Eigenes JavaScript bleibt unter etwa 150 Zeilen und ohne Framework.
+- [x] `W U B R G` schalten die jeweilige Farbe um, `Esc` setzt zurück.
+- [x] Farben sind über Tab erreichbar, mit Enter und Leertaste bedienbar, sichtbar fokussiert.
+- [x] `aria-pressed` spiegelt den Zustand.
+- [x] Live-Region sagt nach dem Austausch den neuen Kombinationsnamen an.
+- [x] Hervorhebung schaltet sofort um, bevor die Antwort eintrifft.
+- [x] Eigenes JavaScript bleibt unter etwa 150 Zeilen und ohne Framework.
 
 #### 1.10 · Mobiles Layout
 **Ziel:** Eigenständige Gestaltung, keine skalierte Desktop-Ansicht.

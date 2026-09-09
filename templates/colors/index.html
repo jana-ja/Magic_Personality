@@ -5,6 +5,21 @@
 
 {% block content %}
   <h1>{% translate "Color Infos" %}</h1>
+
+  {% comment %} Live-Region (Task 1.9, NFR-5): bewusst *außerhalb* von
+     #colors-panel, sonst würde sie bei jedem Swap durch eine neue,
+     leere Instanz ersetzt — Screenreader kündigen Änderungen an einer
+     aria-live-Region nur zuverlässig an, wenn dasselbe Element über
+     die Zeit hinweg bestehen bleibt. main.js füllt sie nach jedem
+     HTMX-Swap mit dem neuen Kombinationsnamen; data-empty-text ist der
+     übersetzte Text für "nichts ausgewählt". Leer beim ersten
+     Seitenaufbau — angesagt werden nur Änderungen, nicht der
+     Anfangszustand. {% endcomment %}
+  <div id="colors-live-region"
+       class="visually-hidden"
+       aria-live="polite"
+       data-empty-text="{% translate 'No colors selected.' %}"></div>
+
   {% comment %} Ein Wrapper um alles, was sich mit der Selektion ändert
      (Fünfeck-Hervorhebung/-Beschriftung, Info-Box, Trait-Row) — das ist
      das Ziel der HTMX-Beschleunigung aus Task 1.8/D-24: hx-select holt

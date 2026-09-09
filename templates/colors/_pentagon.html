@@ -55,8 +55,16 @@
        Seite nur #colors-panel und tauscht dessen Inhalt gegen den
        aktuellen aus, hx-push-url hält die Adressleiste synchron. Ohne
        JavaScript bleibt href der einzige Weg — funktioniert dann als
-       normaler Seitenaufruf. Tastatur-Semantik über aria-pressed & Co.
-       kommt mit Task 1.9. {% endcomment %}
+       normaler Seitenaufruf.
+
+       Tastatur/Screenreader (Task 1.9, NFR-5): role="button" plus
+       aria-pressed macht aus dem Link einen Toggle-Button für
+       Assistive Technology — die Farbe selbst bleibt aber ein echtes
+       <a href>. Enter aktiviert einen fokussierten Link bereits nativ;
+       Leertaste braucht main.js (Browser tun das nur bei role=button
+       von sich aus bei echten <button>-Elementen, nicht bei Links).
+       W/U/B/R/G und die sofortige optimistische Hervorhebung kommen
+       ebenfalls aus main.js. {% endcomment %}
     <a class="pentagon__vertex{% if has_selection %}{% if link.is_selected %} pentagon__vertex--selected{% else %} pentagon__vertex--unselected{% endif %}{% endif %}"
        data-color="{{ link.vertex.code }}"
        href="{{ link.toggle_url }}"
@@ -65,6 +73,8 @@
        hx-target="#colors-panel"
        hx-swap="innerHTML"
        hx-push-url="true"
+       role="button"
+       aria-pressed="{% if link.is_selected %}true{% else %}false{% endif %}"
        aria-label="{{ link.vertex.name }}"
        style="--halo: {{ link.vertex.halo }};">
       {% comment %} Der Halo hinter dem Symbol nutzt Vertex.halo
