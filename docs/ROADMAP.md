@@ -185,9 +185,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** Eigenständige Gestaltung, keine skalierte Desktop-Ansicht.
 **Abhängig von:** 1.9 · **Anforderungen:** NFR-3, D-14
 **Fertig, wenn:**
-- [ ] Fünfeck oben, alle Informationen als zusammenhängender Block darunter.
-- [ ] Eigenschaften werden mobil **nicht** am Fünfeck verortet.
-- [ ] Bei 375 px Breite ohne horizontales Scrollen bedienbar; Trefferflächen ausreichend groß.
+- [x] Fünfeck oben, alle Informationen als zusammenhängender Block darunter.
+- [x] Eigenschaften werden mobil **nicht** am Fünfeck verortet.
+- [x] Bei 375 px Breite ohne horizontales Scrollen bedienbar; Trefferflächen ausreichend groß.
 
 #### 1.11 · Rechtliches und About
 **Ziel:** Pflichtangaben und Quellenkennzeichnung.
