@@ -1,0 +1,28 @@
+# Nur lokale Entwicklung (D-50) — von "docker compose" automatisch
+# zusätzlich zu compose.yaml eingelesen, solange kein "-f" angegeben
+# wird (Docker Composes eigene Konvention, kein Projekt-Zutun nötig).
+# Das Server-Deployment ruft compose explizit mit "-f compose.yaml
+# -f compose.prod.yaml" auf (docs/DEPLOYMENT.md) und bekommt diese
+# Datei deshalb nie zu sehen.
+#
+# Ehemals Teil von compose.yaml selbst (Task 0.3) — mit Task 1.12
+# ausgelagert, weil genau das Gegenteil (keine Host-Ports, TLS statt
+# Klartext-HTTP) für die Produktion gilt.
+
+services:
+  db:
+    ports:
+      # Auf den Host gemappt, damit lokale Entwicklung ohne Docker
+      # (manage.py runserver, pytest) gegen "docker compose up db"
+      # laufen kann — genau das behauptet .env.example bereits.
+      - "5432:5432"
+
+  web:
+    environment:
+      # Lokal gibt es noch keine TLS-Terminierung (kein Caddy in
+      # dieser Datei) — bei SECURE_SSL_REDIRECT=True (Produktions-
+      # Default aus config/settings/prod.py) entstünde eine
+      # Endlosschleife, weil https:// hier nie ankommt.
+      SECURE_SSL_REDIRECT: "False"
+    ports:
+      - "8000:8000"

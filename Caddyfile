@@ -1,0 +1,22 @@
+# Reverse Proxy mit automatischem TLS (Task 1.12, ARCHITECTURE.md
+# §2/§3/§11.1) — "minimale Konfiguration" ist hier wörtlich gemeint:
+# Caddy besorgt und erneuert das Zertifikat (Let's Encrypt) von
+# selbst, sobald DOMAIN per DNS auf diesen Server zeigt.
+#
+# DOMAIN und ACME_EMAIL kommen aus der Server-.env (D-50, siehe
+# compose.prod.yaml) — nichts davon steht hier oder im Repository.
+# ACME_EMAIL ist keine Nutzerdaten-Adresse, sondern die Kontaktadresse,
+# die Let's Encrypt für Ablauf-/Problemhinweise zum Zertifikat nutzt.
+{
+	email {$ACME_EMAIL}
+}
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# Alles geht an Django — die Zugangssperre (FR-A1, apps/core/gate.py)
+	# entscheidet selbst, was ohne gültiges Cookie erreichbar bleibt
+	# (Gate-Seite, /healthz, /robots.txt, statische Dateien). Caddy
+	# kennt diese Unterscheidung bewusst nicht noch einmal.
+	reverse_proxy web:8000
+}

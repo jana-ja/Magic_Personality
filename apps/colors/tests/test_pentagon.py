@@ -233,9 +233,7 @@ def test_every_pole_text_is_covered_by_the_measured_widths():
 
 @pytest.mark.usefixtures("seeded_content")
 def test_every_theme_text_is_covered_by_the_measured_widths():
-    theme_texts = set(
-        ColorCombination.objects.exclude(theme="").values_list("theme", flat=True)
-    )
+    theme_texts = set(ColorCombination.objects.exclude(theme="").values_list("theme", flat=True))
 
     assert theme_texts == set(MEASURED_THEME_TEXT_WIDTHS)
 
