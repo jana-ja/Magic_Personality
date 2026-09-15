@@ -19,11 +19,24 @@ def client_ip(request):
     """
     Client-IP für Rate Limiting.
 
-    Liest bewusst nur REMOTE_ADDR, nicht X-Forwarded-For: Hinter einem
-    Reverse Proxy (Caddy, Task 1.12) muss das angepasst und der Proxy
-    als vertrauenswürdig konfiguriert werden — sonst kann jeder Client
-    die IP über einen gefälschten Header vortäuschen.
+    In Produktion (D-51) veröffentlicht compose.prod.yaml für "web"
+    bewusst keinen Host-Port — Caddy ist der einzige Weg hinein, jede
+    Anfrage bei "web" ist also schon einmal durch Caddy gelaufen.
+    REMOTE_ADDR ist deshalb dort immer Caddys eigene Container-IP,
+    nicht die des Clients; die echte Client-IP steht in
+    X-Forwarded-For, das Caddy bei jeder Anfrage um den soeben
+    gesehenen Peer ERGÄNZT statt zu ersetzen. Deshalb zählt gezielt der
+    LETZTE Eintrag der Liste: ein Client könnte selbst einen
+    X-Forwarded-For-Header mitschicken und sich so eine andere IP
+    vorschummeln, Caddys eigene Beobachtung hängt aber immer hinten an
+    — vertrauenswürdig, weil "web" nie direkt erreichbar ist.
+
+    Ohne Caddy davor (lokale Entwicklung, Tests) fehlt der Header
+    komplett; REMOTE_ADDR bleibt dann die einzige und korrekte Quelle.
     """
+    forwarded_for = request.META.get("HTTP_X_FORWARDED_FOR", "")
+    if forwarded_for:
+        return forwarded_for.rsplit(",", 1)[-1].strip()
     return request.META.get("REMOTE_ADDR", "")
 
 

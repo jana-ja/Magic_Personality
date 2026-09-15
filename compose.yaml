@@ -1,8 +1,13 @@
-# Lokales Docker Compose (Task 0.3). Kein Caddy hier — Reverse Proxy
-# und TLS kommen erst mit dem echten Deployment (Task 1.12,
-# ARCHITECTURE.md §2). "web" ist dasselbe Image, das später auch dort
-# läuft; SECURE_SSL_REDIRECT wird unten bewusst auf False gesetzt,
-# weil es lokal noch keine TLS-Terminierung gibt.
+# Gemeinsame Basis für lokale Entwicklung und Produktion (Task 0.3,
+# erweitert um Task 1.12/D-50). Enthält "db" und "web" — beides läuft
+# hier identisch, ob lokal per "docker compose up" (das automatisch
+# compose.override.yaml dazuliest, siehe dort) oder auf dem Server per
+# "docker compose -f compose.yaml -f compose.prod.yaml up -d".
+#
+# Bewusst KEINE Host-Ports hier: Wer von außen auf "web" oder "db"
+# zugreifen soll (lokal: pytest/manage.py runserver ohne Docker;
+# produktiv: gar niemand direkt, nur Caddy), bekommt das über die
+# jeweils passende Zusatzdatei, nicht hier in der Basis.
 
 services:
   db:
@@ -11,11 +16,6 @@ services:
       POSTGRES_USER: ${POSTGRES_USER:-magic_personality}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-magic_personality}
       POSTGRES_DB: ${POSTGRES_DB:-magic_personality}
-    ports:
-      # Auf den Host gemappt, damit lokale Entwicklung ohne Docker
-      # (manage.py runserver, pytest) gegen "docker compose up db"
-      # laufen kann — genau das behauptet .env.example bereits.
-      - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
@@ -35,9 +35,6 @@ services:
       # die Entwicklung außerhalb von Docker (gegen den auf den Host
       # gemappten Port) gedacht ist.
       DATABASE_URL: postgres://${POSTGRES_USER:-magic_personality}:${POSTGRES_PASSWORD:-magic_personality}@db:5432/${POSTGRES_DB:-magic_personality}
-      SECURE_SSL_REDIRECT: "False"
-    ports:
-      - "8000:8000"
     depends_on:
       db:
         condition: service_healthy

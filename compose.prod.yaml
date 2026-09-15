@@ -1,0 +1,56 @@
+# Produktions-Zusatz zu compose.yaml (Task 1.12, D-50,
+# ARCHITECTURE.md §11.1). Wird nie allein verwendet, immer zusammen
+# mit der Basis:
+#
+#   docker compose -f compose.yaml -f compose.prod.yaml pull
+#   docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d
+#
+# Genauer Ablauf: docs/DEPLOYMENT.md.
+#
+# Fügt "caddy" hinzu (Reverse Proxy, automatisches TLS — ARCHITECTURE
+# §2/§11.1) und macht "web"/"db" neu startfest. Veröffentlicht
+# bewusst weiterhin keine Ports für "web"/"db" — anders als lokal
+# (compose.override.yaml) ist hier niemand außer Caddy dazu gedacht,
+# sie zu erreichen: Caddy spricht "web" über den internen
+# Compose-Namen "web:8000" an, kein Host-Port nötig. Das ist
+# gleichzeitig die Grundlage für D-51 (apps/core/rate_limit.py darf
+# X-Forwarded-For nur deshalb vertrauen, weil "web" nie direkt von
+# außen erreichbar ist).
+
+services:
+  db:
+    restart: unless-stopped
+
+  web:
+    # Ohne dieses "image:" hat "web" nur das "build:" aus compose.yaml
+    # (für lokale Entwicklung gedacht) — "docker compose pull" fände
+    # dann nichts zu pullen und "up -d" würde einen lokalen Checkout
+    # samt Dockerfile verlangen, den es laut docs/DEPLOYMENT.md auf dem
+    # Server bewusst nicht gibt (lokal nachgestellt: "pull" meldete
+    # "Skipped - No image to be pulled", bis diese Zeile dazukam).
+    # IMAGE_TAG erlaubt ein gezieltes Rollback auf einen älteren, von
+    # CI veröffentlichten Sha-Tag (docs/DEPLOYMENT.md), ohne diese
+    # Datei zu bearbeiten — einfach in der Server-.env setzen.
+    image: ghcr.io/jana-ja/magic_personality:${IMAGE_TAG:-latest}
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    env_file:
+      - .env
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"  # HTTP/3 (QUIC)
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - web
+
+volumes:
+  caddy_data:
+  caddy_config:
