@@ -19,11 +19,11 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
 
    **Nicht** `compose.override.yaml` — die ist nur für lokale Entwicklung gedacht (D-50) und würde Host-Ports öffnen, die in Produktion bewusst geschlossen bleiben.
 
-   Empfohlener Weg, weil diese drei Dateien sich künftig auch mal ändern (neuer Healthcheck, andere Caddy-Direktive, …) und dann erneut auf den Server müssen: ein **Sparse Checkout** statt Einzeldateien per Hand zu kopieren — danach reicht `git pull`, um sie zu aktualisieren, ohne den Rest des Repos (App-Code, Tests, `docs/`) mitzuschleppen:
+   Empfohlener Weg, weil diese drei Dateien sich künftig auch mal ändern (neuer Healthcheck, andere Caddy-Direktive, …) und dann erneut auf den Server müssen: ein **Sparse Checkout** statt Einzeldateien per Hand zu kopieren — danach reicht `git pull`, um sie zu aktualisieren, ohne den Rest des Repos (App-Code, Tests, `docs/`) mitzuschleppen. `git sparse-checkout set` erwartet im Standard-Modus ("Cone Mode") **Verzeichnisse**, keine einzelnen Dateien — alle drei Dateien liegen aber im Repository-Wurzelverzeichnis. `--no-cone` schaltet auf den älteren, musterbasierten Modus um, der einzelne Pfade akzeptiert (führendes `/` verankert den Pfad an der Repo-Wurzel, sonst würde z. B. `Caddyfile` auch gleichnamige Dateien in Unterordnern mitnehmen):
 
    ```bash
    git clone --filter=blob:none --sparse https://github.com/jana-ja/Magic_Personality.git .
-   git sparse-checkout set compose.yaml compose.prod.yaml Caddyfile
+   git sparse-checkout set --no-cone /compose.yaml /compose.prod.yaml /Caddyfile
    ```
 
    Alternative ohne Git, für einzelne, seltene Aktualisierungen: die Rohdatei direkt von GitHub laden (`https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/<datei>`), z. B. `curl -O https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/Caddyfile`.
@@ -56,10 +56,13 @@ Alle Befehle im Verzeichnis aus dem vorigen Schritt, mit beiden Compose-Dateien:
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
 Migrations laufen bewusst als **eigener** Schritt vor `up -d`, nicht beim Containerstart (D-29) — sonst migrieren mehrere Worker gleichzeitig, und ein Fehlschlag zeigt sich erst im Log statt im Deployment selbst.
+
+`seed_content` ist ein **eigener** Schritt, keine Migration (ARCHITECTURE.md §9/§1.1): Die Migrationen legen nur die leeren Strukturzeilen an (fünf Farben, 31 Kombinationen — "bewusst noch ohne Inhalt", `apps/colors/migrations/0002_seed_colors_and_combinations.py`), Namen, Ziel/Mittel, Eigenschaften, Perspektiven und Themes kommen erst mit diesem Befehl aus `seeds/colors_en.json`. Ohne ihn läuft die Seite scheinbar normal (Fünfeck mit den fünf Farbnamen, Struktur, Navigation — die kommen aus den Migrationen), zeigt aber zu jeder Auswahl nur leere Inhalte. Idempotent (D-Entscheidung, ARCHITECTURE.md §9), also gefahrlos bei jedem Deployment erneut ausführbar.
 
 Danach prüfen:
 
@@ -79,6 +82,7 @@ Bei jedem neuen Stand auf `main` (CI baut und veröffentlicht automatisch, D-31)
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
@@ -105,6 +109,8 @@ SECURE_HSTS_SECONDS=31536000
 in der Server-`.env`, dann `docker compose -f compose.yaml -f compose.prod.yaml up -d web` (nur `web` neu starten, `db`/`caddy` bleiben unberührt).
 
 ## Fehlerbehebung
+
+**Seite lädt, Fünfeck und Navigation sind da, aber jede Auswahl zeigt leere Inhalte:** `seed_content` wurde vergessen (siehe "Erstes Deployment" oben) — die Migrationen legen nur leere Zeilen an, den eigentlichen Content bringt erst `docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en`. Gegenprobe: `docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c "from apps.colors.models import ColorCombination; print(ColorCombination.objects.filter(name='').count())"` — `0` heißt durchgängig befüllt, jede andere Zahl zeigt fehlenden Content.
 
 **`docker compose down` bricht mit "Resource is still in use" ab:** Betrifft praktisch immer ein Netzwerk (seltener ein Volume), an dem noch ein Container hängt — auch einer außerhalb dieses Compose-Projekts.
 

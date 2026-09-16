@@ -201,11 +201,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Ziel:** v0.1 läuft erreichbar auf dem kleinen Server.
 **Abhängig von:** 1.10, 1.11, 0.6 · **Anforderungen:** NFR-10, D-29
 **Fertig, wenn:**
-- [ ] Caddy als Reverse Proxy mit automatischem TLS.
-- [ ] Migrations laufen als **eigener Schritt**, nicht beim Containerstart.
-- [ ] Deployment-Ablauf in `docs/DEPLOYMENT.md` dokumentiert und einmal von Grund auf durchgespielt.
-- [ ] Zugangssperre greift auch in Produktion.
-- [ ] `/healthz` von außen erreichbar, alles andere gesperrt.
+- [x] Caddy als Reverse Proxy mit automatischem TLS.
+- [x] Migrations laufen als **eigener Schritt**, nicht beim Containerstart.
+- [x] Deployment-Ablauf in `docs/DEPLOYMENT.md` dokumentiert und einmal von Grund auf durchgespielt.
+- [x] Zugangssperre greift auch in Produktion.
+- [x] `/healthz` von außen erreichbar, alles andere gesperrt.
 
 **Meilenstein v0.1 abgeschlossen, wenn** alle Abnahmekriterien aus PRD §11 (v0.1) erfüllt sind.
 
