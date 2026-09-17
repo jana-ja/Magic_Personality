@@ -217,3 +217,10 @@ GATE_RATE_LIMIT_WINDOW_SECONDS = 600
 # beim Invite-Gate, mit eigenem Zähler-Modell (RegistrationAttempt).
 REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS = 10
 REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600
+
+# Auswertungsregel des Fragebogens (Task 2.9, FR-T11): "T ist ein
+# konfigurierbarer Schwellenwert, Standard 2 Punkte." Kein Geheimnis,
+# aber eine echte Abstimmungsgröße (R-4 im PRD: erst nach echten
+# Durchläufen kalibrierbar) — deshalb env-gesteuert, nicht fest wie
+# die Rate-Limit-Werte oben.
+QUIZ_RESULT_THRESHOLD = env.int("QUIZ_RESULT_THRESHOLD", default=2)

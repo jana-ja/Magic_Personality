@@ -288,10 +288,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.9 · Auswertung
 **Abhängig von:** 2.8 · **Anforderungen:** FR-T10 bis FR-T12, D-17
 **Fertig, wenn:**
-- [ ] Regel exakt wie FR-T11 umgesetzt, `T` über Einstellung konfigurierbar (Standard 2).
-- [ ] Gleichstand an der Schnittgrenze nimmt alle betroffenen Farben auf.
-- [ ] Ergebnis wird auf eine der 31 Kombinationen abgebildet.
-- [ ] Tabellengetriebene Tests: klarer Dreier, deutlicher Zweier, deutlicher Vierer, Gleichstand an der Grenze, Gleichstand über alle fünf.
+- [x] Regel exakt wie FR-T11 umgesetzt, `T` über Einstellung konfigurierbar (Standard 2).
+- [x] Gleichstand an der Schnittgrenze nimmt alle betroffenen Farben auf.
+- [x] Ergebnis wird auf eine der 31 Kombinationen abgebildet.
+- [x] Tabellengetriebene Tests: klarer Dreier, deutlicher Zweier, deutlicher Vierer, Gleichstand an der Grenze, Gleichstand über alle fünf.
+
+> Zwei von FR-T11/FR-T12 offengelassene Randfälle festgelegt, siehe D-59.
 
 #### 2.10 · Ergebnis anzeigen und übernehmen
 **Abhängig von:** 2.9, 2.4 · **Anforderungen:** FR-T13, FR-T14
