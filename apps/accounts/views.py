@@ -1,4 +1,6 @@
-"""Views der Accounts-App: Registrierung (Task 2.2), Account-Löschung (Task 2.3).
+"""
+Views der Accounts-App: Registrierung (Task 2.2), Account-Löschung
+(Task 2.3), Profil ansehen/bearbeiten (Task 2.4).
 
 Login, Logout und Passwortänderung sind Djangos eigene Views
 (`django.contrib.auth.views`), direkt in `urls.py` verdrahtet — dafür
@@ -8,13 +10,14 @@ gibt es keinen eigenen Code zu schreiben (ARCHITECTURE.md §7).
 from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
 
-from .forms import RegistrationForm
+from .forms import ProfileForm, RegistrationForm
+from .models import Profile
 
 
 @require_http_methods(["GET", "POST"])
@@ -62,3 +65,31 @@ def delete_account(request):
         return redirect(settings.LOGOUT_REDIRECT_URL)
 
     return render(request, "accounts/delete_account_confirm.html")
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def profile(request):
+    """
+    FR-P1/FR-P4: eigenes Profil ansehen und bearbeiten. `get_object_or_404`
+    statt `request.user.profile` direkt zu verwenden: ein per
+    `createsuperuser` angelegter Account hat kein Profil (Task 0.2/2.1,
+    D-22) — das ergibt hier eine klare 404 statt eines Serverfehlers.
+    """
+    profile = get_object_or_404(Profile, user=request.user)
+    assignment = profile.color_assignments.select_related("combination").first()
+    initial = {
+        "nickname": profile.nickname,
+        "bio": profile.bio,
+        "colors": list(assignment.combination.code) if assignment else [],
+    }
+
+    if request.method == "POST":
+        form = ProfileForm(request.POST, profile=profile)
+        if form.is_valid():
+            form.save()
+            return redirect("profile")
+    else:
+        form = ProfileForm(initial=initial, profile=profile)
+
+    return render(request, "accounts/profile.html", {"form": form})

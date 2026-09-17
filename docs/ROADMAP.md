@@ -245,9 +245,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.4 · Profil ansehen und bearbeiten
 **Abhängig von:** 2.2 · **Anforderungen:** FR-P1, FR-P4
 **Fertig, wenn:**
-- [ ] Nickname, Bio und Farben (1 bis 5, frei wählbar) bearbeitbar.
-- [ ] Farbauswahl setzt `source = SELF_MANUAL` und leert die Testreferenz.
-- [ ] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet.
+- [x] Nickname, Bio und Farben (1 bis 5, frei wählbar) bearbeitbar.
+- [x] Farbauswahl setzt `source = SELF_MANUAL` und leert die Testreferenz.
+- [x] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet.
 
 #### 2.5 · Generiertes Profilbild
 **Abhängig von:** 2.4 · **Anforderungen:** FR-P3, D-13

@@ -19,7 +19,7 @@
     <a class="site-header__brand" href="/">{% translate "Magic Personality" %}</a>
     <nav class="site-header__auth" aria-label="{% translate 'Account' %}">
       {% if user.is_authenticated %}
-        <span>{{ user.profile.nickname }}</span>
+        <a href="{% url 'profile' %}">{{ user.profile.nickname }}</a>
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
           <button type="submit">{% translate "Log out" %}</button>
