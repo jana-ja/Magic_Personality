@@ -65,7 +65,7 @@
               </a>
             </td>
             <td>
-              {% for code, points in result.scores.items %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% for code, points in result.ordered_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
             </td>
             <td>
               <form method="post" action="{% url 'delete_test_result' result.pk %}">
@@ -78,7 +78,10 @@
       </tbody>
     </table>
   {% else %}
-    <p>{% translate "You haven't taken the test yet." %}</p>
+    <p>
+      {% translate "You haven't taken the test yet." %}
+      <a href="{% url 'quiz:take_test' %}">{% translate "Take the test" %}</a>
+    </p>
   {% endif %}
 
   <p><a href="{% url 'delete_account' %}">{% translate "Delete account" %}</a></p>

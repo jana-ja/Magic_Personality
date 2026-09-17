@@ -155,3 +155,11 @@ class TestResult(models.Model):
 
     def __str__(self):
         return f"{self.result_colors} ({self.taken_at:%Y-%m-%d})"
+
+    @property
+    def ordered_scores(self):
+        """`(Farbcode, Punkte)` in WUBRG-Reihenfolge. PostgreSQL speichert
+        `scores` als jsonb und sortiert die Schlüssel dabei selbst um
+        (B, G, R, U, W) — die gespeicherte Reihenfolge taugt also nicht
+        für die Anzeige."""
+        return [(code, self.scores.get(code, 0)) for code, _label in Color.Code.choices]

@@ -61,7 +61,20 @@ def test_profile_without_any_test_yet_shows_no_history(gated_client, user):
 
     response = gated_client.get(PROFILE_URL)
 
-    assert "haven" in response.content.decode().lower()
+    html = response.content.decode()
+    assert "haven" in html.lower()
+    assert 'href="/quiz/"' in html
+
+
+def test_history_lists_points_in_wubrg_order(gated_client, user):
+    """jsonb sortiert die Schlüssel um (B, G, R, U, W); angezeigt wird
+    trotzdem in der Reihenfolge des Farbrads."""
+    _make_result(user.profile, scores={"B": 6, "G": 18, "R": 2, "U": 10, "W": 9})
+    gated_client.force_login(user)
+
+    html = gated_client.get(PROFILE_URL).content.decode()
+
+    assert "W: 9, U: 10, B: 6, R: 2, G: 18" in html
 
 
 def test_history_never_shows_someone_elses_results(gated_client, user, other_user):
