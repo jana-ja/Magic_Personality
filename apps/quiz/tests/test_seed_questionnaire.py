@@ -2,8 +2,8 @@
 Tests für `manage.py seed_questionnaire` (Task 2.6, D-28, FR-T6).
 
 Nutzt ausschließlich eigene, kleine Test-Fixtures über --path — die
-echten 20 Fragen kommen erst mit Task 2.7 in
-seeds/questionnaire_v1.json.
+echten 30 Fragen stehen in seeds/questionnaire_v1.json
+(Task 2.7) und werden in test_questionnaire_v1.py geprüft.
 """
 
 import json
@@ -17,7 +17,7 @@ from apps.quiz.models import AnswerOption, Question, Questionnaire
 pytestmark = pytest.mark.django_db
 
 
-def _question(position=1, dimension="INNER", text="A?", colors=("W", "U")):
+def _question(position=1, dimension="ACTION", text="A?", colors=("W", "U")):
     return {
         "position": position,
         "dimension": dimension,
@@ -113,7 +113,7 @@ def test_seeding_creates_questionnaire_questions_and_answers(tmp_path):
     assert questionnaire.is_published is False
 
     question = Question.objects.get(questionnaire=questionnaire, position=1)
-    assert question.dimension == "INNER"
+    assert question.dimension == "ACTION"
     assert question.locale == "en"
     assert AnswerOption.objects.filter(question=question).count() == 2
 

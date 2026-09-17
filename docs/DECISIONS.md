@@ -83,7 +83,7 @@ Mobil: Fünfeck oben, alle Informationen im Block darunter, Eigenschaften nicht 
 **Warum:** Nachträglich einzuziehen bedeutet, jede Zeile Anzeigetext noch einmal anzufassen. Jetzt kostet es fast nichts.
 
 ### D-16 · Fragebogen: 20 Fragen, je 2 Antworten, 1 Punkt, versioniert
-**Status:** Angenommen · 2026-09-05
+**Status:** Ersetzt durch D-60 · 2026-09-05
 Jedes der 10 Farbpaare kommt genau zweimal vor; jede Farbe erscheint in 8 Fragen.
 **Warum:** 20 Fragen mit zwei Antworten gehen als einzige Kombination perfekt balanciert auf. Die Versionsnummer hält alte Ergebnisse interpretierbar.
 
@@ -300,3 +300,23 @@ Das Formular unter `/accounts/profile/` (Task 2.4) wählt die eigenen Farben üb
 **Status:** Angenommen · 2026-09-17
 Das generierte Profilbild (Task 2.5, `templates/accounts/_avatar.html`) ist eine quadratische `<svg viewBox="0 0 100 100">` mit vollflächigen, senkrechten `<rect>`-Streifen; der Kreis selbst entsteht über `border-radius: 50%; overflow: hidden;` auf dem `<svg>`-Element (`static/css/base.css`, `.avatar`), nicht über einen `<clipPath>` mit fester `id` innerhalb des SVGs.
 **Warum:** Ein `<clipPath id="avatar-clip">` funktioniert für einen einzelnen Avatar auf einer Seite, bricht aber sobald dieselbe Vorlage mehrfach eingebunden wird — doppelte `id`-Werte sind ungültiges HTML, und `url(#avatar-clip)` trifft dann unvorhersagbar auf die erste Definition im Dokument. Genau dieser Fall kommt mit den Freundeslisten (Task 3.5) und der Suche (Task 3.2/3.3): mehrere Profile, und damit mehrere Avatare, auf derselben Seite. `border-radius` auf dem SVG-Wurzelelement selbst braucht keine `id`, ist beliebig oft wiederholbar und in allen unterstützten Browsern gleich zuverlässig.
+
+### D-60 · Fragebogen v1: 30 Fragen in drei Dimensionen statt 20 Fragen in vier
+**Status:** Angenommen · 2026-09-17 · ersetzt D-16
+Jedes der 10 Farbpaare kommt genau einmal je Dimension vor: **Handeln** (`ACTION`, das Mittel einer Farbe), **Antrieb** (`MOTIVATION`, ihr Ziel) und **Wahrnehmung** (`PERCEPTION`, was auffällt oder stört). Das ergibt 30 Fragen, jede Farbe erscheint in 12. Weiterhin 2 Antworten, 1 Punkt, versioniert. `Question.Dimension` entsprechend umgestellt (`quiz/migrations/0002`), die alten Werte `INNER`/`OUTER`/`FEELING`/`VALUES` entfallen.
+**Warum:**
+- Mit vier Dimensionen bei 20 Fragen war „alle Dimensionen sind vertreten“ schon mit einer Frage pro Dimension erfüllt, sicherte also nichts. Eine echte Balance je Farbe hätte jede Dimension in ein starres Muster gezwungen. „Innere Reaktion“ und „Gefühl“ ließen sich außerdem kaum trennen.
+- Mittel und Ziel liegen für jede Farbe schon als Content vor (`goal`/`means`, Task 1.4). Zwei Menschen können gleich handeln, aber aus verschiedenen Gründen — gerade bei Ally-Paaren trennt die Antrieb-Frage besser. Wahrnehmung ergänzt einen dritten Blick, der über „was stört dich mehr“ auch das Problem sozialer Erwünschtheit abschwächt.
+- Weil jede Dimension alle 10 Paare genau einmal enthält, bleibt die Balance erhalten, wenn eine Dimension später herausgefiltert wird (z. B. falls 30 Fragen sich als zu lang erweisen).
+- Gefühle und Lebensbereiche sind keine gemessene Dimension mehr, sondern eine weiche Vorgabe für die Vielfalt der Situationen (Arbeit, Freundschaft, Wohnen, Freizeit …).
+
+**Qualitätsregeln für die Fragen:**
+1. Beide Antworten sind gleich attraktiv; jede zeigt eine Stärke ihrer Farbe, keine Schwäche.
+2. Beide Antworten sind ähnlich lang und ähnlich konkret.
+3. Bei Ally-Paaren geht es um den Unterschied, nicht um das Gemeinsame.
+4. Keine erkennbaren Muster: jede Farbe steht gleich oft an erster Stelle, kein Paar hat immer dieselbe Reihenfolge, aufeinanderfolgende Fragen teilen keine Farbe.
+5. Zwei Fragen desselben Paares schildern unabhängige Situationen. Farben werden nie benannt.
+6. Sprache Englisch (NFR-4).
+
+Regeln 2, 4 und 5 (soweit automatisch prüfbar) sichert `apps/quiz/tests/test_questionnaire_v1.py` gegen die echte Seed-Datei ab.
+**Offen:** Bei 30 statt 20 Punkten ist ein Abstand von `T` = 2 (D-17) relativ kleiner. Nicht vorab geändert, sondern mit R-4 nach echten Durchläufen kalibrieren.

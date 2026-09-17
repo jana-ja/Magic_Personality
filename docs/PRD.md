@@ -127,10 +127,10 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 ### 5.3 Personality Test (v0.2)
 
 **Aufbau**
-- **FR-T1** Der Fragebogen besteht in Version 1 aus **20 Fragen mit je 2 Antwortmöglichkeiten**.
+- **FR-T1** Der Fragebogen besteht in Version 1 aus **30 Fragen mit je 2 Antwortmöglichkeiten** (D-60).
 - **FR-T2** Jede Frage stellt eine Situation dar und bietet zwei typische Reaktionen zweier verschiedener Farben an. Die Zuordnung Antwort → Farbe ist für Testende nicht offensichtlich benannt.
-- **FR-T3** Es gibt 10 ungeordnete Farbpaare; **jedes Paar kommt genau zweimal vor**. Damit erscheint jede Farbe in exakt 8 Fragen (max. 8 Punkte, 20 Punkte gesamt).
-- **FR-T4** Die Fragen decken zusammen vier Dimensionen ab: innere Reaktionen, äußeres Verhalten, Gefühle sowie Werte und Ziele.
+- **FR-T3** Es gibt 10 ungeordnete Farbpaare; **jedes Paar kommt genau dreimal vor, einmal je Dimension** (FR-T4). Damit erscheint jede Farbe in exakt 12 Fragen (max. 12 Punkte, 30 Punkte gesamt).
+- **FR-T4** Jede Frage gehört zu genau einer von drei Dimensionen: **Handeln** (wie man vorgeht, Mittel der Farbe), **Antrieb** (worum es einem geht, Ziel der Farbe) und **Wahrnehmung** (was einem auffällt oder einen stört). Jede Dimension enthält alle 10 Paare genau einmal, sodass sich einzelne Dimensionen später herausfiltern lassen, ohne die Balance zu verlieren.
 - **FR-T5** Jede gewählte Antwort gibt der zugehörigen Farbe **einen Punkt**.
 - **FR-T6** Der Fragebogen trägt eine **Versionsnummer**. Fragen einer veröffentlichten Version werden nicht mehr verändert; Änderungen erzeugen eine neue Version.
 
@@ -239,7 +239,7 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 `version` · `question_count` · `published_at`
 
 **`Question`** / **`AnswerOption`**
-`questionnaire` · `position` · `text` · `dimension` (INNER / OUTER / FEELING / VALUES) · `locale`
+`questionnaire` · `position` · `text` · `dimension` (ACTION / MOTIVATION / PERCEPTION) · `locale`
 je Option: `text` · `color` · `locale`
 
 **`TestResult`** — Historieneintrag
@@ -310,7 +310,7 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 |---|---|---|
 | **R-1** | Kein Passwort-Reset (FR-U7). Wer sein Passwort vergisst, kommt nicht mehr hinein. | Bei 3–10 Personen manuell lösbar. Sobald es einmal auftritt: E-Mail-Versand nachrüsten. |
 | **R-2** | 3er- bis 5er-Kombinationen zeigen in v1 nur den Namen. | Bewusst akzeptiert; Inhalte kommen später durch Nutzende. |
-| **R-3** | Qualität der 20 Testfragen entscheidet über P2. | Fragen werden als eigener, abgegrenzter Task erstellt und gegen FR-T2 bis FR-T4 geprüft. |
+| **R-3** | Qualität der 30 Testfragen entscheidet über P2. | Fragen werden als eigener, abgegrenzter Task erstellt und gegen FR-T2 bis FR-T4 geprüft. |
 | **R-4** | Schwellenwert `T` (FR-T11) ist erst nach echten Durchläufen kalibrierbar. | Konfigurierbar halten, Standard 2. |
 | **R-5** | Das Fünfeck ist die anspruchsvollste UI-Aufgabe, besonders mobil. | Zwei eigenständige Layouts (NFR-3), früh im Meilenstein einplanen. |
 | **R-6** | Fremdprofile berühren personenbezogene Daten Dritter. | Nicht in v1. Anforderungen dazu in §8.1 festgehalten. |
@@ -328,7 +328,7 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 
 **v0.2**
 - Registrierung, Login, Logout, Account-Löschung funktionieren; Sessions sind widerrufbar.
-- Fragebogen v1 mit 20 Fragen erfüllt die Paar-Balance aus FR-T3 nachweislich (per Test abgesichert).
+- Fragebogen v1 mit 30 Fragen erfüllt die Paar-Balance aus FR-T3 nachweislich (per Test abgesichert).
 - Auswertung folgt FR-T10 bis FR-T12; die Regel ist mit Beispielfällen getestet.
 - Ergebnisübernahme funktioniert eingeloggt wie auch über den Zwischenspeicher nach Registrierung oder Login.
 - Profil zeigt Farben und private Historie; Löschen eines Eintrags verhält sich nach FR-P8.

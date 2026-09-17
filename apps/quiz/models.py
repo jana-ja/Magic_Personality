@@ -48,10 +48,10 @@ class Question(models.Model):
     Content-Modellen in `apps.colors` (ARCHITECTURE.md §8)."""
 
     class Dimension(models.TextChoices):
-        INNER = "INNER", _("Inner reaction")
-        OUTER = "OUTER", _("Outer behavior")
-        FEELING = "FEELING", _("Feeling")
-        VALUES = "VALUES", _("Values and goals")
+        # D-60: je Farbpaar genau eine Frage pro Dimension (FR-T3, FR-T4).
+        ACTION = "ACTION", _("Action")
+        MOTIVATION = "MOTIVATION", _("Motivation")
+        PERCEPTION = "PERCEPTION", _("Perception")
 
     questionnaire = models.ForeignKey(
         Questionnaire, on_delete=models.CASCADE, related_name="questions"

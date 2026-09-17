@@ -1,0 +1,457 @@
+{
+  "version": 1,
+  "locale": "en",
+  "published": false,
+  "questions": [
+    {
+      "position": 1,
+      "dimension": "ACTION",
+      "text": "You unexpectedly have a completely free Saturday. How do you spend it?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I make no plans, see what I feel like in the morning and simply go with it."
+        },
+        {
+          "color": "B",
+          "text": "I use it for something that moves one of my own goals a real step forward."
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "dimension": "MOTIVATION",
+      "text": "When do you feel most deeply at peace?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "When I am outdoors and feel part of something that has always been there."
+        },
+        {
+          "color": "U",
+          "text": "When I have finally understood something complicated all the way through."
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "dimension": "PERCEPTION",
+      "text": "Which of these bothers you more?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "When people insist on doing things by the book, even where it makes no sense."
+        },
+        {
+          "color": "W",
+          "text": "When people do not turn up when they said they would and leave others hanging."
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "dimension": "ACTION",
+      "text": "You inherit an old cabin with a piece of land in the countryside. What do you do with it?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "I leave it largely as it is and look after it the way it has always been cared for."
+        },
+        {
+          "color": "B",
+          "text": "I work out how to make the most of it, whether that means renovating, renting or selling."
+        }
+      ]
+    },
+    {
+      "position": 5,
+      "dimension": "MOTIVATION",
+      "text": "You are working on a creative project in your free time. What keeps you going?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "The satisfaction of getting it exactly right, down to the smallest detail."
+        },
+        {
+          "color": "R",
+          "text": "The excitement itself; as long as I am burning for it, I keep at it."
+        }
+      ]
+    },
+    {
+      "position": 6,
+      "dimension": "PERCEPTION",
+      "text": "You watch a group of people working on a project together. What catches your eye first?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "Whether everyone is pulling their weight for the good of the group."
+        },
+        {
+          "color": "B",
+          "text": "Who really holds the influence and who is just along for the ride."
+        }
+      ]
+    },
+    {
+      "position": 7,
+      "dimension": "ACTION",
+      "text": "You feel stuck in a phase of life where nothing much seems to be happening. What do you do?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I shake things up: a trip, a new hobby, anything that gets me moving again."
+        },
+        {
+          "color": "G",
+          "text": "I let the phase run its course; things tend to shift when the time is right."
+        }
+      ]
+    },
+    {
+      "position": 8,
+      "dimension": "MOTIVATION",
+      "text": "Your club is rewriting its rules. What matters most to you about the result?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "That the rules are fair and apply to every member in exactly the same way."
+        },
+        {
+          "color": "U",
+          "text": "That the rules are well thought through and actually work in practice."
+        }
+      ]
+    },
+    {
+      "position": 9,
+      "dimension": "PERCEPTION",
+      "text": "You walk through an old, abandoned factory site. What goes through your mind?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "I see potential: what could be made of this place and what it could be worth."
+        },
+        {
+          "color": "G",
+          "text": "I see history, and a place that has earned the right to be left in peace."
+        }
+      ]
+    },
+    {
+      "position": 10,
+      "dimension": "ACTION",
+      "text": "You receive a message from someone that really annoys you. How do you respond?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I reply straight away and tell them honestly how it came across to me."
+        },
+        {
+          "color": "U",
+          "text": "I wait, think through what might be behind it and only reply once I have a clear head."
+        }
+      ]
+    },
+    {
+      "position": 11,
+      "dimension": "MOTIVATION",
+      "text": "What makes a neighbourhood a really good place to live, in your eyes?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "People know each other, local traditions are kept alive and life has its rhythm."
+        },
+        {
+          "color": "W",
+          "text": "Everyone takes responsibility for the shared spaces and keeps to what was agreed."
+        }
+      ]
+    },
+    {
+      "position": 12,
+      "dimension": "PERCEPTION",
+      "text": "You meet someone new at a friend's birthday party. What do you pick up on first?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "What they are after, and what they might bring to the table for me."
+        },
+        {
+          "color": "R",
+          "text": "How they are feeling, and whether there is a real spark between us."
+        }
+      ]
+    },
+    {
+      "position": 13,
+      "dimension": "ACTION",
+      "text": "You have to choose between two flats you both like. How do you decide?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "I compare them point by point: costs, commute, layout, and then decide."
+        },
+        {
+          "color": "G",
+          "text": "I walk through both once more and take the one that simply feels like home."
+        }
+      ]
+    },
+    {
+      "position": 14,
+      "dimension": "MOTIVATION",
+      "text": "You do someone a big favour that costs you real effort. What makes it worthwhile for you?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "It was simply the decent thing to do; I do not need anything in return."
+        },
+        {
+          "color": "B",
+          "text": "Favours build a network of people I can count on when I need them."
+        }
+      ]
+    },
+    {
+      "position": 15,
+      "dimension": "PERCEPTION",
+      "text": "You have just watched a film. What stays with you more?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "Whether it moved me and I felt something strong while watching it."
+        },
+        {
+          "color": "U",
+          "text": "Whether the story held together and every detail really made sense."
+        }
+      ]
+    },
+    {
+      "position": 16,
+      "dimension": "ACTION",
+      "text": "You are helping to organise a get-together for your neighbourhood. How do you go about it?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "I set up a clear plan with tasks and times, so that everything runs smoothly."
+        },
+        {
+          "color": "G",
+          "text": "I bring people together and let the evening find its own natural shape."
+        }
+      ]
+    },
+    {
+      "position": 17,
+      "dimension": "MOTIVATION",
+      "text": "You are considering taking a course alongside your job. What draws you to it?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "Getting further: a better position, more options and more say in things."
+        },
+        {
+          "color": "U",
+          "text": "Understanding a subject more deeply; the knowledge is a reward in itself."
+        }
+      ]
+    },
+    {
+      "position": 18,
+      "dimension": "PERCEPTION",
+      "text": "You arrive at a party where you hardly know anyone. What do you notice first?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "Whether the atmosphere is relaxed and people seem at ease with each other."
+        },
+        {
+          "color": "R",
+          "text": "Where the energy is, and which people are clearly having the most fun."
+        }
+      ]
+    },
+    {
+      "position": 19,
+      "dimension": "ACTION",
+      "text": "Your household keeps arguing about who does which chores. What do you do?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "I look at what actually takes the most time and work out a smarter way to get it all done."
+        },
+        {
+          "color": "W",
+          "text": "I suggest a clear rota that everyone agrees to, so nobody carries more than their share."
+        }
+      ]
+    },
+    {
+      "position": 20,
+      "dimension": "MOTIVATION",
+      "text": "Imagine you were given a fully paid year off. What would make it a good year?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "Having used it to come out in a much stronger position than I went in."
+        },
+        {
+          "color": "R",
+          "text": "Having lived it to the full, going wherever I wanted, whenever I wanted."
+        }
+      ]
+    },
+    {
+      "position": 21,
+      "dimension": "PERCEPTION",
+      "text": "Which of these bothers you more?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "People who ignore rules that exist for good reasons."
+        },
+        {
+          "color": "G",
+          "text": "People who force changes on things that were fine as they were."
+        }
+      ]
+    },
+    {
+      "position": 22,
+      "dimension": "ACTION",
+      "text": "At work, a powerful new tool is introduced that nobody really knows how to use yet. What do you do?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "I dig into how it works in detail until I properly understand what it can do."
+        },
+        {
+          "color": "B",
+          "text": "I find the features that help my own work most and start using them right away."
+        }
+      ]
+    },
+    {
+      "position": 23,
+      "dimension": "MOTIVATION",
+      "text": "What makes a close friendship truly valuable to you?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "We can rely on each other completely, and we keep our promises."
+        },
+        {
+          "color": "R",
+          "text": "We are free with each other: no obligations, we just want to be together."
+        }
+      ]
+    },
+    {
+      "position": 24,
+      "dimension": "PERCEPTION",
+      "text": "A friend enthusiastically tells you about a new health trend. What is your first thought?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "I am curious whether there is solid evidence behind it, and want to look into it."
+        },
+        {
+          "color": "G",
+          "text": "I am wary; people lived simply for generations and did perfectly well."
+        }
+      ]
+    },
+    {
+      "position": 25,
+      "dimension": "ACTION",
+      "text": "Your team is asked to work extra hours on a project that mostly benefits another department. What do you do?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "I only commit the extra time once I have negotiated something in return."
+        },
+        {
+          "color": "W",
+          "text": "I pitch in. When the organisation needs it, I do my part like everyone else."
+        }
+      ]
+    },
+    {
+      "position": 26,
+      "dimension": "MOTIVATION",
+      "text": "You are choosing where to live for the next few years. What matters most to you?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "A place where I can put down roots, close to nature and to people I know."
+        },
+        {
+          "color": "R",
+          "text": "A lively place where something new and exciting is always going on."
+        }
+      ]
+    },
+    {
+      "position": 27,
+      "dimension": "PERCEPTION",
+      "text": "Which of these bothers you more in a colleague?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "Waiting for others to hand them what they could simply go and get."
+        },
+        {
+          "color": "U",
+          "text": "Talking confidently about things they have never properly understood."
+        }
+      ]
+    },
+    {
+      "position": 28,
+      "dimension": "ACTION",
+      "text": "A group of friends wants to go on holiday together. What is your part in it?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I push for booking the trip now and deciding everything else once we are there."
+        },
+        {
+          "color": "W",
+          "text": "I make sure we have booked, budgeted and agreed on the plan well in advance."
+        }
+      ]
+    },
+    {
+      "position": 29,
+      "dimension": "MOTIVATION",
+      "text": "Looking back on your life one day, what would you most like to be able to say?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "That I was part of something bigger and left things in good shape."
+        },
+        {
+          "color": "B",
+          "text": "That I went after what I wanted and did not settle for less than that."
+        }
+      ]
+    },
+    {
+      "position": 30,
+      "dimension": "PERCEPTION",
+      "text": "A meeting you attended went badly. What do you notice first when you think back?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "That the whole discussion was built on assumptions nobody had checked."
+        },
+        {
+          "color": "W",
+          "text": "That some people simply did not stick to what we had agreed beforehand."
+        }
+      ]
+    }
+  ]
+}

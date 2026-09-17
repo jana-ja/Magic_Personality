@@ -219,7 +219,7 @@ python manage.py seed_content --locale en
 
 Schwerpunkt auf den Regeln, die inhaltlich falsch sein *können* — nicht auf Django selbst:
 
-- **Fragebogen-Balance (FR-T3):** Jedes der 10 Farbpaare kommt genau zweimal vor, jede Farbe in genau 8 Fragen. Läuft gegen die Seed-Datei, nicht gegen Beispieldaten.
+- **Fragebogen-Balance (FR-T3):** Jedes der 10 Farbpaare kommt genau einmal je Dimension vor (dreimal insgesamt), jede Farbe in genau 12 Fragen (D-60). Läuft gegen die Seed-Datei, nicht gegen Beispieldaten.
 - **Auswertungsregel (FR-T10 bis FR-T12):** Tabellengetriebene Fälle — klarer Dreier, deutlicher Zweier, deutlicher Vierer, Gleichstand an der Grenze, Gleichstand über alle fünf.
 - **Teilmengen-Suche (FR-S3):** Suche „W" findet WU und WB, Suche „WU" findet WUB, aber nicht WB.
 - **Selektionslogik:** Alle 31 Codes liefern eine gültige Seite; fehlender Content erzeugt keinen Fehler (FR-C11).
