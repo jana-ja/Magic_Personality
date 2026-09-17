@@ -273,7 +273,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 - [x] Qualitätsregeln aus D-60 eingehalten; automatisch prüfbare davon per Test abgesichert.
 - [x] Automatischer Test prüft die Balance gegen die Seed-Datei.
 
-> Umfang gegenüber der ursprünglichen Fassung (20 Fragen, vier Dimensionen) geändert, siehe D-60. Die Fragen sind noch nicht veröffentlicht (`"published": false`), bis sie selbst durchgetestet sind.
+> Umfang gegenüber der ursprünglichen Fassung (20 Fragen, vier Dimensionen) geändert, siehe D-60. Nach eigenem Testdurchlauf veröffentlicht (`"published": true`, 2026-09-17); Änderungen an den Fragen brauchen ab jetzt eine neue Version (FR-T6).
 
 > Qualitätsentscheidender Task (R-3). Eigene Sitzung, nicht nebenbei.
 
