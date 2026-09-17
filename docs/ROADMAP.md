@@ -252,8 +252,8 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.5 · Generiertes Profilbild
 **Abhängig von:** 2.4 · **Anforderungen:** FR-P3, D-13
 **Fertig, wenn:**
-- [ ] SVG wird deterministisch aus den hinterlegten Farben erzeugt, kein Upload, keine Dateiablage.
-- [ ] Profil ohne hinterlegte Farben erhält eine neutrale Darstellung.
+- [x] SVG wird deterministisch aus den hinterlegten Farben erzeugt, kein Upload, keine Dateiablage.
+- [x] Profil ohne hinterlegte Farben erhält eine neutrale Darstellung.
 
 #### 2.6 · Fragebogen-Datenmodell
 **Abhängig von:** 1.1 · **Anforderungen:** FR-T1 bis FR-T6, D-16

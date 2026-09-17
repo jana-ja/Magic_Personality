@@ -6,6 +6,8 @@
 {% block content %}
   <h1>{% translate "My profile" %}</h1>
 
+  {% include "accounts/_avatar.html" %}
+
   <form method="post" action="{% url 'profile' %}">
     {% csrf_token %}
 

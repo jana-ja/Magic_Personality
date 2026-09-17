@@ -1,6 +1,6 @@
 """
 Views der Accounts-App: Registrierung (Task 2.2), Account-Löschung
-(Task 2.3), Profil ansehen/bearbeiten (Task 2.4).
+(Task 2.3), Profil ansehen/bearbeiten samt Profilbild (Task 2.4, 2.5).
 
 Login, Logout und Passwortänderung sind Djangos eigene Views
 (`django.contrib.auth.views`), direkt in `urls.py` verdrahtet — dafür
@@ -16,6 +16,7 @@ from django.views.decorators.http import require_http_methods
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
 
+from . import avatar
 from .forms import ProfileForm, RegistrationForm
 from .models import Profile
 
@@ -92,4 +93,5 @@ def profile(request):
     else:
         form = ProfileForm(initial=initial, profile=profile)
 
-    return render(request, "accounts/profile.html", {"form": form})
+    context = {"form": form, **avatar.avatar_context(assignment)}
+    return render(request, "accounts/profile.html", context)

@@ -1,0 +1,21 @@
+{% load i18n l10n %}
+{% comment %} Generiertes Profilbild (Task 2.5, FR-P3, D-13). Segmente
+   kommen aus apps/accounts/avatar.py; Farben selbst nur über CSS
+   (--segment-color), analog zu pentagon.py/--halo (Task 1.6). Der
+   Kreis kommt aus border-radius auf .avatar selbst, nicht aus einem
+   SVG-clipPath — dessen id würde kollidieren, sobald eine Seite
+   mehrere Avatare zeigt (Task 3.1/3.5). {% endcomment %}
+{% localize off %}
+<svg class="avatar" viewBox="{{ view_box }}" role="img" aria-label="{% translate 'Profile picture' %}">
+  {% if segments %}
+    {% for segment in segments %}
+      <rect class="avatar__segment"
+            x="{{ segment.x }}" y="0"
+            width="{{ segment.width }}" height="100"
+            style="--segment-color: {{ segment.hex }};"/>
+    {% endfor %}
+  {% else %}
+    <rect class="avatar__segment avatar__segment--neutral" x="0" y="0" width="100" height="100"/>
+  {% endif %}
+</svg>
+{% endlocalize %}

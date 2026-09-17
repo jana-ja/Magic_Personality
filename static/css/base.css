@@ -212,6 +212,27 @@ button {
   margin: 0;
 }
 
+/* Generiertes Profilbild (Task 2.5, FR-P3, D-13) ------------------------ */
+
+.avatar {
+  display: block;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.avatar__segment {
+  /* --segment-color kommt inline vom Server (avatar.Segment.hex) —
+     dieselbe Technik wie --halo am Fünfeck (Task 1.6). */
+  fill: var(--segment-color);
+}
+
+.avatar__segment--neutral {
+  fill: var(--color-border);
+}
+
 /* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
    Der eigentliche Layout-Unterschied für das Fünfeck kommt mit
    Task 1.10 — dieser Breakpoint ist der gemeinsame Referenzpunkt, den
