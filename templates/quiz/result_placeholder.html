@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% comment %} Platzhalter, solange die eigentliche Auswertungsregel
+   (FR-T10 bis FR-T12) noch nicht existiert — die kommt mit Task 2.9,
+   die benannte Ergebnisanzeige mit Task 2.10 (analog zur
+   Datenschutz-Platzhalterseite aus Task 1.11). {% endcomment %}
+
+{% block title %}{% translate "Your results" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Your results" %}</h1>
+  <p>{% translate "Thank you for taking the test. Here are your points per color:" %}</p>
+
+  <dl class="quiz-scores">
+    {% for code, points in scores.items %}
+      <div class="quiz-scores__row">
+        <dt>{{ code }}</dt>
+        <dd>{{ points }}</dd>
+      </div>
+    {% endfor %}
+  </dl>
+{% endblock %}

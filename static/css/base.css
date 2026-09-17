@@ -233,6 +233,51 @@ button {
   fill: var(--color-border);
 }
 
+/* Test durchführen (Task 2.8) -------------------------------------------- */
+
+.quiz-progress {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.quiz-question {
+  border: none;
+  border-top: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+  margin: 0;
+}
+
+.quiz-question legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: var(--space-2);
+}
+
+.quiz-question label {
+  display: block;
+  font-weight: normal;
+  padding: var(--space-1) 0;
+}
+
+.quiz-scores {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  max-width: 16rem;
+}
+
+.quiz-scores__row {
+  display: flex;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-1) 0;
+}
+
+.quiz-scores__row dt,
+.quiz-scores__row dd {
+  margin: 0;
+}
+
 /* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
    Der eigentliche Layout-Unterschied für das Fünfeck kommt mit
    Task 1.10 — dieser Breakpoint ist der gemeinsame Referenzpunkt, den

@@ -278,10 +278,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.8 · Test durchführen
 **Abhängig von:** 2.7 · **Anforderungen:** FR-T7 bis FR-T9
 **Fertig, wenn:**
-- [ ] Freies Vor- und Zurückspringen vor der Abgabe, Antworten bleiben erhalten.
-- [ ] Abgabe erst möglich, wenn alle 20 Fragen beantwortet sind; Fortschritt sichtbar.
-- [ ] Kein serverseitiger Zwischenstand.
-- [ ] Auch ohne Login durchführbar (Zugangssperre gilt trotzdem).
+- [x] Freies Vor- und Zurückspringen vor der Abgabe, Antworten bleiben erhalten.
+- [x] Abgabe erst möglich, wenn alle 20 Fragen beantwortet sind; Fortschritt sichtbar.
+- [x] Kein serverseitiger Zwischenstand.
+- [x] Auch ohne Login durchführbar (Zugangssperre gilt trotzdem).
+
+> Vor Task 2.7 umgesetzt (auf Wunsch): der Mechanismus kennt "20" nirgends fest verdrahtet, sondern verarbeitet immer *alle* Fragen der aktuell veröffentlichten Version — gegen einen frei erfundenen Dummy-Fragebogen getestet (`apps/quiz/tests/conftest.py`). Die Auswertungsregel selbst (FR-T10 bis FR-T12) ist bewusst nicht Teil dieses Tasks — die Ergebnisseite zeigt bis Task 2.9/2.10 nur die rohen Punkte je Farbe.
 
 #### 2.9 · Auswertung
 **Abhängig von:** 2.8 · **Anforderungen:** FR-T10 bis FR-T12, D-17

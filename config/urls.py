@@ -25,4 +25,5 @@ urlpatterns = [
     path("", include("apps.colors.urls")),
     path("", include("apps.core.urls")),
     path("accounts/", include("apps.accounts.urls")),
+    path("", include("apps.quiz.urls")),
 ]
