@@ -36,7 +36,7 @@ def _submit_all(client, questionnaire, *, choose="first"):
         for question, answer in zip(questions, chosen_answers, strict=True)
     }
     response = client.post(TAKE_TEST_URL, data)
-    return response, tally(chosen_answers)
+    return response, tally([(answer, 1) for answer in chosen_answers])
 
 
 @pytest.fixture
@@ -60,7 +60,7 @@ def test_result_page_shows_the_points_of_all_five_colors(gated_client, published
 
 def test_result_page_links_to_the_matching_color_infos_page(gated_client, published_questionnaire):
     response, scores = _submit_all(gated_client, published_questionnaire)
-    combination = evaluate_combination(scores)
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
 
     assert f'href="/colors/{combination.code.lower()}/"' in response.content.decode()
 
@@ -72,7 +72,7 @@ def test_logged_in_submission_is_saved_to_the_history(gated_client, published_qu
     gated_client.force_login(user)
 
     _, scores = _submit_all(gated_client, published_questionnaire)
-    combination = evaluate_combination(scores)
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
 
     result = TestResult.objects.get(profile=user.profile)
     assert result.scores == scores

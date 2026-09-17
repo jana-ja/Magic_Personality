@@ -312,7 +312,7 @@ Das generierte Profilbild (Task 2.5, `templates/accounts/_avatar.html`) ist eine
 **Warum:** (1) FR-T11.4 sagt nur "gewinnt der größere Abstand" — bei einem exakten Gleichstand zwischen den beiden Übersteuerungen selbst gibt es keinen größeren, die PRD nennt für diesen Fall keinen Sieger. Der Standardwert ist die neutralste verfügbare Antwort, keine neue Regel. (2) Das ist keine bewusste Entscheidung, sondern eine Beobachtung beim Testen (Roadmap 2.9 verlangt fünf tabellengetriebene Fälle, keiner davon ein Einzelfarben-Ergebnis) — durchgerechnet ergibt sich rechnerisch, dass `k=1` mit den gegebenen Schritten (Start bei 2/3/4, nur wachsende Gleichstand-Erweiterung) nie auftreten kann. Für die reale, ausbalancierte Fragebogen-Struktur aus FR-T3 (jede Farbe maximal 8 von 20 Punkten) ist das ohnehin unauffällig; hier nur dokumentiert, damit die Diskrepanz zur PRD-Formulierung nicht als übersehener Fehler missverstanden wird.
 
 ### D-60 · Fragebogen v1: 30 Fragen in drei Dimensionen statt 20 Fragen in vier
-**Status:** Angenommen · 2026-09-17 · ersetzt D-16
+**Status:** Ersetzt durch D-65 (für neue Versionen) · 2026-09-17 · ersetzt D-16
 Jedes der 10 Farbpaare kommt genau einmal je Dimension vor: **Handeln** (`ACTION`, das Mittel einer Farbe), **Antrieb** (`MOTIVATION`, ihr Ziel) und **Wahrnehmung** (`PERCEPTION`, was auffällt oder stört). Das ergibt 30 Fragen, jede Farbe erscheint in 12. Weiterhin 2 Antworten, 1 Punkt, versioniert. `Question.Dimension` entsprechend umgestellt (`quiz/migrations/0002`), die alten Werte `INNER`/`OUTER`/`FEELING`/`VALUES` entfallen.
 **Warum:**
 - Mit vier Dimensionen bei 20 Fragen war „alle Dimensionen sind vertreten“ schon mit einer Frage pro Dimension erfüllt, sicherte also nichts. Eine echte Balance je Farbe hätte jede Dimension in ein starres Muster gezwungen. „Innere Reaktion“ und „Gefühl“ ließen sich außerdem kaum trennen.
@@ -362,3 +362,28 @@ Ohne Login (Task 2.11) bekommt die Ergebnisseite ein von Django signiertes Token
 - Der Kopfbereich ist die einzige Stelle, die auf jeder Seite sichtbar ist. Ein Button nur auf `/colors/` hätte den Test von Profil-, About- oder Ergebnisseiten aus nicht erreichbar gemacht.
 - Bewusst nur zwei Punkte: Das Profil ist über den Nickname rechts schon erreichbar. Ein weiterer Punkt kommt erst mit der Profilsuche (v1.0) dazu.
 - Mobil reicht bei zwei kurzen Links ein Zeilenumbruch (`flex-wrap`) unter dem Projektnamen; ein Hamburger-Menü bräuchte JavaScript und brächte bei zwei Einträgen nichts.
+
+### D-65 · Fragebogen v2: 15 Fragen mit fünf Antworten, beste und zweitbeste Wahl
+**Status:** Angenommen · 2026-09-17 · ersetzt D-60 für neue Versionen, ändert D-17 (`T`)
+Ab Version 2 bietet jede Frage fünf Antworten an, eine je Farbe. Testende wählen die am besten (2 Punkte) und die am zweitbesten passende Antwort (1 Punkt). 15 Fragen, je 5 pro Dimension (Handeln, Antrieb, Wahrnehmung, D-60). v1 bleibt gespeichert und für ihre Ergebnisse gültig.
+
+Umsetzung:
+- `Questionnaire.choice_points` (Punkte je Rang, `[1]` für v1, `[2, 1]` für v2) steuert Formular und Zählung; die Zahl der Auswahlen je Frage ist ihre Länge.
+- `Questionnaire.result_threshold` ersetzt die Einstellung `QUIZ_RESULT_THRESHOLD`: `T` hängt von der Punkteskala ab (v1: 2, v2: 4). Er steht in der Seed-Datei und bleibt anders als die Fragen auch nach Veröffentlichung änderbar (R-4). Ein anonymes Ergebnis wird mit dem `T` seiner eigenen Version ausgewertet.
+- `AnswerOption.position` hält die Antwortreihenfolge aus der Seed-Datei fest. Vorher wurde nach Farbe sortiert, dieselbe Farbe stand also immer an derselben Stelle. Bestehende v1-Antworten bekommen ihre Position per Datenmigration aus der Anlage-Reihenfolge, die der Seed-Datei entspricht.
+- Das Formular zeigt je Frage eine Tabelle mit einer Zeile je Antwort und je einer Spalte „Best“ und „2nd“, ohne JavaScript. Dieselbe Antwort auf beiden Plätzen wird serverseitig abgewiesen.
+
+**Warum:**
+- Beim eigenen Durchlauf von v1 war das Ergebnis sehr ausgeglichen. Ursache: Bei zwei Antworten muss man auch zwischen zwei Farben wählen, die man beide nicht hat; diese Punkte verteilen sich zufällig. Eine Person mit zwei klaren Farben bekommt so trotzdem rund ein Drittel aller Punkte auf die anderen drei (Simulation: 33/33/11/11/11 %).
+- Eine Simulation mit 3.000 zufälligen Profilen je Format hat verglichen: 30 Paare, 12 Fragen mit nur bester Antwort, beste + zweitbeste, beste + schlechteste, vollständiges Ranking, 30 Aussagen auf einer 1–5-Skala. Beste + zweitbeste trifft die drei stärksten Farben häufiger als die Paare (66 % statt 63 %), mit deutlich sichtbaren Unterschieden (45/45/3/3/3 %) und weniger Fragen. Nur die beste Antwort zu wählen trifft die dritte Farbe am schlechtesten (54 %), vollständiges Ranking ist am genauesten, verwischt die Unterschiede aber wieder und ist aufwendig.
+- Beste + schlechteste Antwort wäre etwas genauer (69 %), zwingt aber zu einer negativen Wahl, bei der Schwarz und Rot wieder schlechter dastehen.
+- Forced-Choice-Formate messen ipsativ, also relativ: Sie zeigen, welche Farbe stärker ist, nicht wie stark absolut. Eine zusätzliche Rating-Skala je Farbe wurde deshalb erwogen, aber vorerst verworfen, weil sie die Auswertungsregel verdoppeln würde. Wieder aufgreifen, falls Menschen mit vier Farben regelmäßig nur drei bekommen — die Simulation zeigt genau hier die Schwäche von v2 (klare Viererprofile ergeben mit `T` = 4 nur in etwa der Hälfte der Fälle vier Farben).
+- `T` = 4 per Simulation gewählt: Bei zufälligen Profilen bleibt es damit in 57 % der Fälle bei drei Farben (v1 mit `T` = 2: 54 %); klare Zweier- und Dreierprofile werden zu 91 % richtig erkannt.
+
+**Qualitätsregeln für die Fragen** (Fortschreibung von D-60):
+1. Alle fünf Antworten sind gleich attraktiv; jede zeigt eine Stärke ihrer Farbe, keine Schwäche.
+2. Alle fünf Antworten sind ähnlich lang (längste höchstens 35 % länger als die kürzeste) und ähnlich konkret.
+3. Keine erkennbaren Muster: Innerhalb jeder Dimension steht jede Farbe genau einmal an jeder Antwortposition, aufeinanderfolgende Fragen haben an keiner Position dieselbe Farbe, und die Dimensionen wechseln sich ab.
+4. Neue Situationen, keine aus v1 wiederverwendet. Farben werden nie benannt. Sprache Englisch (NFR-4).
+
+Regeln 2 bis 4 (soweit automatisch prüfbar) sichert `apps/quiz/tests/test_questionnaire_v2.py` gegen die echte Seed-Datei ab.

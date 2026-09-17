@@ -1,0 +1,417 @@
+{
+  "version": 2,
+  "locale": "en",
+  "published": false,
+  "choice_points": [
+    2,
+    1
+  ],
+  "result_threshold": 4,
+  "questions": [
+    {
+      "position": 1,
+      "dimension": "ACTION",
+      "text": "Your team has two weeks for a project and nobody has started yet. What do you do?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "I study the problem first and work out the smartest approach before anyone starts."
+        },
+        {
+          "color": "R",
+          "text": "I just start with whatever sparks my interest and let the momentum carry the others along."
+        },
+        {
+          "color": "B",
+          "text": "I take on the part that matters most for the result and drive it forward myself."
+        },
+        {
+          "color": "G",
+          "text": "I stay calm, see what each person naturally brings and let the work find its own rhythm."
+        },
+        {
+          "color": "W",
+          "text": "I get everyone together, split the tasks fairly and make sure each person knows their part."
+        }
+      ]
+    },
+    {
+      "position": 2,
+      "dimension": "MOTIVATION",
+      "text": "You are choosing between several job offers. What tips the balance for you?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "A team where I feel at home and a job that fits the natural rhythm of my life."
+        },
+        {
+          "color": "W",
+          "text": "A workplace with fair rules, where people keep their word and look out for each other."
+        },
+        {
+          "color": "U",
+          "text": "The chance to keep learning and to become really good at something demanding."
+        },
+        {
+          "color": "R",
+          "text": "Work that excites me and leaves me free to do things in my own way."
+        },
+        {
+          "color": "B",
+          "text": "The pay, the career prospects and how much say I will have in the decisions."
+        }
+      ]
+    },
+    {
+      "position": 3,
+      "dimension": "PERCEPTION",
+      "text": "Which of these bothers you the most?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "When people make decisions without thinking them through first."
+        },
+        {
+          "color": "R",
+          "text": "When people hide what they really feel behind polite phrases."
+        },
+        {
+          "color": "B",
+          "text": "When people wait for others to sort out their problems for them."
+        },
+        {
+          "color": "G",
+          "text": "When people change things that work just for the sake of change."
+        },
+        {
+          "color": "W",
+          "text": "When people break their promises or treat others unfairly."
+        }
+      ]
+    },
+    {
+      "position": 4,
+      "dimension": "ACTION",
+      "text": "Your neighbour's tree hangs far over your garden and blocks the sun. What do you do?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "I tell them clearly what I need and what I am willing to offer in return."
+        },
+        {
+          "color": "G",
+          "text": "I plant something that loves the shade; the tree was there long before me."
+        },
+        {
+          "color": "W",
+          "text": "I check what the local rules say and politely ask them to keep to them."
+        },
+        {
+          "color": "U",
+          "text": "I work out a solution that would suit both gardens and bring along a sketch."
+        },
+        {
+          "color": "R",
+          "text": "I go straight over and tell them honestly that it really bothers me."
+        }
+      ]
+    },
+    {
+      "position": 5,
+      "dimension": "MOTIVATION",
+      "text": "You are planning a big celebration for your birthday. What matters most to you?",
+      "answers": [
+        {
+          "color": "U",
+          "text": "That it is thoughtfully planned and well organised, down to the last detail."
+        },
+        {
+          "color": "R",
+          "text": "That it is wild and spontaneous, and nobody wants to go home at the end."
+        },
+        {
+          "color": "B",
+          "text": "That everything is exactly the way I want it; it is my day, after all."
+        },
+        {
+          "color": "G",
+          "text": "That it feels warm and familiar, with the people and traditions I love."
+        },
+        {
+          "color": "W",
+          "text": "That everyone who matters is invited and nobody ends up feeling left out."
+        }
+      ]
+    },
+    {
+      "position": 6,
+      "dimension": "PERCEPTION",
+      "text": "You start at a new workplace. What do you notice most in the first week?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "Whether the rules are clear and everyone is treated the same way."
+        },
+        {
+          "color": "U",
+          "text": "Where things are done inefficiently and could clearly be improved."
+        },
+        {
+          "color": "R",
+          "text": "Whether people actually enjoy what they do and have some passion."
+        },
+        {
+          "color": "B",
+          "text": "Who really makes the decisions and where the opportunities lie."
+        },
+        {
+          "color": "G",
+          "text": "How people treat each other, and whether it feels like I could belong."
+        }
+      ]
+    },
+    {
+      "position": 7,
+      "dimension": "ACTION",
+      "text": "You have managed to save up a good sum of money. What do you do with it?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "I use it to put down roots: a home, a garden, something that will last for years."
+        },
+        {
+          "color": "W",
+          "text": "I keep a safety cushion for my family and give some of it to a cause I believe in."
+        },
+        {
+          "color": "U",
+          "text": "I research the options thoroughly and invest where the numbers make the most sense."
+        },
+        {
+          "color": "R",
+          "text": "I spend part of it on an experience I have been dreaming about for a long time."
+        },
+        {
+          "color": "B",
+          "text": "I put it into something that increases my independence and my future options."
+        }
+      ]
+    },
+    {
+      "position": 8,
+      "dimension": "MOTIVATION",
+      "text": "You are thinking about volunteering in your free time. What would be your reason?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "I feel responsible for my community and want to do my fair share for it."
+        },
+        {
+          "color": "U",
+          "text": "I want to understand a problem properly and help to solve it really well."
+        },
+        {
+          "color": "R",
+          "text": "Something moves me deeply, and I simply cannot stand by and do nothing."
+        },
+        {
+          "color": "B",
+          "text": "It builds skills and contacts that will help me get further in life."
+        },
+        {
+          "color": "G",
+          "text": "I want to protect something I care about, like a local park or an old custom."
+        }
+      ]
+    },
+    {
+      "position": 9,
+      "dimension": "PERCEPTION",
+      "text": "You follow the news about a big political decision. What do you pay attention to first?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "How it will affect people's lives and what I feel when I hear about it."
+        },
+        {
+          "color": "B",
+          "text": "What it means for me personally and how I can best make use of it."
+        },
+        {
+          "color": "G",
+          "text": "Whether it respects what has grown over generations or throws it away."
+        },
+        {
+          "color": "W",
+          "text": "Whether it is fair and whether it was decided in the proper way."
+        },
+        {
+          "color": "U",
+          "text": "Whether the facts behind it hold up and where it will lead in the long run."
+        }
+      ]
+    },
+    {
+      "position": 10,
+      "dimension": "ACTION",
+      "text": "You want to learn to cook a dish you loved on holiday. How do you go about it?",
+      "answers": [
+        {
+          "color": "W",
+          "text": "I find a proper recipe and follow it step by step, exactly as it is written."
+        },
+        {
+          "color": "U",
+          "text": "I read up on why the ingredients work together and experiment until it is perfect."
+        },
+        {
+          "color": "R",
+          "text": "I throw in whatever feels right and taste as I go; the fun is in the cooking."
+        },
+        {
+          "color": "B",
+          "text": "I ask the best cook I know to show me their tricks, so I get good at it quickly."
+        },
+        {
+          "color": "G",
+          "text": "I ask someone from that region how their family has always made it and stick to that."
+        }
+      ]
+    },
+    {
+      "position": 11,
+      "dimension": "MOTIVATION",
+      "text": "You look back on a really good year. What made it such a good one?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I lived intensely, followed my heart and did things I will never forget."
+        },
+        {
+          "color": "B",
+          "text": "I reached the goals I had set myself and am clearly better off than before."
+        },
+        {
+          "color": "G",
+          "text": "I felt at peace with myself and content with the way my life is going."
+        },
+        {
+          "color": "W",
+          "text": "I kept my commitments and was there for the people who relied on me."
+        },
+        {
+          "color": "U",
+          "text": "I came to understand many things better and grew noticeably wiser."
+        }
+      ]
+    },
+    {
+      "position": 12,
+      "dimension": "PERCEPTION",
+      "text": "Think of someone you really admire. What stands out most about them?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "Their drive: they built their life with their own two hands."
+        },
+        {
+          "color": "G",
+          "text": "Their calm: they are content and have nothing to prove to anyone."
+        },
+        {
+          "color": "W",
+          "text": "Their integrity: they stand up for others and for what is right."
+        },
+        {
+          "color": "U",
+          "text": "Their mind: they understand things others do not even notice."
+        },
+        {
+          "color": "R",
+          "text": "Their boldness: they live fully and are not afraid to show it."
+        }
+      ]
+    },
+    {
+      "position": 13,
+      "dimension": "ACTION",
+      "text": "At a family gathering, two relatives start a heated argument. What do you do?",
+      "answers": [
+        {
+          "color": "R",
+          "text": "I say openly what I think about it, even if that heats things up for a moment."
+        },
+        {
+          "color": "B",
+          "text": "I make it clear I will not take sides and keep my own evening from being spoiled."
+        },
+        {
+          "color": "G",
+          "text": "I suggest a walk outside for everyone; storms like this usually blow over by themselves."
+        },
+        {
+          "color": "W",
+          "text": "I step in and make sure both of them get a fair chance to say their piece."
+        },
+        {
+          "color": "U",
+          "text": "I listen closely, figure out what the real misunderstanding is and point it out."
+        }
+      ]
+    },
+    {
+      "position": 14,
+      "dimension": "MOTIVATION",
+      "text": "What would you most like the people who know you well to say about you?",
+      "answers": [
+        {
+          "color": "B",
+          "text": "That I know exactly what I want and find a way to get it."
+        },
+        {
+          "color": "G",
+          "text": "That I am grounded and patient, and at home in who I am."
+        },
+        {
+          "color": "W",
+          "text": "That you can always count on me to stand up for what is right."
+        },
+        {
+          "color": "U",
+          "text": "That I see things clearly and think further ahead than most people."
+        },
+        {
+          "color": "R",
+          "text": "That I am full of life and always honest about how I feel."
+        }
+      ]
+    },
+    {
+      "position": 15,
+      "dimension": "PERCEPTION",
+      "text": "You come home after a long trip abroad. What strikes you first?",
+      "answers": [
+        {
+          "color": "G",
+          "text": "How good it feels to be back among familiar people and places."
+        },
+        {
+          "color": "W",
+          "text": "How orderly and reliable everything is here compared to the trip."
+        },
+        {
+          "color": "U",
+          "text": "Which ideas I saw abroad would work better here as well."
+        },
+        {
+          "color": "R",
+          "text": "How much I already miss the adventure and the unknown."
+        },
+        {
+          "color": "B",
+          "text": "Which of my experiences will be useful to me from now on."
+        }
+      ]
+    }
+  ]
+}

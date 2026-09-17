@@ -1,4 +1,4 @@
-"""Tests für die Punkte-Zählung (Task 2.8, FR-T5)."""
+"""Tests für die Punkte-Zählung (Task 2.8, FR-T5, D-65)."""
 
 import pytest
 
@@ -25,16 +25,23 @@ def answers():
 
 
 def test_every_color_appears_even_when_never_chosen(answers):
-    scores = tally([answers[0]])
+    scores = tally([(answers[0], 1)])
 
     assert scores == {"W": 1, "U": 0, "B": 0, "R": 0, "G": 0}
 
 
 def test_counts_one_point_per_answer(answers):
-    scores = tally([answers[0], answers[1], answers[2]])
+    scores = tally([(answers[0], 1), (answers[1], 1), (answers[2], 1)])
 
     assert scores == {"W": 2, "U": 1, "B": 0, "R": 0, "G": 0}
 
 
 def test_no_answers_yields_all_zeros():
     assert tally([]) == {"W": 0, "U": 0, "B": 0, "R": 0, "G": 0}
+
+
+def test_counts_the_points_given_per_answer(answers):
+    """D-65: beste Antwort 2 Punkte, zweitbeste 1 Punkt."""
+    scores = tally([(answers[0], 2), (answers[2], 1)])
+
+    assert scores == {"W": 2, "U": 1, "B": 0, "R": 0, "G": 0}

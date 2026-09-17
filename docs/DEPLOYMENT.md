@@ -60,6 +60,7 @@ docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 1 --locale en
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 2 --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
@@ -67,7 +68,7 @@ Migrations laufen bewusst als **eigener** Schritt vor `up -d`, nicht beim Contai
 
 `seed_content` ist ein **eigener** Schritt, keine Migration (ARCHITECTURE.md §9/§1.1): Die Migrationen legen nur die leeren Strukturzeilen an (fünf Farben, 31 Kombinationen — "bewusst noch ohne Inhalt", `apps/colors/migrations/0002_seed_colors_and_combinations.py`), Namen, Ziel/Mittel, Eigenschaften, Perspektiven und Themes kommen erst mit diesem Befehl aus `seeds/colors_en.json`. Ohne ihn läuft die Seite scheinbar normal (Fünfeck mit den fünf Farbnamen, Struktur, Navigation — die kommen aus den Migrationen), zeigt aber zu jeder Auswahl nur leere Inhalte. Idempotent (D-Entscheidung, ARCHITECTURE.md §9), also gefahrlos bei jedem Deployment erneut ausführbar.
 
-`seed_questionnaire` ist aus demselben Grund ein eigener Schritt (ARCHITECTURE.md §9): Die Fragen kommen ausschließlich aus `seeds/questionnaire_v<version>.json`. Ohne ihn liefert `/quiz/` 404 ("No published questionnaire available yet."), weil der Test nur veröffentlichte Versionen anbietet. Für eine veröffentlichte, unveränderte Version ändert ein erneuter Lauf nichts (FR-T6, `seeds/questionnaire_README.md`). Kommt eine neue Version hinzu (`questionnaire_v2.json`), bekommt sie hier eine eigene Zeile; die alte bleibt stehen.
+`seed_questionnaire` ist aus demselben Grund ein eigener Schritt (ARCHITECTURE.md §9): Die Fragen kommen ausschließlich aus `seeds/questionnaire_v<version>.json`. Ohne ihn liefert `/quiz/` 404 ("No published questionnaire available yet."), weil der Test nur veröffentlichte Versionen anbietet. Für eine veröffentlichte, unveränderte Version ändert ein erneuter Lauf nichts (FR-T6, `seeds/questionnaire_README.md`). Jede Version hat eine eigene Zeile; alte Versionen bleiben stehen, damit ihre Ergebnisse auswertbar bleiben. `/quiz/` zeigt immer die neueste veröffentlichte Version — eine unveröffentlichte v2 wird eingespielt, aber noch nicht angeboten.
 
 Danach prüfen:
 
@@ -89,6 +90,7 @@ docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 1 --locale en
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 2 --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 

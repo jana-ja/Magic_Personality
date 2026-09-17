@@ -127,11 +127,11 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 ### 5.3 Personality Test (v0.2)
 
 **Aufbau**
-- **FR-T1** Der Fragebogen besteht in Version 1 aus **30 Fragen mit je 2 Antwortmöglichkeiten** (D-60).
-- **FR-T2** Jede Frage stellt eine Situation dar und bietet zwei typische Reaktionen zweier verschiedener Farben an. Die Zuordnung Antwort → Farbe ist für Testende nicht offensichtlich benannt.
-- **FR-T3** Es gibt 10 ungeordnete Farbpaare; **jedes Paar kommt genau dreimal vor, einmal je Dimension** (FR-T4). Damit erscheint jede Farbe in exakt 12 Fragen (max. 12 Punkte, 30 Punkte gesamt).
-- **FR-T4** Jede Frage gehört zu genau einer von drei Dimensionen: **Handeln** (wie man vorgeht, Mittel der Farbe), **Antrieb** (worum es einem geht, Ziel der Farbe) und **Wahrnehmung** (was einem auffällt oder einen stört). Jede Dimension enthält alle 10 Paare genau einmal, sodass sich einzelne Dimensionen später herausfiltern lassen, ohne die Balance zu verlieren.
-- **FR-T5** Jede gewählte Antwort gibt der zugehörigen Farbe **einen Punkt**.
+- **FR-T1** Der Fragebogen besteht ab Version 2 aus **15 Fragen mit je 5 Antwortmöglichkeiten**, eine je Farbe (D-65). Version 1 (30 Fragen mit je 2 Antworten, D-60) bleibt für bestehende Ergebnisse gültig.
+- **FR-T2** Jede Frage stellt eine Situation dar und bietet fünf typische Reaktionen an, je eine pro Farbe. Die Zuordnung Antwort → Farbe ist für Testende nicht offensichtlich benannt; die Reihenfolge der Antworten folgt nicht der Farbe.
+- **FR-T3** Testende wählen je Frage die Antwort, die **am besten**, und die, die **am zweitbesten** passt. Jede Farbe steht in jeder Frage zur Auswahl (max. 30 Punkte je Farbe, 45 Punkte gesamt).
+- **FR-T4** Jede Frage gehört zu genau einer von drei Dimensionen: **Handeln** (wie man vorgeht, Mittel der Farbe), **Antrieb** (worum es einem geht, Ziel der Farbe) und **Wahrnehmung** (was einem auffällt oder einen stört). Jede Dimension hat gleich viele Fragen (5).
+- **FR-T5** Die beste Antwort gibt ihrer Farbe **2 Punkte**, die zweitbeste **1 Punkt**. Die Punkte je Rang sind Teil der Fragebogen-Version (in v1: eine Antwort, 1 Punkt).
 - **FR-T6** Der Fragebogen trägt eine **Versionsnummer**. Fragen einer veröffentlichten Version werden nicht mehr verändert; Änderungen erzeugen eine neue Version.
 
 **Ablauf**
@@ -146,7 +146,7 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
   2. `k = 2` wird gewählt, wenn `G(2) ≥ G(3) + T`.
   3. `k = 4` wird gewählt, wenn `G(4) ≥ G(3) + T`.
   4. Treffen 2. und 3. zu, gewinnt der größere Abstand.
-  5. `T` ist ein konfigurierbarer Schwellenwert, Standard **2 Punkte**. `T` ist so gewählt, dass Abweichungen von 3 Farben selten sind.
+  5. `T` ist ein Schwellenwert **je Fragebogen-Version**, weil er von der Punkteskala abhängt: v1 **2 Punkte**, v2 **4 Punkte** (D-65). `T` ist so gewählt, dass Abweichungen von 3 Farben selten sind.
 - **FR-T12** Punktgleichstand an der Schnittgrenze: Alle punktgleichen Farben werden aufgenommen. Das Ergebnis kann dadurch 1 bis 5 Farben umfassen.
 - **FR-T13** Das Ergebnis nennt die resultierende Farbkombination mit ihrem Namen und verlinkt auf die zugehörige Ansicht in den Color Infos. Zusätzlich werden die Punktzahlen aller fünf Farben gezeigt.
 
@@ -236,11 +236,11 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 > In v1 gilt immer `author_profile == profile`, und es existiert höchstens ein Datensatz je Profil. Als eigene Entität statt als Spalten am Profil, damit später mehrere Einschätzungen einer Person durch verschiedene Autoren möglich sind (§8.1).
 
 **`Questionnaire`** — Fragebogen-Version
-`version` · `question_count` · `published_at`
+`version` · `question_count` · `published_at` · `choice_points` (Punkte je Rang, z. B. `[2, 1]`) · `result_threshold` (`T`)
 
 **`Question`** / **`AnswerOption`**
 `questionnaire` · `position` · `text` · `dimension` (ACTION / MOTIVATION / PERCEPTION) · `locale`
-je Option: `text` · `color` · `locale`
+je Option: `position` · `text` · `color` · `locale`
 
 **`TestResult`** — Historieneintrag
 `profile` · `questionnaire_version` · `taken_at` · `scores` (Punkte je Farbe) · `result_colors`
@@ -310,7 +310,7 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 |---|---|---|
 | **R-1** | Kein Passwort-Reset (FR-U7). Wer sein Passwort vergisst, kommt nicht mehr hinein. | Bei 3–10 Personen manuell lösbar. Sobald es einmal auftritt: E-Mail-Versand nachrüsten. |
 | **R-2** | 3er- bis 5er-Kombinationen zeigen in v1 nur den Namen. | Bewusst akzeptiert; Inhalte kommen später durch Nutzende. |
-| **R-3** | Qualität der 30 Testfragen entscheidet über P2. | Fragen werden als eigener, abgegrenzter Task erstellt und gegen FR-T2 bis FR-T4 geprüft. |
+| **R-3** | Qualität der Testfragen entscheidet über P2. | Fragen werden als eigener, abgegrenzter Task erstellt und gegen FR-T2 bis FR-T4 geprüft. v1 lieferte zu ausgeglichene Ergebnisse, deshalb v2 mit fünf Antworten je Frage (D-65). |
 | **R-4** | Schwellenwert `T` (FR-T11) ist erst nach echten Durchläufen kalibrierbar. | Konfigurierbar halten, Standard 2. |
 | **R-5** | Das Fünfeck ist die anspruchsvollste UI-Aufgabe, besonders mobil. | Zwei eigenständige Layouts (NFR-3), früh im Meilenstein einplanen. |
 | **R-6** | Fremdprofile berühren personenbezogene Daten Dritter. | Nicht in v1. Anforderungen dazu in §8.1 festgehalten. |

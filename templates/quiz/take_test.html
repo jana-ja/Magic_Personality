@@ -19,18 +19,53 @@
      {% endcomment %}
   <p class="quiz-progress"
      data-quiz-progress
-     data-total="{{ fields|length }}"
+     data-total="{{ questions|length }}"
      data-template="{% blocktranslate %}{answered} of {total} answered{% endblocktranslate %}">
-    {% blocktranslate count counter=fields|length %}{{ counter }} question in total{% plural %}{{ counter }} questions in total{% endblocktranslate %}
+    {% blocktranslate count counter=questions|length %}{{ counter }} question in total{% plural %}{{ counter }} questions in total{% endblocktranslate %}
   </p>
+
+  {% if ranked %}
+    <p class="quiz-intro">{% translate "For each situation, choose the answer that fits you best and the one that fits you second best." %}</p>
+  {% endif %}
 
   <form method="post" action="{% url 'quiz:take_test' %}" data-quiz-form>
     {% csrf_token %}
-    {% for question, field in fields %}
-      <fieldset class="quiz-question">
-        <legend>{{ field.label }}</legend>
-        {{ field }}
-        {% for error in field.errors %}
+    {% for item in questions %}
+      <fieldset class="quiz-question" data-quiz-question data-picks="{{ item.fields|length }}">
+        <legend>{{ item.question.text }}</legend>
+        {% if ranked %}
+          {% comment %} D-65: eine Zeile je Antwort, eine Spalte je Rang.
+             Jeder Radio-Button trägt Rang und Antworttext als eigenes,
+             für Screenreader lesbares Label; sichtbar steht der Rang nur
+             im Tabellenkopf. {% endcomment %}
+          <table class="quiz-ranking">
+            <thead>
+              <tr>
+                <th scope="col">{% translate "Best" %}</th>
+                <th scope="col">{% translate "2nd" %}</th>
+                <th scope="col"><span class="visually-hidden">{% translate "Answer" %}</span></th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for row in item.rows %}
+                <tr>
+                  {% for radio in row.radios %}
+                    <td class="quiz-ranking__choice">
+                      <label>
+                        {{ radio.tag }}
+                        <span class="visually-hidden">{% if forloop.first %}{% translate "Best" %}{% else %}{% translate "2nd" %}{% endif %}: {{ row.label }}</span>
+                      </label>
+                    </td>
+                  {% endfor %}
+                  <td class="quiz-ranking__answer" aria-hidden="true">{{ row.label }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          {{ item.fields.0 }}
+        {% endif %}
+        {% for error in item.errors %}
           <p class="form-errors" role="alert">{{ error }}</p>
         {% endfor %}
       </fieldset>

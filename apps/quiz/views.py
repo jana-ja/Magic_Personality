@@ -48,11 +48,12 @@ def take_test(request):
         .prefetch_related("answer_options")
     )
 
+    form_kwargs = {"questions": questions, "choice_points": questionnaire.choice_points}
     if request.method == "POST":
-        form = TakeTestForm(request.POST, questions=questions)
+        form = TakeTestForm(request.POST, **form_kwargs)
         if form.is_valid():
-            scores = tally(form.cleaned_data.values())
-            combination = evaluate_combination(scores)
+            scores = tally(form.weighted_answers())
+            combination = evaluate_combination(scores, threshold=questionnaire.result_threshold)
 
             # FR-T14: nur eingeloggt landet das Ergebnis automatisch in
             # der Historie. Ohne Login bewusst kein TestResult (D-18);
@@ -93,10 +94,46 @@ def take_test(request):
             }
             return render(request, "quiz/result.html", context)
     else:
-        form = TakeTestForm(questions=questions)
+        form = TakeTestForm(**form_kwargs)
 
-    fields = [(question, form[TakeTestForm.field_name(question)]) for question in questions]
-    return render(request, "quiz/take_test.html", {"form": form, "fields": fields})
+    return render(
+        request,
+        "quiz/take_test.html",
+        {
+            "form": form,
+            "questions": _question_rows(form, questions),
+            "ranked": len(questionnaire.choice_points) > 1,
+        },
+    )
+
+
+def _question_rows(form, questions):
+    """
+    Für das Template: je Frage die Felder aller Ränge und — für die
+    Matrix-Darstellung in v2 (D-65) — je Antwort eine Zeile mit den
+    Radio-Buttons aller Ränge nebeneinander. Die Radio-Buttons eines
+    Feldes kommen in derselben Reihenfolge wie `answer_options`
+    (`AnswerOption.position`), deshalb lassen sie sich zeilenweise
+    zusammenlegen.
+    """
+    ranks = len(form.choice_points)
+    result = []
+    for question in questions:
+        fields = [form[TakeTestForm.field_name(question, rank)] for rank in range(ranks)]
+        rows = [
+            {"label": radios[0].choice_label, "radios": radios}
+            for radios in zip(*(list(field) for field in fields), strict=True)
+        ]
+        errors = [error for field in fields for error in field.errors]
+        result.append(
+            {
+                "question": question,
+                "fields": fields,
+                "rows": rows,
+                "errors": list(dict.fromkeys(errors)),
+            }
+        )
+    return result
 
 
 @login_required
@@ -110,7 +147,7 @@ def adopt_result(request, pk):
     """
     test_result = get_object_or_404(TestResult, pk=pk, profile__user=request.user)
     # Nicht evaluate_combination(test_result.scores) neu berechnen: die
-    # Auswertungsregel oder QUIZ_RESULT_THRESHOLD könnten sich seither
+    # Auswertungsregel oder `result_threshold` könnten sich seither
     # geändert haben — result_colors ist das Ergebnis, das zum
     # Testzeitpunkt tatsächlich angezeigt wurde (FR-T14 übernimmt
     # *dieses* Ergebnis, kein neu berechnetes).
@@ -146,7 +183,12 @@ def claim_anonymous_result(request):
         return redirect(settings.LOGIN_REDIRECT_URL)
 
     questionnaire_version, scores = unsigned
-    combination = evaluate_combination(scores)
+    # Das Token wird mit dem `T` seiner eigenen Version ausgewertet
+    # (D-65) — auch wenn inzwischen eine neuere Version aktuell ist.
+    questionnaire = Questionnaire.objects.filter(version=questionnaire_version).first()
+    if questionnaire is None:
+        return redirect(settings.LOGIN_REDIRECT_URL)
+    combination = evaluate_combination(scores, threshold=questionnaire.result_threshold)
     test_result = TestResult.objects.create(
         profile=profile,
         questionnaire_version=questionnaire_version,

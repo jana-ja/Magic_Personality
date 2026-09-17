@@ -218,3 +218,94 @@ def test_unpublishing_a_published_version_raises(tmp_path):
             tmp_path,
             {"version": 1, "locale": "en", "published": False, "questions": [_question()]},
         )
+
+
+# Beste und zweitbeste Antwort (D-65) -----------------------------------------
+
+
+def _ranked_question(position=1, colors=("G", "W", "R", "U", "B")):
+    return {
+        "position": position,
+        "dimension": "ACTION",
+        "text": f"Q{position}?",
+        "answers": [{"color": color, "text": f"Q{position} {color}"} for color in colors],
+    }
+
+
+def _ranked(**overrides):
+    data = {
+        "version": 2,
+        "locale": "en",
+        "choice_points": [2, 1],
+        "result_threshold": 4,
+        "questions": [_ranked_question()],
+    }
+    data.update(overrides)
+    return data
+
+
+def test_choice_points_and_threshold_are_stored(tmp_path):
+    _seed(tmp_path, _ranked(), version=2)
+
+    questionnaire = Questionnaire.objects.get(version=2)
+    assert questionnaire.choice_points == [2, 1]
+    assert questionnaire.result_threshold == 4
+
+
+def test_defaults_match_the_format_of_version_one(tmp_path):
+    _seed(tmp_path, {"version": 1, "locale": "en", "questions": [_question()]})
+
+    questionnaire = Questionnaire.objects.get(version=1)
+    assert questionnaire.choice_points == [1]
+    assert questionnaire.result_threshold == 2
+
+
+def test_answer_positions_follow_the_seed_file(tmp_path):
+    _seed(tmp_path, _ranked(), version=2)
+
+    question = Question.objects.get(questionnaire__version=2)
+    assert [answer.color for answer in question.answer_options.all()] == ["G", "W", "R", "U", "B"]
+    assert [answer.position for answer in question.answer_options.all()] == [0, 1, 2, 3, 4]
+
+
+@pytest.mark.parametrize("choice_points", [[], [1, 2], [2, 0], "2,1"])
+def test_invalid_choice_points_raise(tmp_path, choice_points):
+    message = _seed_raises(tmp_path, _ranked(choice_points=choice_points), version=2)
+    assert "choice_points" in message
+
+
+def test_negative_threshold_raises(tmp_path):
+    message = _seed_raises(tmp_path, _ranked(result_threshold=-1), version=2)
+    assert "result_threshold" in message
+
+
+def test_a_question_needs_more_answers_than_choices(tmp_path):
+    data = _ranked(questions=[_ranked_question(colors=("W", "U"))])
+    message = _seed_raises(tmp_path, data, version=2)
+    assert "Antworten" in message
+
+
+def test_threshold_of_a_published_version_may_change(tmp_path):
+    """R-4: `T` wird erst nach echten Durchläufen kalibriert (D-65)."""
+    _seed(tmp_path, _ranked(published=True), version=2)
+
+    _seed(tmp_path, _ranked(published=True, result_threshold=5), version=2)
+
+    assert Questionnaire.objects.get(version=2).result_threshold == 5
+
+
+def test_changing_choice_points_of_a_published_version_raises(tmp_path):
+    _seed(tmp_path, _ranked(published=True), version=2)
+
+    with pytest.raises(CommandError, match="veröffentlicht"):
+        _seed(tmp_path, _ranked(published=True, choice_points=[3, 1]), version=2)
+
+
+def test_reordering_answers_of_a_published_version_raises(tmp_path):
+    _seed(tmp_path, _ranked(published=True), version=2)
+
+    reordered = _ranked(
+        published=True, questions=[_ranked_question(colors=("W", "G", "R", "U", "B"))]
+    )
+    with pytest.raises(CommandError, match="veröffentlicht"):
+        _seed(tmp_path, reordered, version=2)

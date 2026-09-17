@@ -22,6 +22,10 @@ from django.utils.translation import gettext_lazy as _
 from apps.colors.models import Color
 
 
+def default_choice_points():
+    return [1]
+
+
 class Questionnaire(models.Model):
     """Eine Fragebogen-Version (FR-T6). `question_count` ist die Sollzahl
     für Task 2.7s Balance-Test, nicht aus `questions` abgeleitet — sie
@@ -30,6 +34,14 @@ class Questionnaire(models.Model):
     version = models.PositiveIntegerField(unique=True)
     question_count = models.PositiveSmallIntegerField()
     published_at = models.DateTimeField(null=True, blank=True)
+    # D-65: Punkte je Rang einer Frage. `[1]` = eine Antwort wählen,
+    # 1 Punkt (v1); `[2, 1]` = beste und zweitbeste Antwort wählen (v2).
+    # Die Länge ist zugleich die Zahl der Auswahlen je Frage.
+    choice_points = models.JSONField(default=default_choice_points)
+    # FR-T11: `T` gehört zur Punkteskala einer Version, nicht global —
+    # 30 Punkte in v1 und 45 in v2 brauchen verschiedene Werte (D-65).
+    # Anders als die Fragen auch nach Veröffentlichung änderbar (R-4).
+    result_threshold = models.PositiveSmallIntegerField(default=2)
 
     class Meta:
         ordering = ["version"]
@@ -40,6 +52,18 @@ class Questionnaire(models.Model):
     @property
     def is_published(self):
         return self.published_at is not None
+
+    def clean(self):
+        points = self.choice_points
+        if (
+            not isinstance(points, list)
+            or not points
+            or not all(isinstance(value, int) and value > 0 for value in points)
+            or points != sorted(points, reverse=True)
+        ):
+            raise ValidationError(
+                {"choice_points": "must be a non-empty, descending list of positive integers."}
+            )
 
 
 class Question(models.Model):
@@ -80,11 +104,16 @@ class AnswerOption(models.Model):
     erkennbar benannt (FR-T2), nur intern gespeichert."""
 
     question = models.ForeignKey(Question, on_delete=models.CASCADE, related_name="answer_options")
+    # Anzeigereihenfolge innerhalb der Frage, aus der Reihenfolge in der
+    # Seed-Datei (D-65) — nie nach Farbe sortiert, sonst stünde dieselbe
+    # Farbe immer an derselben Stelle.
+    position = models.PositiveSmallIntegerField(default=0)
     text = models.TextField()
     color = models.CharField(max_length=1, choices=Color.Code.choices)
     locale = models.CharField(max_length=10, default="en")
 
     class Meta:
+        ordering = ["question", "position"]
         constraints = [
             models.UniqueConstraint(
                 fields=["question", "color"], name="unique_answer_option_color_per_question"

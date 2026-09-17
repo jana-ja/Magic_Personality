@@ -28,7 +28,8 @@ freigegeben ist:
 - **Sobald ein Lauf `"published": true` gesetzt hat:** `published_at`
   wird einmalig gesetzt. **Jeder weitere Lauf gegen dieselbe Version
   darf den Inhalt nicht mehr ändern** — abweichender Text, eine
-  geänderte Dimension, eine neue oder fehlende Frage/Antwort brechen
+  geänderte Dimension oder Antwortreihenfolge, geänderte `choice_points`,
+  eine neue oder fehlende Frage/Antwort brechen
   den Import mit einer klaren Fehlermeldung ab. Ein Lauf mit exakt
   unverändertem Inhalt bleibt möglich (idempotentes Redeploy).
   `"published": false` gegen eine bereits veröffentlichte Version
@@ -59,8 +60,10 @@ die alte Datei bearbeiten.
 }
 ```
 
-(Beispielwerte oben frei erfunden. Die echten 30 Fragen stehen in
-`seeds/questionnaire_v1.json`, Task 2.7.)
+(Beispielwerte oben frei erfunden, im Format von v1. Die echten Fragen
+stehen in `seeds/questionnaire_v1.json` (Task 2.7: 30 Fragen, je zwei
+Antworten) und `seeds/questionnaire_v2.json` (Task 2.16, D-65: 15 Fragen,
+je fünf Antworten, `"choice_points": [2, 1]`, `"result_threshold": 4`).)
 
 ## Felder
 
@@ -71,6 +74,8 @@ die alte Datei bearbeiten.
 | `version` | ja | Muss zum `--version`-Argument passen. |
 | `locale` | ja | Muss zum `--locale`-Argument passen. |
 | `published` | nein | Default `false`. Siehe oben. |
+| `choice_points` | nein | Punkte je Rang, absteigend, z. B. `[2, 1]` = beste und zweitbeste Antwort wählen (D-65). Default `[1]` (eine Antwort, 1 Punkt, wie v1). Gehört zum Inhalt: bei einer veröffentlichten Version nicht mehr änderbar. |
+| `result_threshold` | nein | `T` der Auswertungsregel (FR-T11) für diese Version. Default `2`. **Auch nach Veröffentlichung änderbar** (R-4), ein erneuter Lauf übernimmt den neuen Wert. |
 | `questions` | ja | Liste von Fragen, siehe unten. |
 
 ### Frage (`questions[]`)
@@ -80,13 +85,13 @@ die alte Datei bearbeiten.
 | `position` | ja | Zusammen mit `locale` der natürliche Schlüssel je Fragebogen-Version. |
 | `dimension` | ja | `"ACTION"`, `"MOTIVATION"` oder `"PERCEPTION"` (FR-T4, D-60). Jeder andere Wert bricht ab. |
 | `text` | ja | Die Situationsbeschreibung. Nennt die Farbzuordnung nicht (FR-T2). |
-| `answers` | ja | Genau zwei Einträge, siehe unten (FR-T1). |
+| `answers` | ja | Mehr Einträge als `choice_points` Ränge hat (v1: zwei, v2: fünf), siehe unten (FR-T1). Die Reihenfolge in der Datei ist die Anzeigereihenfolge und gehört zum Inhalt. |
 
 ### Antwort (`questions[].answers[]`)
 
 | Feld | Pflicht | Beschreibung |
 |---|---|---|
-| `color` | ja | Die Farbe, die bei Auswahl einen Punkt bekommt (FR-T5). Je Frage muss `color` sich unterscheiden — das erzwingt der Unique-Constraint auf `AnswerOption`. |
+| `color` | ja | Die Farbe, die bei Auswahl die Punkte des gewählten Rangs bekommt (FR-T5). Je Frage muss `color` sich unterscheiden — das erzwingt der Unique-Constraint auf `AnswerOption`. |
 | `text` | ja | Eine typische Reaktion dieser Farbe, ohne die Farbe zu benennen (FR-T2). |
 
 `locale` wird für Fragen und Antworten automatisch aus dem
@@ -105,7 +110,7 @@ Ursache nennt), statt fehlerhafte Daten still zu übernehmen:
 Ein fehlgeschlagener Import ändert **nichts** an der Datenbank — der
 gesamte Lauf ist eine einzige Transaktion.
 
-Die Paar-Balance aus FR-T3 (jedes der 10 Farbpaare genau einmal je
-Dimension, jede Farbe in genau 12 Fragen) und die automatisch prüfbaren
-Qualitätsregeln aus D-60 prüft dieses Format nicht — das übernimmt
-`apps/quiz/tests/test_questionnaire_v1.py` gegen die echte Seed-Datei.
+Aufbau und Balance einer konkreten Version (v1: Paar-Balance, D-60;
+v2: jede Farbe an jeder Position, D-65) prüft dieses Format nicht — das
+übernehmen `apps/quiz/tests/test_questionnaire_v1.py` und
+`apps/quiz/tests/test_questionnaire_v2.py` gegen die echten Seed-Dateien.

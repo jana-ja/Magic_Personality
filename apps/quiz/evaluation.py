@@ -26,21 +26,20 @@ bewusst festgelegt (siehe D-59):
   erreichbar, obwohl FR-T12 wörtlich "1 bis 5 Farben" nennt.
 """
 
-from django.conf import settings
-
 from apps.colors.content import LOCALE
 from apps.colors.models import ColorCombination
 from apps.colors.utils import canonical_code
 
 
-def result_size(sorted_points, *, threshold=None):
+def result_size(sorted_points, *, threshold):
     """
     `sorted_points`: die fünf Punktzahlen absteigend sortiert (FR-T10).
+    `threshold`: `T` der jeweiligen Fragebogen-Version
+    (`Questionnaire.result_threshold`, D-65) — `T` hängt von der
+    Punkteskala ab und ist deshalb keine globale Einstellung.
     Gibt `k` zurück — wie viele der höchsten Farben das Ergebnis bilden,
     *vor* der Gleichstand-Erweiterung aus FR-T12 (siehe `evaluate()`).
     """
-    if threshold is None:
-        threshold = settings.QUIZ_RESULT_THRESHOLD
 
     def gap(rank):
         # G(rank): Punktabstand zwischen Rang `rank` und `rank + 1`
@@ -68,7 +67,7 @@ def result_size(sorted_points, *, threshold=None):
     return 3
 
 
-def evaluate(scores, *, threshold=None):
+def evaluate(scores, *, threshold):
     """
     `scores`: `{"W": 5, "U": 3, ...}` (Ausgabe von `scoring.tally()`).
     Gibt die Menge der Farbcodes zurück, die das Ergebnis bilden — 1 bis
@@ -88,7 +87,7 @@ def evaluate(scores, *, threshold=None):
     return frozenset(code for code, _score in ranked[:k])
 
 
-def evaluate_combination(scores, *, threshold=None):
+def evaluate_combination(scores, *, threshold):
     """
     Wie `evaluate()`, aber direkt auf die passende `ColorCombination`
     abgebildet (Roadmap 2.9: "Ergebnis wird auf eine der 31

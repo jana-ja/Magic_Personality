@@ -13,14 +13,17 @@
   const total = parseInt(progress.dataset.total, 10);
   const template = progress.dataset.template;
 
+  // Eine Frage gilt als beantwortet, wenn alle ihre Ränge gewählt sind
+  // (v1: eine Auswahl, v2: beste und zweitbeste Antwort, D-65).
   function update() {
-    const answeredQuestions = new Set();
-    form.querySelectorAll("input[type=radio]:checked").forEach((input) => {
-      answeredQuestions.add(input.name);
+    let answered = 0;
+    form.querySelectorAll("[data-quiz-question]").forEach((question) => {
+      const picks = parseInt(question.dataset.picks, 10);
+      if (question.querySelectorAll("input[type=radio]:checked").length === picks) {
+        answered += 1;
+      }
     });
-    progress.textContent = template
-      .replace("{answered}", answeredQuestions.size)
-      .replace("{total}", total);
+    progress.textContent = template.replace("{answered}", answered).replace("{total}", total);
   }
 
   form.addEventListener("change", update);

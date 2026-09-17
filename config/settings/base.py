@@ -218,12 +218,9 @@ GATE_RATE_LIMIT_WINDOW_SECONDS = 600
 REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS = 10
 REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600
 
-# Auswertungsregel des Fragebogens (Task 2.9, FR-T11): "T ist ein
-# konfigurierbarer Schwellenwert, Standard 2 Punkte." Kein Geheimnis,
-# aber eine echte Abstimmungsgröße (R-4 im PRD: erst nach echten
-# Durchläufen kalibrierbar) — deshalb env-gesteuert, nicht fest wie
-# die Rate-Limit-Werte oben.
-QUIZ_RESULT_THRESHOLD = env.int("QUIZ_RESULT_THRESHOLD", default=2)
+# Der Schwellenwert T der Auswertungsregel (FR-T11) ist seit D-65 keine
+# Einstellung mehr, sondern steht je Fragebogen-Version in der Seed-Datei
+# (`Questionnaire.result_threshold`).
 
 # Anonymes Testergebnis im localStorage (Task 2.11, FR-T15, D-18) —
 # signiert wie das Gate-Cookie (GATE_COOKIE_SALT/_MAX_AGE oben), damit

@@ -297,6 +297,51 @@ button {
   padding: var(--space-1) 0;
 }
 
+/* Beste und zweitbeste Antwort (D-65) ------------------------------------ */
+
+.quiz-ranking {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+.quiz-ranking th {
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  color: var(--color-muted);
+  text-align: center;
+  padding: 0 var(--space-1) var(--space-1);
+  white-space: nowrap;
+}
+
+.quiz-ranking tbody tr {
+  border-top: 1px solid var(--color-border);
+}
+
+.quiz-ranking td {
+  padding: var(--space-2) var(--space-1);
+  vertical-align: top;
+}
+
+.quiz-ranking__choice {
+  width: 3rem;
+  text-align: center;
+}
+
+/* Die ganze Zelle ist Trefferfläche, nicht nur der kleine Radio-Button. */
+.quiz-question .quiz-ranking__choice label {
+  display: flex;
+  justify-content: center;
+  min-height: 2.75rem;
+  padding: var(--space-2) 0;
+  cursor: pointer;
+}
+
+.quiz-ranking__choice input {
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+}
+
 .quiz-scores {
   display: flex;
   flex-direction: column;

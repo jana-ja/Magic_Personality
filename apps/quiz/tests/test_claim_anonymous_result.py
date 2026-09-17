@@ -33,7 +33,7 @@ def _submit_all(client, questionnaire):
         for question, answer in zip(questions, chosen_answers, strict=True)
     }
     response = client.post(TAKE_TEST_URL, data)
-    return response, tally(chosen_answers)
+    return response, tally([(answer, 1) for answer in chosen_answers])
 
 
 @pytest.fixture
@@ -93,7 +93,7 @@ def test_a_valid_token_is_saved_to_the_history_and_offered_for_adoption(
     token = anonymous_result.sign(
         questionnaire_version=published_questionnaire.version, scores=scores
     )
-    combination = evaluate_combination(scores)
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
 
     gated_client.force_login(user)
     response = gated_client.post(CLAIM_URL, {"token": token})
@@ -175,3 +175,34 @@ def test_claiming_does_not_by_itself_change_the_profile_colors(
     gated_client.post(CLAIM_URL, {"token": token})
 
     assert not ColorAssignment.objects.filter(profile=user.profile).exists()
+
+
+def test_token_is_evaluated_with_the_threshold_of_its_own_version(
+    gated_client, published_questionnaire, published_ranked_questionnaire, user
+):
+    """D-65: `T` hängt an der Fragebogen-Version. G(2)=3, G(3)=1 —
+    mit T=2 (v1) ein Zweier, mit T=4 (v2) bleibt es beim Dreier."""
+    scores = {"W": 9, "U": 8, "B": 5, "R": 4, "G": 3}
+    gated_client.force_login(user)
+
+    for questionnaire, expected in (
+        (published_questionnaire, "WU"),
+        (published_ranked_questionnaire, "WUB"),
+    ):
+        token = anonymous_result.sign(questionnaire_version=questionnaire.version, scores=scores)
+        gated_client.post(CLAIM_URL, {"token": token})
+
+        result = TestResult.objects.get(questionnaire_version=questionnaire.version)
+        assert result.result_colors == expected
+
+
+def test_token_for_an_unknown_version_is_rejected_without_error(gated_client, user):
+    token = anonymous_result.sign(
+        questionnaire_version=99, scores={"W": 5, "U": 0, "B": 0, "R": 0, "G": 0}
+    )
+    gated_client.force_login(user)
+
+    response = gated_client.post(CLAIM_URL, {"token": token})
+
+    assert response.status_code == 302
+    assert not TestResult.objects.exists()

@@ -350,6 +350,19 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 
 > Nachgetragen nach dem ersten Deployment von v0.2: Keine Aufgabe sah einen Einstieg in den Test vor, er war nur über die direkte URL erreichbar. Gleichzeitig fehlte `seed_questionnaire` im Deployment-Ablauf, `/quiz/` lieferte auf dem Server deshalb 404.
 
+#### 2.16 · Fragebogen v2
+**Abhängig von:** 2.7, 2.9 · **Anforderungen:** FR-T1 bis FR-T5, FR-T11, R-3, R-4, D-65
+**Fertig, wenn:**
+- [x] 15 Fragen mit je fünf Antworten (eine je Farbe) in `seeds/questionnaire_v2.json`, je 5 pro Dimension.
+- [x] Testende wählen die beste und die zweitbeste Antwort; sie geben 2 bzw. 1 Punkt. Dieselbe Antwort auf beiden Plätzen wird abgewiesen.
+- [x] Punkte je Rang und `T` stehen je Fragebogen-Version in der Seed-Datei; v1 funktioniert unverändert weiter.
+- [x] Antworten erscheinen in der Reihenfolge der Seed-Datei, nicht nach Farbe sortiert.
+- [x] `T` für v2 per Simulation eingestellt (D-65).
+- [x] Qualitätsregeln aus D-65 eingehalten; automatisch prüfbare davon per Test gegen die Seed-Datei abgesichert.
+- [ ] Eigener Testdurchlauf, danach `"published": true`.
+
+> Nachgetragen nach dem eigenen Durchlauf von v1: Das Ergebnis war zu ausgeglichen, weil bei zwei Antworten auch Farben Punkte bekommen, die man nicht hat (D-65).
+
 **Meilenstein v0.2 abgeschlossen** — alle Abnahmekriterien aus PRD §11 (v0.2) sind erfüllt.
 
 ---

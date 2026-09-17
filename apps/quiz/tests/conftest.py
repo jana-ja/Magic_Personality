@@ -30,10 +30,39 @@ def published_questionnaire(db):
         question = Question.objects.create(
             questionnaire=questionnaire, position=position, text=text, dimension=dimension
         )
-        AnswerOption.objects.create(
-            question=question, color=colors[0], text=f"{text} ({colors[0]})"
+        for position, color in enumerate(colors):
+            AnswerOption.objects.create(
+                question=question, position=position, color=color, text=f"{text} ({color})"
+            )
+    return questionnaire
+
+
+RANKED_QUESTIONS = [
+    ("ACTION", "Ranked question one?", ("G", "W", "R", "U", "B")),
+    ("MOTIVATION", "Ranked question two?", ("B", "R", "U", "G", "W")),
+]
+
+
+@pytest.fixture
+def published_ranked_questionnaire(db):
+    """Wie `published_questionnaire`, aber im Format von v2 (D-65):
+    fünf Antworten je Frage, beste und zweitbeste werden gewählt."""
+    questionnaire = Questionnaire.objects.create(
+        version=2,
+        question_count=len(RANKED_QUESTIONS),
+        published_at=timezone.now(),
+        choice_points=[2, 1],
+        result_threshold=4,
+    )
+    for position, (dimension, text, colors) in enumerate(RANKED_QUESTIONS, start=1):
+        question = Question.objects.create(
+            questionnaire=questionnaire, position=position, text=text, dimension=dimension
         )
-        AnswerOption.objects.create(
-            question=question, color=colors[1], text=f"{text} ({colors[1]})"
-        )
+        for answer_position, color in enumerate(colors):
+            AnswerOption.objects.create(
+                question=question,
+                position=answer_position,
+                color=color,
+                text=f"{text} ({color})",
+            )
     return questionnaire

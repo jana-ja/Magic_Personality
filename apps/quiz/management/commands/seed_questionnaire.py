@@ -22,7 +22,14 @@ from django.utils import timezone
 
 from apps.quiz.models import AnswerOption, Question, Questionnaire
 
-ALLOWED_TOP_LEVEL_KEYS = {"version", "locale", "published", "questions"}
+ALLOWED_TOP_LEVEL_KEYS = {
+    "version",
+    "locale",
+    "published",
+    "choice_points",
+    "result_threshold",
+    "questions",
+}
 ALLOWED_QUESTION_KEYS = {"position", "dimension", "text", "answers"}
 ALLOWED_ANSWER_KEYS = {"color", "text"}
 
@@ -87,6 +94,10 @@ class Command(BaseCommand):
 
         questions = data.get("questions", [])
         publish_requested = bool(data.get("published", False))
+        choice_points = data.get("choice_points", [1])
+        result_threshold = data.get("result_threshold", 2)
+        if not isinstance(result_threshold, int) or result_threshold < 0:
+            raise CommandError("'result_threshold' muss eine ganze Zahl >= 0 sein.")
 
         with transaction.atomic():
             questionnaire, _ = Questionnaire.objects.get_or_create(
@@ -102,6 +113,17 @@ class Command(BaseCommand):
                     f"Version {version} ist bereits veröffentlicht und kann nicht "
                     "zurückgezogen werden. Änderungen brauchen eine neue Version (FR-T6)."
                 )
+
+            # choice_points bestimmt die Punktvergabe und ist damit Teil
+            # des Inhalts (FR-T6). result_threshold dagegen bleibt auch
+            # nach Veröffentlichung änderbar (R-4, D-65).
+            if was_published:
+                self._reject_change(
+                    questionnaire, {"choice_points": choice_points}, f"Version {version}"
+                )
+            questionnaire.choice_points = choice_points
+            questionnaire.result_threshold = result_threshold
+            self._full_clean_or_raise(questionnaire, f"Version {version}")
 
             questions_written = 0
             answers_written = 0
@@ -154,13 +176,22 @@ class Command(BaseCommand):
             )
             self._full_clean_or_raise(question, where)
 
+        answers = question_entry.get("answers", [])
+        # Mindestens eine Antwort mehr als Auswahlen, sonst gäbe es
+        # nichts zu entscheiden (FR-T1, D-65).
+        if len(answers) <= len(questionnaire.choice_points):
+            raise CommandError(
+                f"{where} braucht mehr als {len(questionnaire.choice_points)} Antworten "
+                f"(choice_points={questionnaire.choice_points})."
+            )
+
         answers_written = 0
-        for answer_entry in question_entry.get("answers", []):
-            self._seed_answer(question, answer_entry, was_published, where)
+        for position, answer_entry in enumerate(answers):
+            self._seed_answer(question, answer_entry, position, was_published, where)
             answers_written += 1
         return answers_written
 
-    def _seed_answer(self, question, answer_entry, was_published, where):
+    def _seed_answer(self, question, answer_entry, position, was_published, where):
         self._check_unknown_keys(answer_entry, ALLOWED_ANSWER_KEYS, f"answer in {where}")
 
         color = answer_entry.get("color")
@@ -171,13 +202,13 @@ class Command(BaseCommand):
 
         if was_published:
             existing = AnswerOption.objects.filter(question=question, color=color).first()
-            self._reject_change(existing, {"text": text}, answer_where)
+            self._reject_change(existing, {"text": text, "position": position}, answer_where)
             return
 
         answer, _ = AnswerOption.objects.update_or_create(
             question=question,
             color=color,
-            defaults={"text": text, "locale": question.locale},
+            defaults={"text": text, "position": position, "locale": question.locale},
         )
         self._full_clean_or_raise(answer, answer_where)
 
