@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Your results" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Your results" %}</h1>
+
+  <p>
+    {% blocktranslate with name=combination.name %}Your result is <strong>{{ name }}</strong>.{% endblocktranslate %}
+    <a href="{{ combination_url }}">{% translate "See it in Color Infos" %}</a>
+  </p>
+
+  <dl class="quiz-scores">
+    {% for code, points in scores.items %}
+      <div class="quiz-scores__row">
+        <dt>{{ code }}</dt>
+        <dd>{{ points }}</dd>
+      </div>
+    {% endfor %}
+  </dl>
+
+  {% if test_result %}
+    <p>{% translate "This result has been saved to your test history." %}</p>
+    <form method="post" action="{% url 'quiz:adopt_result' test_result.pk %}">
+      {% csrf_token %}
+      <button type="submit">{% translate "Add these colors to my profile" %}</button>
+    </form>
+  {% endif %}
+{% endblock %}

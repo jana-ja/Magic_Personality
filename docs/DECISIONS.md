@@ -330,3 +330,8 @@ Jedes der 10 Farbpaare kommt genau einmal je Dimension vor: **Handeln** (`ACTION
 
 Regeln 2, 4 und 5 (soweit automatisch prüfbar) sichert `apps/quiz/tests/test_questionnaire_v1.py` gegen die echte Seed-Datei ab.
 **Offen:** Bei 30 statt 20 Punkten ist ein Abstand von `T` = 2 (D-17) relativ kleiner. Nicht vorab geändert, sondern mit R-4 nach echten Durchläufen kalibrieren.
+
+### D-61 · Übernahme ins Profil liest `TestResult.result_colors`, berechnet nicht neu
+**Status:** Angenommen · 2026-09-17
+`apps.quiz.views.adopt_result` (Task 2.10) übernimmt die schon in `TestResult.result_colors` gespeicherte Kombination unverändert, statt `evaluate_combination(test_result.scores)` erneut aufzurufen.
+**Warum:** `QUIZ_RESULT_THRESHOLD` (Task 2.9) ist als Einstellung bewusst veränderlich (R-4: „T ist erst nach echten Durchläufen kalibrierbar“). Würde die Übernahme die Auswertungsregel zum Zeitpunkt des Klicks neu anwenden, könnte ein alter Testeintrag nach einer T-Anpassung ein anderes Ergebnis übernehmen, als er selbst je gezeigt hat — die Person würde Farben bestätigen, die sie nie gesehen hat. `result_colors` ist die einzige Quelle der Wahrheit für „was diese Person zu diesem Zeitpunkt als Ergebnis gesehen hat“.

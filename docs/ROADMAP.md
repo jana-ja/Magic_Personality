@@ -300,9 +300,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.10 · Ergebnis anzeigen und übernehmen
 **Abhängig von:** 2.9, 2.4 · **Anforderungen:** FR-T13, FR-T14
 **Fertig, wenn:**
-- [ ] Ergebnis zeigt Kombinationsnamen, Punkte aller fünf Farben und verlinkt auf `/colors/<code>/`.
-- [ ] Eingeloggt: Ergebnis landet automatisch in der Historie; Übernahme ins Profil wird **angeboten**, nicht erzwungen.
-- [ ] Übernahme setzt `source = SELF_TEST` und die Testreferenz.
+- [x] Ergebnis zeigt Kombinationsnamen, Punkte aller fünf Farben und verlinkt auf `/colors/<code>/`.
+- [x] Eingeloggt: Ergebnis landet automatisch in der Historie; Übernahme ins Profil wird **angeboten**, nicht erzwungen.
+- [x] Übernahme setzt `source = SELF_TEST` und die Testreferenz.
+
+> Übernahme liest die zum Testzeitpunkt gespeicherte Kombination (`TestResult.result_colors`), berechnet nicht neu — siehe D-61.
 
 #### 2.11 · Ergebnis ohne Anmeldung
 **Abhängig von:** 2.10 · **Anforderungen:** FR-T15, FR-T16, D-18
