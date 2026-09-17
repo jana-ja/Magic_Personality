@@ -236,9 +236,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.3 · Account löschen
 **Abhängig von:** 2.2 · **Anforderungen:** FR-U8
 **Fertig, wenn:**
-- [ ] View mit ausdrücklicher Bestätigung.
-- [ ] Profil, Farbzuordnung, Testhistorie und Freundschaftsbeziehungen werden mitgelöscht.
-- [ ] Test: nach Löschung existiert keine Zeile mehr, die auf den Account verweist.
+- [x] View mit ausdrücklicher Bestätigung.
+- [x] Profil, Farbzuordnung, Testhistorie und Freundschaftsbeziehungen werden mitgelöscht.
+- [x] Test: nach Löschung existiert keine Zeile mehr, die auf den Account verweist.
+
+> Freundschaftsbeziehungen: `Friendship` existiert erst ab Task 3.4 und verweist dann per `on_delete=CASCADE` auf `Profile` — nichts, was hier schon zu tun wäre.
 
 #### 2.4 · Profil ansehen und bearbeiten
 **Abhängig von:** 2.2 · **Anforderungen:** FR-P1, FR-P4

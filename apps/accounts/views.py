@@ -1,4 +1,4 @@
-"""Views der Accounts-App: Registrierung (Task 2.2).
+"""Views der Accounts-App: Registrierung (Task 2.2), Account-Löschung (Task 2.3).
 
 Login, Logout und Passwortänderung sind Djangos eigene Views
 (`django.contrib.auth.views`), direkt in `urls.py` verdrahtet — dafür
@@ -6,7 +6,8 @@ gibt es keinen eigenen Code zu schreiben (ARCHITECTURE.md §7).
 """
 
 from django.conf import settings
-from django.contrib.auth import login
+from django.contrib.auth import login, logout
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import redirect, render
 from django.views.decorators.http import require_http_methods
 
@@ -41,3 +42,23 @@ def register(request):
         return redirect(settings.LOGIN_REDIRECT_URL)
 
     return render(request, "accounts/register.html", {"form": form})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def delete_account(request):
+    """
+    FR-U8: vollständige Account-Löschung, mit ausdrücklicher
+    Bestätigung — GET zeigt nur die Warnung, erst ein eigener POST
+    löscht tatsächlich. `on_delete=CASCADE` (Task 2.1/2.6, D-22) erledigt
+    den Rest: Profil, Farbzuordnung und Testhistorie hängen an `Profile`
+    bzw. `User` und verschwinden mit ihm, ohne dass diese View sie
+    einzeln anfassen muss.
+    """
+    if request.method == "POST":
+        user = request.user
+        user.delete()
+        logout(request)
+        return redirect(settings.LOGOUT_REDIRECT_URL)
+
+    return render(request, "accounts/delete_account_confirm.html")

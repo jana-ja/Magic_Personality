@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Delete account" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Delete your account" %}</h1>
+  <p>
+    {% translate "This permanently deletes your account, including your profile, your color assignment, and your test history. This cannot be undone." %}
+  </p>
+
+  <form method="post" action="{% url 'delete_account' %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Yes, permanently delete my account" %}</button>
+  </form>
+
+  <p><a href="{% url 'colors:index' %}">{% translate "Cancel" %}</a></p>
+{% endblock %}

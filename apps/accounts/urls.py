@@ -1,5 +1,5 @@
 """
-URLs der Accounts-App (Task 2.2).
+URLs der Accounts-App (Task 2.2, Task 2.3).
 
 Login/Logout/Passwortänderung nutzen Djangos eigene View-Klassen direkt
 — nur Templates und Redirect-Ziele sind projektspezifisch. Bewusst
@@ -35,4 +35,5 @@ urlpatterns = [
         ),
         name="password_change_done",
     ),
+    path("delete/", views.delete_account, name="delete_account"),
 ]
