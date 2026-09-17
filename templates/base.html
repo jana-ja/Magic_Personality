@@ -17,6 +17,18 @@
 
   <header class="site-header">
     <a class="site-header__brand" href="/">{% translate "Magic Personality" %}</a>
+    <nav class="site-header__auth" aria-label="{% translate 'Account' %}">
+      {% if user.is_authenticated %}
+        <span>{{ user.profile.nickname }}</span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit">{% translate "Log out" %}</button>
+        </form>
+      {% else %}
+        <a href="{% url 'login' %}">{% translate "Log in" %}</a>
+        <a href="{% url 'register' %}">{% translate "Register" %}</a>
+      {% endif %}
+    </nav>
   </header>
 
   <main id="main-content" class="site-main">

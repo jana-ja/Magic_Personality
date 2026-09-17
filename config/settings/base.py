@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    # Rate Limiting auf Login-Versuchen (Task 2.2, FR-U6, ARCHITECTURE.md §7).
+    "axes",
     "apps.core",
     "apps.colors",
     "apps.accounts",
@@ -66,6 +68,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    # Muss laut django-axes-Doku als letzte Middleware stehen: sie wertet
+    # nur ein Flag aus, das die Auth-Backends weiter oben im Request-
+    # Zyklus gesetzt haben (Task 2.2, FR-U6).
+    "axes.middleware.AxesMiddleware",
 ]
 
 ROOT_URLCONF = "config.urls"
@@ -110,6 +116,28 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 # ohne Weiteres austauschen.
 
 AUTH_USER_MODEL = "accounts.User"
+
+# Login/Logout (Task 2.2). Kein Dashboard in v1 — nach Login/Logout ist
+# die öffentliche Fünfeck-Seite das einzig sinnvolle Ziel (wie D-46 es
+# schon für "/" selbst festlegt).
+LOGIN_URL = "login"
+LOGIN_REDIRECT_URL = "colors:index"
+LOGOUT_REDIRECT_URL = "colors:index"
+
+# django-axes zusätzlich zu Djangos eigenem ModelBackend (Task 2.2,
+# FR-U6). AxesStandaloneBackend meldet selbst keinen User an — sie
+# lehnt nur laufende Login-Versuche gesperrter Nutzer/IPs ab, bevor
+# ModelBackend überhaupt gefragt wird. Muss deshalb an erster Stelle
+# stehen (Doku von django-axes).
+AUTHENTICATION_BACKENDS = [
+    "axes.backends.AxesStandaloneBackend",
+    "django.contrib.auth.backends.ModelBackend",
+]
+
+# Feste Werte statt Umgebungsvariablen, aus demselben Grund wie bei
+# GATE_RATE_LIMIT_* unten: Abstimmungsgröße, kein Geheimnis.
+AXES_FAILURE_LIMIT = 5
+AXES_COOLOFF_TIME = 1  # Stunde
 
 
 # Passwörter ----------------------------------------------------------------
@@ -184,3 +212,8 @@ GATE_COOKIE_MAX_AGE = 60 * 60 * 24 * 365
 # Deployment-Variable.
 GATE_RATE_LIMIT_MAX_ATTEMPTS = 10
 GATE_RATE_LIMIT_WINDOW_SECONDS = 600
+
+# Registrierung (Task 2.2, FR-U6) — derselbe Decorator/Mechanismus wie
+# beim Invite-Gate, mit eigenem Zähler-Modell (RegistrationAttempt).
+REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS = 10
+REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600

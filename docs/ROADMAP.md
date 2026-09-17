@@ -226,12 +226,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.2 · Registrierung, Login, Logout
 **Abhängig von:** 2.1, 0.5 · **Anforderungen:** FR-U1 bis FR-U6, D-08
 **Fertig, wenn:**
-- [ ] Registrierung legt User und Profil gemeinsam an; Mindestlänge Passwort 10 Zeichen.
-- [ ] Sessions in der Datenbank, Cookie `httpOnly`, `Secure`, `SameSite=Lax`.
-- [ ] Passwortänderung beendet alle **anderen** Sessions.
-- [ ] Rate Limiting auf Login und Registrierung (`django-axes`).
-- [ ] Djangos Passwort-Reset-URLs sind **nicht** eingebunden (FR-U7).
-- [ ] Test: nach Passwortänderung ist eine zweite Session ungültig.
+- [x] Registrierung legt User und Profil gemeinsam an; Mindestlänge Passwort 10 Zeichen.
+- [x] Sessions in der Datenbank, Cookie `httpOnly`, `Secure`, `SameSite=Lax`.
+- [x] Passwortänderung beendet alle **anderen** Sessions.
+- [x] Rate Limiting auf Login und Registrierung (`django-axes`).
+- [x] Djangos Passwort-Reset-URLs sind **nicht** eingebunden (FR-U7).
+- [x] Test: nach Passwortänderung ist eine zweite Session ungültig.
 
 #### 2.3 · Account löschen
 **Abhängig von:** 2.2 · **Anforderungen:** FR-U8

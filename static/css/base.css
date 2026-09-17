@@ -116,6 +116,10 @@ a {
 /* Seitenchrome -------------------------------------------------------- */
 
 .site-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
   border-bottom: 1px solid var(--color-border);
   padding: var(--space-3) var(--space-4);
 }
@@ -125,6 +129,29 @@ a {
   font-weight: 600;
   text-decoration: none;
   color: var(--color-text);
+}
+
+/* Login/Logout im Kopfbereich (Task 2.2) --------------------------------- */
+
+.site-header__auth {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: var(--font-size-sm);
+}
+
+.site-header__auth form {
+  display: contents;
+}
+
+.site-header__auth button {
+  font: inherit;
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent);
+  text-decoration: underline;
+  width: auto;
 }
 
 .site-main {
@@ -173,6 +200,16 @@ button {
 .gate-error {
   color: #b91c1c;
   font-weight: 600;
+}
+
+/* Formularfehler bei Registrierung/Login/Passwortänderung (Task 2.2) --- */
+
+.form-errors {
+  color: #b91c1c;
+  font-weight: 600;
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 /* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
