@@ -404,9 +404,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.5 · Freundeslisten und Graph
 **Abhängig von:** 3.4 · **Anforderungen:** FR-S5, FR-S6
 **Fertig, wenn:**
-- [ ] Eigene Freundesliste im eigenen Profil.
-- [ ] Freundesliste fremder Profile einsehbar und navigierbar.
-- [ ] Über mindestens zwei Ebenen durchklickbar, ohne Sackgasse.
+- [x] Eigene Freundesliste im eigenen Profil.
+- [x] Freundesliste fremder Profile einsehbar und navigierbar.
+- [x] Über mindestens zwei Ebenen durchklickbar, ohne Sackgasse.
 
 #### 3.6 · Release-Durchsicht v1.0
 **Abhängig von:** 3.5 · **Anforderungen:** PRD §11 (v1.0)

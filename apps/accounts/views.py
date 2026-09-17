@@ -103,11 +103,11 @@ def profile(request):
         "test_results": _test_results_with_combinations(profile),
         # FR-S4/Task 3.4-DoD: "Offene Anfragen sind im eigenen Profil
         # sichtbar" — beide Richtungen, damit auch eine selbst
-        # gestellte, noch offene Anfrage hier auffindbar bleibt
-        # (Task 3.4 kennt noch keine eigene Freundesliste dafür, die
-        # kommt erst mit Task 3.5).
+        # gestellte, noch offene Anfrage hier auffindbar bleibt.
         "friend_requests_received": friendships.pending_requests_received(profile),
         "friend_requests_sent": friendships.pending_requests_sent(profile),
+        # FR-S5/Task 3.5-DoD: "Eigene Freundesliste im eigenen Profil".
+        "friends": friendships.accepted_friends(profile),
         **avatar.avatar_context(assignment),
     }
     return render(request, "accounts/profile.html", context)

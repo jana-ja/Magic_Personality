@@ -1,9 +1,9 @@
 """
-Freundschafts-Logik (Task 3.4, FR-S4). Reine Funktionen auf
-`Friendship`, getrennt von den Views: dort steht nur noch, welches
-Profil aus der URL geladen wird und wohin am Ende umgeleitet wird —
-hier steht, was mit einer Freundschaft zwischen zwei Profilen erlaubt
-ist.
+Freundschafts-Logik (Task 3.4, FR-S4; Freundeslisten Task 3.5, FR-S5,
+FR-S6). Reine Funktionen auf `Friendship`, getrennt von den Views: dort
+steht nur noch, welches Profil aus der URL geladen wird und wohin am
+Ende umgeleitet wird — hier steht, was mit einer Freundschaft zwischen
+zwei Profilen erlaubt ist und wer wessen Freund ist.
 
 `PermissionDenied` statt eines stillen No-Ops, wenn eine unbeteiligte
 Person eine Aktion versucht (Roadmap-Test: "nicht von Dritten
@@ -128,3 +128,21 @@ def pending_requests_sent(profile):
     for friendship in requests:
         friendship.other = friendship.other_profile(profile)
     return requests
+
+
+def accepted_friends(profile):
+    """
+    FR-S5/FR-S6: die bestätigten Freundschaften von `profile`, als
+    Liste der jeweils *anderen* Profile — fürs Anzeigen (eigene
+    Freundesliste, Task 3.5, und dieselbe Funktion für die Freundes-
+    liste eines fremden Profils, FR-S6) reicht das, es gibt keinen
+    Grund, dafür die `Friendship`-Zeile selbst durchzureichen.
+    """
+    friendship_rows = (
+        Friendship.objects.for_profile(profile)
+        .filter(status=Friendship.Status.ACCEPTED)
+        .select_related("profile_a", "profile_b")
+    )
+    friends = [friendship.other_profile(profile) for friendship in friendship_rows]
+    friends.sort(key=lambda friend: friend.nickname.lower())
+    return friends

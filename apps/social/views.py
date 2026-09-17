@@ -67,7 +67,14 @@ def profile_detail(request, nickname):
 
     Seit Task 3.4 zusätzlich der Freundschaftsstatus zur angesehenen
     Person (FR-S4) — nicht beim eigenen Profil, da käme nur "keine
-    Beziehung zu sich selbst" heraus.
+    Beziehung zu sich selbst" heraus. Seit Task 3.5 zusätzlich die
+    Freundesliste **dieses** Profils, unabhängig von der Beziehung zur
+    ansehenden Person (FR-S6: "von einem Profil aus ist dessen
+    Freundesliste einsehbar", keine Einschränkung auf gemeinsame
+    Freunde) — jeder Eintrag verlinkt wieder auf `profile_detail`,
+    damit sich der Graph über diese eine View beliebig weiterklicken
+    lässt (Task 3.5-DoD: "über mindestens zwei Ebenen durchklickbar,
+    ohne Sackgasse").
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     assignment = profile.color_assignments.select_related("combination").first()
@@ -76,6 +83,7 @@ def profile_detail(request, nickname):
     context = {
         "profile": profile,
         "combination": assignment.combination if assignment else None,
+        "friends": friendships.accepted_friends(profile),
         **avatar.avatar_context(assignment),
     }
     if viewer_profile.pk != profile.pk:

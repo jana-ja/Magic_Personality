@@ -40,10 +40,25 @@
     <button type="submit">{% translate "Save" %}</button>
   </form>
 
+  {% comment %} FR-S5: die eigene Freundesliste bestätigter
+     Freundschaften (Task 3.5-DoD: "Eigene Freundesliste im eigenen
+     Profil") — dieselbe Darstellung wie die Freundesliste eines
+     fremden Profils (templates/social/profile_detail.html), damit der
+     Graph über beide Stellen hinweg gleich aussieht. {% endcomment %}
+  <h2>{% translate "Friends" %}</h2>
+  {% if friends %}
+    <ul class="friend-list">
+      {% for friend in friends %}
+        <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>{% translate "No friends yet." %}</p>
+  {% endif %}
+
   {% comment %} FR-S4/Task 3.4-DoD: "Offene Anfragen sind im eigenen
      Profil sichtbar" — beide Richtungen (apps/accounts/views.py:profile).
-     Die volle Freundesliste bestätigter Freundschaften kommt erst mit
-     Task 3.5. {% endcomment %}
+     {% endcomment %}
   <h2>{% translate "Friend requests" %}</h2>
   {% if friend_requests_received %}
     <h3>{% translate "Received" %}</h3>

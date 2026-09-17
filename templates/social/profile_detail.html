@@ -57,4 +57,19 @@
       <button type="submit">{% translate "Send friend request" %}</button>
     </form>
   {% endif %}
+
+  {% comment %} FR-S6: die Freundesliste **dieses** Profils, unabhängig
+     von der Beziehung der ansehenden Person dazu — jeder Eintrag führt
+     wieder auf dieselbe View, der Graph lässt sich beliebig
+     weiterklicken (Task 3.5-DoD). {% endcomment %}
+  <h2>{% translate "Friends" %}</h2>
+  {% if friends %}
+    <ul class="friend-list">
+      {% for friend in friends %}
+        <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p>{% translate "No friends yet." %}</p>
+  {% endif %}
 {% endblock %}
