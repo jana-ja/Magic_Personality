@@ -216,10 +216,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.1 · Profil-Datenmodell
 **Abhängig von:** 0.2, 1.1 · **Anforderungen:** FR-P1 bis FR-P5, D-07, D-22, D-27
 **Fertig, wenn:**
-- [ ] `Profile` mit `nickname`, `bio`, optionalem `user` (1:1).
-- [ ] Eindeutigkeit des Nicknames über einen funktionalen Index auf `Lower("nickname")`.
-- [ ] `ColorAssignment` mit `profile`, `author_profile`, Fremdschlüssel auf `ColorCombination`, `source`, optionaler Testreferenz.
-- [ ] Test: zwei Profile mit `Alice` und `alice` sind nicht gleichzeitig anlegbar.
+- [x] `Profile` mit `nickname`, `bio`, optionalem `user` (1:1).
+- [x] Eindeutigkeit des Nicknames über einen funktionalen Index auf `Lower("nickname")`.
+- [x] `ColorAssignment` mit `profile`, `author_profile`, Fremdschlüssel auf `ColorCombination`, `source`, optionaler Testreferenz.
+- [x] Test: zwei Profile mit `Alice` und `alice` sind nicht gleichzeitig anlegbar.
+
+> Umgesetzt nach Task 2.6, nicht davor — siehe D-54: `ColorAssignment.test_result` verweist auf `quiz.TestResult`, das sonst noch nicht existiert hätte.
 
 #### 2.2 · Registrierung, Login, Logout
 **Abhängig von:** 2.1, 0.5 · **Anforderungen:** FR-U1 bis FR-U6, D-08
@@ -254,9 +256,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.6 · Fragebogen-Datenmodell
 **Abhängig von:** 1.1 · **Anforderungen:** FR-T1 bis FR-T6, D-16
 **Fertig, wenn:**
-- [ ] `Questionnaire` mit Versionsnummer, `Question` mit `position` und `dimension`, `AnswerOption` mit Farbe.
-- [ ] `TestResult` mit `profile`, Fragebogenversion, Zeitpunkt, `scores` als JSON, Ergebnisfarben.
-- [ ] Seed-Command für Fragebögen; eine veröffentlichte Version ist unveränderlich.
+- [x] `Questionnaire` mit Versionsnummer, `Question` mit `position` und `dimension`, `AnswerOption` mit Farbe.
+- [x] `TestResult` mit `profile`, Fragebogenversion, Zeitpunkt, `scores` als JSON, Ergebnisfarben.
+- [x] Seed-Command für Fragebögen; eine veröffentlichte Version ist unveränderlich.
+
+> Umgesetzt vor Task 2.1, siehe D-54.
 
 #### 2.7 · Die 20 Fragen schreiben
 **Abhängig von:** 2.6 · **Anforderungen:** FR-T2 bis FR-T4, R-3

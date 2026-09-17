@@ -14,6 +14,7 @@ ohne weitere Migration.
 from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
+from django.db.models.functions import Lower
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -75,3 +76,86 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     def __str__(self):
         return self.email
+
+
+class Profile(models.Model):
+    """
+    Darstellung einer Person (Task 2.1, FR-P1, D-22). Bewusst getrennt
+    von `User`: `user` ist optional (`OneToOneField(null=True)`), damit
+    fremd angelegte Profile ohne Account möglich bleiben (PRD §8.1) —
+    in v1 hat jedes Profil genau einen User, erzeugt bei der
+    Registrierung (Task 2.2).
+    """
+
+    user = models.OneToOneField(
+        User, on_delete=models.CASCADE, null=True, blank=True, related_name="profile"
+    )
+    nickname = models.CharField(_("nickname"), max_length=50)
+    bio = models.TextField(_("bio"), blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            # FR-P2: global eindeutig, Groß-/Kleinschreibung egal. Als
+            # DB-Constraint statt nur als Anwendungsprüfung, damit zwei
+            # gleichzeitige Registrierungen (Task 2.2) nicht doppelt
+            # durchkommen können.
+            models.UniqueConstraint(Lower("nickname"), name="unique_profile_nickname_ci"),
+        ]
+
+    def __str__(self):
+        return self.nickname
+
+
+class ColorAssignment(models.Model):
+    """
+    Die Farben einer Person (Task 2.1, FR-P4/FR-P5). Eigene Entität
+    statt Spalten am Profil (D-22): `author_profile` hält fest, wer
+    die Einschätzung abgegeben hat — in v1 immer `author_profile ==
+    profile`, aber das Schema erlaubt später fremde Einschätzungen
+    (PRD §8.1) ohne Umbau.
+
+    `combination` verweist auf eine der 31 `ColorCombination`-Zeilen
+    (D-27) statt Farben einzeln zu verknüpfen — die Farben einer
+    Person *sind* eine dieser Kombinationen, keine zweite Darstellung
+    im System.
+
+    PRD §6.2: "es existiert höchstens ein Datensatz je Profil" — daher
+    der Unique-Constraint auf `profile` allein, obwohl das Feld selbst
+    ein `ForeignKey` bleibt (nicht `OneToOneField`), damit sich das
+    später lockern lässt, ohne die Spalte auszutauschen.
+    """
+
+    class Source(models.TextChoices):
+        SELF_MANUAL = "SELF_MANUAL", _("Self-assessed, manually chosen")
+        SELF_TEST = "SELF_TEST", _("Self-assessed, from a test result")
+
+    profile = models.ForeignKey(Profile, on_delete=models.CASCADE, related_name="color_assignments")
+    author_profile = models.ForeignKey(
+        Profile, on_delete=models.CASCADE, related_name="authored_color_assignments"
+    )
+    combination = models.ForeignKey(
+        "colors.ColorCombination", on_delete=models.PROTECT, related_name="color_assignments"
+    )
+    source = models.CharField(_("source"), max_length=20, choices=Source.choices)
+    # FR-P5/D-07: nur gesetzt, wenn source == SELF_TEST; Grundlage für
+    # eine spätere Kennzeichnung "durch Test bestätigt". `SET_NULL`
+    # statt `PROTECT`/`CASCADE`: das Löschen des referenzierten
+    # Testergebnisses (FR-P8) leert nur die Referenz, die Farben
+    # selbst bleiben bestehen.
+    test_result = models.ForeignKey(
+        "quiz.TestResult",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="color_assignments",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=["profile"], name="unique_color_assignment_per_profile"),
+        ]
+
+    def __str__(self):
+        return f"{self.profile} -> {self.combination}"
