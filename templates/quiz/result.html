@@ -26,5 +26,23 @@
       {% csrf_token %}
       <button type="submit">{% translate "Add these colors to my profile" %}</button>
     </form>
+  {% elif anonymous_token %}
+    {% comment %} FR-T15/D-18: kein serverseitiger Zustand ohne Login —
+       das Token liegt nur im Browser. Registrierung/Login holen es
+       automatisch ab (static/js/quiz_claim.js, FR-T16). {% endcomment %}
+    <p>
+      {% translate "Register or log in to save this result to your profile." %}
+      <a href="{% url 'register' %}">{% translate "Register" %}</a>
+      ·
+      <a href="{% url 'login' %}">{% translate "Log in" %}</a>
+    </p>
+    <script>
+      try {
+        localStorage.setItem("mp_pending_quiz_result", "{{ anonymous_token|escapejs }}");
+      } catch (error) {
+        /* localStorage nicht verfügbar (z. B. privater Modus) — das
+           Ergebnis bleibt dann einfach nicht erhalten, kein Fehler. */
+      }
+    </script>
   {% endif %}
 {% endblock %}

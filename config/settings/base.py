@@ -224,3 +224,11 @@ REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600
 # Durchläufen kalibrierbar) — deshalb env-gesteuert, nicht fest wie
 # die Rate-Limit-Werte oben.
 QUIZ_RESULT_THRESHOLD = env.int("QUIZ_RESULT_THRESHOLD", default=2)
+
+# Anonymes Testergebnis im localStorage (Task 2.11, FR-T15, D-18) —
+# signiert wie das Gate-Cookie (GATE_COOKIE_SALT/_MAX_AGE oben), damit
+# manipulierte oder veraltete Daten beim Einlösen abgewiesen werden.
+# Eine Woche: lang genug, um sich nach dem Test noch zu registrieren,
+# kein Geheimnis und keine Deployment-Variable.
+QUIZ_ANONYMOUS_RESULT_SALT = "apps.quiz.anonymous_result"
+QUIZ_ANONYMOUS_RESULT_MAX_AGE = 60 * 60 * 24 * 7

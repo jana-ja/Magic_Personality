@@ -10,9 +10,14 @@
      (D-24) — siehe der Kommentar in main.js für den genauen Grund
      (SVG-<a>-Elemente im Fünfeck, Task 1.8). {% endcomment %}
   <script src="{% static 'js/main.js' %}" defer></script>
+  {% comment %} Holt ein im Browser zwischengespeichertes anonymes
+     Testergebnis nach Login/Registrierung ab (Task 2.11, FR-T16) —
+     läuft auf jeder Seite, weil Login/Registrierung nicht auf ein
+     bestimmtes Ziel festgelegt sind (LOGIN_REDIRECT_URL). {% endcomment %}
+  <script src="{% static 'js/quiz_claim.js' %}" defer></script>
   {% block extra_head %}{% endblock %}
 </head>
-<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+<body hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}' data-authenticated="{{ user.is_authenticated|yesno:'true,false' }}">
   <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
 
   <header class="site-header">

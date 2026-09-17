@@ -1,8 +1,10 @@
 """
 Views der Quiz-App: Test durchführen (Task 2.8, FR-T7 bis FR-T9),
-Ergebnis anzeigen und übernehmen (Task 2.10, FR-T13/FR-T14).
+Ergebnis anzeigen und übernehmen (Task 2.10, FR-T13/FR-T14), Ergebnis
+ohne Anmeldung (Task 2.11, FR-T15/FR-T16).
 """
 
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
@@ -13,6 +15,7 @@ from apps.accounts.models import ColorAssignment, Profile
 from apps.colors.content import LOCALE
 from apps.colors.models import ColorCombination
 
+from . import anonymous_result
 from .evaluation import evaluate_combination
 from .forms import TakeTestForm
 from .models import Questionnaire, TestResult
@@ -52,22 +55,31 @@ def take_test(request):
             combination = evaluate_combination(scores)
 
             # FR-T14: nur eingeloggt landet das Ergebnis automatisch in
-            # der Historie. Ohne Login bewusst kein TestResult (D-18 —
-            # Task 2.11 hält es stattdessen im localStorage); dieselbe
-            # Zurückhaltung gilt für einen Account ohne Profil (z. B.
-            # ein per createsuperuser angelegter Admin).
+            # der Historie. Ohne Login bewusst kein TestResult (D-18);
+            # dieselbe Zurückhaltung gilt für einen Account ohne Profil
+            # (z. B. ein per createsuperuser angelegter Admin).
             profile = (
                 Profile.objects.filter(user=request.user).first()
                 if request.user.is_authenticated
                 else None
             )
             test_result = None
+            token = None
             if profile is not None:
                 test_result = TestResult.objects.create(
                     profile=profile,
                     questionnaire_version=questionnaire.version,
                     scores=scores,
                     result_colors=combination.code,
+                )
+            elif not request.user.is_authenticated:
+                # FR-T15/D-18: kein serverseitiger Zustand für
+                # Nicht-Angemeldete — stattdessen ein signiertes Token,
+                # das der Browser selbst in localStorage hält
+                # (static/js/quiz_claim.js) und nach Login/Registrierung
+                # an claim_anonymous_result() zurückschickt.
+                token = anonymous_result.sign(
+                    questionnaire_version=questionnaire.version, scores=scores
                 )
 
             context = {
@@ -77,6 +89,7 @@ def take_test(request):
                 ),
                 "scores": scores,
                 "test_result": test_result,
+                "anonymous_token": token,
             }
             return render(request, "quiz/result.html", context)
     else:
@@ -113,3 +126,39 @@ def adopt_result(request, pk):
         },
     )
     return redirect("profile")
+
+
+@login_required
+@require_POST
+def claim_anonymous_result(request):
+    """
+    FR-T16: ein im Browser zwischengespeichertes anonymes Ergebnis wird
+    nach Login oder Registrierung wie ein frisches, eingeloggtes
+    Ergebnis behandelt (FR-T14) — Historie plus Angebot zur Übernahme,
+    über dieselbe Ergebnisseite wie `take_test()`. Fehlende,
+    manipulierte oder abgelaufene Daten werden ohne Fehlermeldung
+    verworfen (Roadmap 2.11) — `anonymous_result.unsign()` gibt dafür
+    `None` zurück, es landet dann einfach niemand auf einer neuen Seite.
+    """
+    unsigned = anonymous_result.unsign(request.POST.get("token", ""))
+    profile = Profile.objects.filter(user=request.user).first()
+    if unsigned is None or profile is None:
+        return redirect(settings.LOGIN_REDIRECT_URL)
+
+    questionnaire_version, scores = unsigned
+    combination = evaluate_combination(scores)
+    test_result = TestResult.objects.create(
+        profile=profile,
+        questionnaire_version=questionnaire_version,
+        scores=scores,
+        result_colors=combination.code,
+    )
+
+    context = {
+        "combination": combination,
+        "combination_url": reverse("colors:combination", kwargs={"code": combination.code.lower()}),
+        "scores": scores,
+        "test_result": test_result,
+        "anonymous_token": None,
+    }
+    return render(request, "quiz/result.html", context)

@@ -309,10 +309,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.11 · Ergebnis ohne Anmeldung
 **Abhängig von:** 2.10 · **Anforderungen:** FR-T15, FR-T16, D-18
 **Fertig, wenn:**
-- [ ] Ergebnis wird im `localStorage` zwischengespeichert, Registrierung wird angeboten.
-- [ ] Nach Registrierung **und** nach Login mit bestehendem Account wird es in die Historie übernommen und die Übernahme ins Profil angeboten.
-- [ ] Zwischenspeicher wird danach geleert.
-- [ ] Manipulierte oder veraltete Daten im Zwischenspeicher werden serverseitig abgewiesen, nicht übernommen.
+- [x] Ergebnis wird im `localStorage` zwischengespeichert, Registrierung wird angeboten.
+- [x] Nach Registrierung **und** nach Login mit bestehendem Account wird es in die Historie übernommen und die Übernahme ins Profil angeboten.
+- [x] Zwischenspeicher wird danach geleert.
+- [x] Manipulierte oder veraltete Daten im Zwischenspeicher werden serverseitig abgewiesen, nicht übernommen.
+
+> Signiertes Token (wie das Gate-Cookie) statt Klartext; globales Einlöse-Skript statt fester Zielseite nach Login/Registrierung — siehe D-62.
 
 #### 2.12 · Testhistorie
 **Abhängig von:** 2.10 · **Anforderungen:** FR-P6 bis FR-P8, FR-T17, D-19
