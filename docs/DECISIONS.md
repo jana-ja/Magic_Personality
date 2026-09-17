@@ -83,7 +83,7 @@ Mobil: Fünfeck oben, alle Informationen im Block darunter, Eigenschaften nicht 
 **Warum:** Nachträglich einzuziehen bedeutet, jede Zeile Anzeigetext noch einmal anzufassen. Jetzt kostet es fast nichts.
 
 ### D-16 · Fragebogen: 20 Fragen, je 2 Antworten, 1 Punkt, versioniert
-**Status:** Angenommen · 2026-09-05
+**Status:** Ersetzt durch D-60 · 2026-09-05
 Jedes der 10 Farbpaare kommt genau zweimal vor; jede Farbe erscheint in 8 Fragen.
 **Warum:** 20 Fragen mit zwei Antworten gehen als einzige Kombination perfekt balanciert auf. Die Versionsnummer hält alte Ergebnisse interpretierbar.
 
@@ -310,3 +310,23 @@ Das generierte Profilbild (Task 2.5, `templates/accounts/_avatar.html`) ist eine
 **Status:** Angenommen · 2026-09-17
 `apps/quiz/evaluation.py` (Task 2.9) legt zwei Fälle fest, die FR-T11/FR-T12 offenlassen: (1) Übersteuern `G(2)` und `G(4)` beide *und* sind exakt gleich groß, bleibt `k = 3` (der Standardwert) bestehen, statt eine der beiden Abweichungen willkürlich zu bevorzugen. (2) Ein Ergebnis mit nur einer Farbe ist über die spezifizierte Regel gar nicht erreichbar — `k` startet laut FR-T11 immer bei 2, 3 oder 4, und die Gleichstand-Erweiterung aus FR-T12 vergrößert `k` nur in Richtung 5, nie in Richtung 1. FR-T12 nennt trotzdem wörtlich "1 bis 5 Farben" als möglichen Ergebnisumfang.
 **Warum:** (1) FR-T11.4 sagt nur "gewinnt der größere Abstand" — bei einem exakten Gleichstand zwischen den beiden Übersteuerungen selbst gibt es keinen größeren, die PRD nennt für diesen Fall keinen Sieger. Der Standardwert ist die neutralste verfügbare Antwort, keine neue Regel. (2) Das ist keine bewusste Entscheidung, sondern eine Beobachtung beim Testen (Roadmap 2.9 verlangt fünf tabellengetriebene Fälle, keiner davon ein Einzelfarben-Ergebnis) — durchgerechnet ergibt sich rechnerisch, dass `k=1` mit den gegebenen Schritten (Start bei 2/3/4, nur wachsende Gleichstand-Erweiterung) nie auftreten kann. Für die reale, ausbalancierte Fragebogen-Struktur aus FR-T3 (jede Farbe maximal 8 von 20 Punkten) ist das ohnehin unauffällig; hier nur dokumentiert, damit die Diskrepanz zur PRD-Formulierung nicht als übersehener Fehler missverstanden wird.
+
+### D-60 · Fragebogen v1: 30 Fragen in drei Dimensionen statt 20 Fragen in vier
+**Status:** Angenommen · 2026-09-17 · ersetzt D-16
+Jedes der 10 Farbpaare kommt genau einmal je Dimension vor: **Handeln** (`ACTION`, das Mittel einer Farbe), **Antrieb** (`MOTIVATION`, ihr Ziel) und **Wahrnehmung** (`PERCEPTION`, was auffällt oder stört). Das ergibt 30 Fragen, jede Farbe erscheint in 12. Weiterhin 2 Antworten, 1 Punkt, versioniert. `Question.Dimension` entsprechend umgestellt (`quiz/migrations/0002`), die alten Werte `INNER`/`OUTER`/`FEELING`/`VALUES` entfallen.
+**Warum:**
+- Mit vier Dimensionen bei 20 Fragen war „alle Dimensionen sind vertreten“ schon mit einer Frage pro Dimension erfüllt, sicherte also nichts. Eine echte Balance je Farbe hätte jede Dimension in ein starres Muster gezwungen. „Innere Reaktion“ und „Gefühl“ ließen sich außerdem kaum trennen.
+- Mittel und Ziel liegen für jede Farbe schon als Content vor (`goal`/`means`, Task 1.4). Zwei Menschen können gleich handeln, aber aus verschiedenen Gründen — gerade bei Ally-Paaren trennt die Antrieb-Frage besser. Wahrnehmung ergänzt einen dritten Blick, der über „was stört dich mehr“ auch das Problem sozialer Erwünschtheit abschwächt.
+- Weil jede Dimension alle 10 Paare genau einmal enthält, bleibt die Balance erhalten, wenn eine Dimension später herausgefiltert wird (z. B. falls 30 Fragen sich als zu lang erweisen).
+- Gefühle und Lebensbereiche sind keine gemessene Dimension mehr, sondern eine weiche Vorgabe für die Vielfalt der Situationen (Arbeit, Freundschaft, Wohnen, Freizeit …).
+
+**Qualitätsregeln für die Fragen:**
+1. Beide Antworten sind gleich attraktiv; jede zeigt eine Stärke ihrer Farbe, keine Schwäche.
+2. Beide Antworten sind ähnlich lang und ähnlich konkret.
+3. Bei Ally-Paaren geht es um den Unterschied, nicht um das Gemeinsame.
+4. Keine erkennbaren Muster: jede Farbe steht gleich oft an erster Stelle, kein Paar hat immer dieselbe Reihenfolge, aufeinanderfolgende Fragen teilen keine Farbe.
+5. Zwei Fragen desselben Paares schildern unabhängige Situationen. Farben werden nie benannt.
+6. Sprache Englisch (NFR-4).
+
+Regeln 2, 4 und 5 (soweit automatisch prüfbar) sichert `apps/quiz/tests/test_questionnaire_v1.py` gegen die echte Seed-Datei ab.
+**Offen:** Bei 30 statt 20 Punkten ist ein Abstand von `T` = 2 (D-17) relativ kleiner. Nicht vorab geändert, sondern mit R-4 nach echten Durchläufen kalibrieren.

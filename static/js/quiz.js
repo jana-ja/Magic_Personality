@@ -1,7 +1,7 @@
 /**
  * Live-Fortschritt beim Testdurchlauf (Task 2.8, FR-T9: "Fortschritt
  * ist sichtbar"). Ohne dieses Skript bleibt die statische Zahl aus
- * dem Server-Rendering stehen ("20 questions in total") — die Seite
+ * dem Server-Rendering stehen ("30 questions in total") — die Seite
  * funktioniert also auch ohne JavaScript, nur ohne Live-Update
  * (ARCHITECTURE.md §4, Progressive Enhancement).
  */

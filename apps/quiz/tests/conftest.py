@@ -2,9 +2,9 @@
 Fixtures, die mehrere Test-Dateien in apps/quiz/tests/ teilen.
 
 `published_questionnaire` nutzt bewusst frei erfundene Dummy-Fragen
-statt der echten 20 aus Task 2.7 (eigene Sitzung, noch nicht
-geschrieben) — der Mechanismus aus Task 2.8 kennt die Zahl "20"
-nirgends fest verdrahtet, sondern fragt immer nach *allen* Fragen der
+statt der echten 30 aus seeds/questionnaire_v1.json (Task 2.7) — der
+Mechanismus aus Task 2.8 kennt die Fragenzahl nirgends fest
+verdrahtet, sondern fragt immer nach *allen* Fragen der
 aktuell veröffentlichten Version. Ein kleiner, frei erfundener
 Fragebogen prüft also denselben Code-Pfad wie der echte.
 """
@@ -15,9 +15,9 @@ from django.utils import timezone
 from apps.quiz.models import AnswerOption, Question, Questionnaire
 
 DUMMY_QUESTIONS = [
-    ("INNER", "Something you care about is at risk. What is your first instinct?", ("W", "B")),
-    ("OUTER", "How do you react when a plan falls apart?", ("U", "R")),
-    ("FEELING", "What does a good day feel like?", ("G", "W")),
+    ("ACTION", "Something you care about is at risk. What is your first instinct?", ("W", "B")),
+    ("MOTIVATION", "How do you react when a plan falls apart?", ("U", "R")),
+    ("PERCEPTION", "What does a good day feel like?", ("G", "W")),
 ]
 
 

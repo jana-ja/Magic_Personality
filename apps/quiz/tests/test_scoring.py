@@ -12,10 +12,10 @@ pytestmark = pytest.mark.django_db
 def answers():
     questionnaire = Questionnaire.objects.create(version=1, question_count=2)
     question_1 = Question.objects.create(
-        questionnaire=questionnaire, position=1, text="Q1", dimension="INNER"
+        questionnaire=questionnaire, position=1, text="Q1", dimension="ACTION"
     )
     question_2 = Question.objects.create(
-        questionnaire=questionnaire, position=2, text="Q2", dimension="INNER"
+        questionnaire=questionnaire, position=2, text="Q2", dimension="ACTION"
     )
     return [
         AnswerOption.objects.create(question=question_1, color="W", text="a"),

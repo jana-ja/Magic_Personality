@@ -2,8 +2,9 @@
 Tests für „Test durchführen" (Task 2.8, FR-T7 bis FR-T9).
 
 Nutzt `published_questionnaire` (conftest.py) — ein frei erfundener,
-kleiner Fragebogen. Die echten 20 Fragen kommen erst mit Task 2.7; der
-hier geprüfte Mechanismus kennt "20" nirgends fest verdrahtet.
+kleiner Fragebogen. Die echten 30 Fragen stehen in
+seeds/questionnaire_v1.json; der
+hier geprüfte Mechanismus kennt die Fragenzahl nirgends fest verdrahtet.
 """
 
 import pytest

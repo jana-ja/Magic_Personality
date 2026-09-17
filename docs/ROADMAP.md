@@ -264,14 +264,16 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 
 > Umgesetzt vor Task 2.1, siehe D-54.
 
-#### 2.7 · Die 20 Fragen schreiben
-**Abhängig von:** 2.6 · **Anforderungen:** FR-T2 bis FR-T4, R-3
+#### 2.7 · Die 30 Fragen schreiben
+**Abhängig von:** 2.6 · **Anforderungen:** FR-T1 bis FR-T4, R-3, D-60
 **Fertig, wenn:**
-- [ ] 20 Fragen mit je zwei Antworten in `seeds/questionnaire_v1.json`.
-- [ ] Jedes der zehn Farbpaare kommt **genau zweimal** vor; jede Farbe erscheint in genau acht Fragen.
-- [ ] Die vier Dimensionen (innen, außen, Gefühle, Werte) sind alle vertreten.
-- [ ] Jede Frage schildert eine Situation; die Farbzuordnung wird nicht benannt.
-- [ ] Automatischer Test prüft die Balance gegen die Seed-Datei.
+- [x] 30 Fragen mit je zwei Antworten in `seeds/questionnaire_v1.json`.
+- [x] Jedes der zehn Farbpaare kommt **genau einmal je Dimension** (Handeln, Antrieb, Wahrnehmung) vor; jede Farbe erscheint in genau zwölf Fragen.
+- [x] Jede Frage schildert eine Situation; die Farbzuordnung wird nicht benannt.
+- [x] Qualitätsregeln aus D-60 eingehalten; automatisch prüfbare davon per Test abgesichert.
+- [x] Automatischer Test prüft die Balance gegen die Seed-Datei.
+
+> Umfang gegenüber der ursprünglichen Fassung (20 Fragen, vier Dimensionen) geändert, siehe D-60. Die Fragen sind noch nicht veröffentlicht (`"published": false`), bis sie selbst durchgetestet sind.
 
 > Qualitätsentscheidender Task (R-3). Eigene Sitzung, nicht nebenbei.
 
@@ -279,7 +281,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 **Abhängig von:** 2.7 · **Anforderungen:** FR-T7 bis FR-T9
 **Fertig, wenn:**
 - [x] Freies Vor- und Zurückspringen vor der Abgabe, Antworten bleiben erhalten.
-- [x] Abgabe erst möglich, wenn alle 20 Fragen beantwortet sind; Fortschritt sichtbar.
+- [x] Abgabe erst möglich, wenn alle Fragen beantwortet sind; Fortschritt sichtbar.
 - [x] Kein serverseitiger Zwischenstand.
 - [x] Auch ohne Login durchführbar (Zugangssperre gilt trotzdem).
 

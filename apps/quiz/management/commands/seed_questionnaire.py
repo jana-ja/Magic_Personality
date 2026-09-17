@@ -7,7 +7,7 @@ Anders als `seed_content` (Task 1.3) muss dieser Command eine zweite
 Regel durchsetzen, die das Modell allein nicht abbilden kann (FR-T6):
 Fragen einer bereits **veröffentlichten** Version dürfen sich nicht
 mehr ändern. Solange eine Version noch nicht veröffentlicht ist, bleibt
-sie frei bearbeitbar — genau der Zustand, in dem Task 2.7 die 20 echten
+sie frei bearbeitbar — genau der Zustand, in dem Task 2.7 die 30 echten
 Fragen erarbeitet, bevor sie freigegeben werden.
 """
 

@@ -34,7 +34,7 @@ def test_questionnaire_is_published_once_published_at_is_set():
 def test_question_position_is_unique_per_questionnaire_and_locale():
     questionnaire = Questionnaire.objects.create(version=1, question_count=1)
     Question.objects.create(
-        questionnaire=questionnaire, position=1, text="A?", dimension=Question.Dimension.INNER
+        questionnaire=questionnaire, position=1, text="A?", dimension=Question.Dimension.ACTION
     )
 
     with pytest.raises(IntegrityError):
@@ -42,14 +42,14 @@ def test_question_position_is_unique_per_questionnaire_and_locale():
             questionnaire=questionnaire,
             position=1,
             text="B?",
-            dimension=Question.Dimension.OUTER,
+            dimension=Question.Dimension.MOTIVATION,
         )
 
 
 def test_answer_option_color_is_unique_per_question():
     questionnaire = Questionnaire.objects.create(version=1, question_count=1)
     question = Question.objects.create(
-        questionnaire=questionnaire, position=1, text="A?", dimension=Question.Dimension.INNER
+        questionnaire=questionnaire, position=1, text="A?", dimension=Question.Dimension.ACTION
     )
     AnswerOption.objects.create(question=question, text="Yes", color="W")
 
@@ -63,7 +63,7 @@ def test_answer_option_locale_must_match_its_question():
         questionnaire=questionnaire,
         position=1,
         text="A?",
-        dimension=Question.Dimension.INNER,
+        dimension=Question.Dimension.ACTION,
         locale="en",
     )
     answer = AnswerOption(question=question, text="Yes", color="W", locale="de")

@@ -7,7 +7,7 @@ Repository, nicht nur in der Datenbank.
 ## Einspielen
 
 ```bash
-python manage.py seed_questionnaire --version 1 --locale en
+python manage.py seed_questionnaire --questionnaire-version 1 --locale en
 ```
 
 Liest `seeds/questionnaire_v<version>.json`. **Idempotent**, solange
@@ -48,7 +48,7 @@ die alte Datei bearbeiten.
   "questions": [
     {
       "position": 1,
-      "dimension": "INNER",
+      "dimension": "ACTION",
       "text": "Etwas gerät ins Wanken, das dir wichtig ist. Was ist dein erster innerer Impuls?",
       "answers": [
         { "color": "W", "text": "Ich halte an dem fest, was ich für richtig halte." },
@@ -59,8 +59,8 @@ die alte Datei bearbeiten.
 }
 ```
 
-(Beispielwerte oben frei erfunden. Die echten 20 Fragen kommen mit
-Task 2.7.)
+(Beispielwerte oben frei erfunden. Die echten 30 Fragen stehen in
+`seeds/questionnaire_v1.json`, Task 2.7.)
 
 ## Felder
 
@@ -78,7 +78,7 @@ Task 2.7.)
 | Feld | Pflicht | Beschreibung |
 |---|---|---|
 | `position` | ja | Zusammen mit `locale` der natürliche Schlüssel je Fragebogen-Version. |
-| `dimension` | ja | `"INNER"`, `"OUTER"`, `"FEELING"` oder `"VALUES"` (FR-T4). Jeder andere Wert bricht ab. |
+| `dimension` | ja | `"ACTION"`, `"MOTIVATION"` oder `"PERCEPTION"` (FR-T4, D-60). Jeder andere Wert bricht ab. |
 | `text` | ja | Die Situationsbeschreibung. Nennt die Farbzuordnung nicht (FR-T2). |
 | `answers` | ja | Genau zwei Einträge, siehe unten (FR-T1). |
 
@@ -105,6 +105,7 @@ Ursache nennt), statt fehlerhafte Daten still zu übernehmen:
 Ein fehlgeschlagener Import ändert **nichts** an der Datenbank — der
 gesamte Lauf ist eine einzige Transaktion.
 
-Die Paar-Balance aus FR-T3 (jedes der 10 Farbpaare genau zweimal, jede
-Farbe in genau 8 Fragen) prüft dieses Format nicht — das ist Aufgabe
-eines eigenen Tests gegen die echte Seed-Datei (Task 2.7).
+Die Paar-Balance aus FR-T3 (jedes der 10 Farbpaare genau einmal je
+Dimension, jede Farbe in genau 12 Fragen) und die automatisch prüfbaren
+Qualitätsregeln aus D-60 prüft dieses Format nicht — das übernimmt
+`apps/quiz/tests/test_questionnaire_v1.py` gegen die echte Seed-Datei.
