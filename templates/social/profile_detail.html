@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ profile.nickname }}{% endblock %}
+
+{% block content %}
+  <h1>{{ profile.nickname }}</h1>
+
+  {% include "accounts/_avatar.html" %}
+
+  {% if profile.bio %}
+    <p class="profile-bio">{{ profile.bio }}</p>
+  {% endif %}
+
+  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail —
+     dieselbe Darstellung wie der Ergebnis-Link im eigenen Profil
+     (templates/accounts/profile.html). {% endcomment %}
+  <h2>{% translate "Colors" %}</h2>
+  {% if combination %}
+    <p>
+      <a href="{% url 'colors:combination' code=combination.code|lower %}">
+        {{ combination.name }}
+      </a>
+    </p>
+  {% else %}
+    <p>{% translate "No colors set yet." %}</p>
+  {% endif %}
+{% endblock %}

@@ -26,4 +26,5 @@ urlpatterns = [
     path("", include("apps.core.urls")),
     path("accounts/", include("apps.accounts.urls")),
     path("", include("apps.quiz.urls")),
+    path("", include("apps.social.urls")),
 ]

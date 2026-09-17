@@ -372,9 +372,9 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.1 · Fremde Profile
 **Abhängig von:** 2.4 · **Anforderungen:** FR-S1, D-19
 **Fertig, wenn:**
-- [ ] `/u/<nickname>/` zeigt Nickname, Bild, Bio, Farben — **nicht** Historie, **nicht** E-Mail.
-- [ ] Nur für Angemeldete erreichbar.
-- [ ] Test: Nicht-Angemeldete werden abgewiesen; Historie taucht in keiner Antwort auf.
+- [x] `/u/<nickname>/` zeigt Nickname, Bild, Bio, Farben — **nicht** Historie, **nicht** E-Mail.
+- [x] Nur für Angemeldete erreichbar.
+- [x] Test: Nicht-Angemeldete werden abgewiesen; Historie taucht in keiner Antwort auf.
 
 #### 3.2 · Suche nach Nickname
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S2
