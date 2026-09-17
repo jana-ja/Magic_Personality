@@ -12,18 +12,20 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
 ## Einmalige Einrichtung
 
 1. Verzeichnis auf dem Server anlegen, z. B. `/opt/magic_personality`.
-2. Genau drei Dateien aus dem Repository dorthin bringen — kein vollständiger Checkout nötig, das *Image* kommt fertig gebaut aus der Registry, ein `Dockerfile` oder Quellcode braucht der Server nie:
+2. Genau vier Dateien aus dem Repository dorthin bringen — kein vollständiger Checkout nötig, das *Image* kommt fertig gebaut aus der Registry, ein `Dockerfile` oder Quellcode braucht der Server nie:
    - `compose.yaml`
    - `compose.prod.yaml`
    - `Caddyfile`
+   - `scripts/backup.sh` (Task 2.14, siehe "Backups" unten)
 
    **Nicht** `compose.override.yaml` — die ist nur für lokale Entwicklung gedacht (D-50) und würde Host-Ports öffnen, die in Produktion bewusst geschlossen bleiben.
 
-   Empfohlener Weg, weil diese drei Dateien sich künftig auch mal ändern (neuer Healthcheck, andere Caddy-Direktive, …) und dann erneut auf den Server müssen: ein **Sparse Checkout** statt Einzeldateien per Hand zu kopieren — danach reicht `git pull`, um sie zu aktualisieren, ohne den Rest des Repos (App-Code, Tests, `docs/`) mitzuschleppen. `git sparse-checkout set` erwartet im Standard-Modus ("Cone Mode") **Verzeichnisse**, keine einzelnen Dateien — alle drei Dateien liegen aber im Repository-Wurzelverzeichnis. `--no-cone` schaltet auf den älteren, musterbasierten Modus um, der einzelne Pfade akzeptiert (führendes `/` verankert den Pfad an der Repo-Wurzel, sonst würde z. B. `Caddyfile` auch gleichnamige Dateien in Unterordnern mitnehmen):
+   Empfohlener Weg, weil diese Dateien sich künftig auch mal ändern (neuer Healthcheck, andere Caddy-Direktive, …) und dann erneut auf den Server müssen: ein **Sparse Checkout** statt Einzeldateien per Hand zu kopieren — danach reicht `git pull`, um sie zu aktualisieren, ohne den Rest des Repos (App-Code, Tests, `docs/`) mitzuschleppen. `git sparse-checkout set` erwartet im Standard-Modus ("Cone Mode") **Verzeichnisse**, keine einzelnen Dateien — die drei Root-Dateien liegen aber im Repository-Wurzelverzeichnis. `--no-cone` schaltet auf den älteren, musterbasierten Modus um, der einzelne Pfade akzeptiert (führendes `/` verankert den Pfad an der Repo-Wurzel, sonst würde z. B. `Caddyfile` auch gleichnamige Dateien in Unterordnern mitnehmen):
 
    ```bash
    git clone --filter=blob:none --sparse https://github.com/jana-ja/Magic_Personality.git .
-   git sparse-checkout set --no-cone /compose.yaml /compose.prod.yaml /Caddyfile
+   git sparse-checkout set --no-cone /compose.yaml /compose.prod.yaml /Caddyfile /scripts/backup.sh
+   chmod +x scripts/backup.sh
    ```
 
    Alternative ohne Git, für einzelne, seltene Aktualisierungen: die Rohdatei direkt von GitHub laden (`https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/<datei>`), z. B. `curl -O https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/Caddyfile`.
@@ -107,6 +109,53 @@ SECURE_HSTS_SECONDS=31536000
 ```
 
 in der Server-`.env`, dann `docker compose -f compose.yaml -f compose.prod.yaml up -d web` (nur `web` neu starten, `db`/`caddy` bleiben unberührt).
+
+## Backups (Task 2.14, ARCHITECTURE.md §11.4)
+
+Nächtlicher `pg_dump`, gepackt (`gzip`) und geschrieben in ein eigenes Docker-Volume (`postgres_backups`, `compose.prod.yaml`) — kein eigener vierter Container, `scripts/backup.sh` läuft über den bereits laufenden `db`-Dienst. Aufbewahrung 14 Tage; ältere Dumps entfernt das Skript bei jedem Lauf selbst.
+
+### Einrichten (einmalig)
+
+Cron-Eintrag auf dem Server, z. B. mit `crontab -e`:
+
+```cron
+0 3 * * * cd /opt/magic_personality && ./scripts/backup.sh >> backup.log 2>&1
+```
+
+Läuft dann jede Nacht um 03:00 Uhr Serverzeit. `backup.log` im selben Verzeichnis hält die Ausgabe fest — bei einem stillen Fehlschlag (Container down, Festplatte voll) ist das die erste Anlaufstelle.
+
+### Wiederherstellung
+
+Bewusst **kein** Skript dafür — eine Wiederherstellung ist ein seltener, folgenreicher Eingriff, der jedes Mal eine bewusste Entscheidung braucht (welches Backup, welche Zieldatenbank), keine automatisierte Routine wie das Backup selbst.
+
+1. Verfügbare Dumps auflisten:
+   ```bash
+   docker compose -f compose.yaml -f compose.prod.yaml exec db ls -la /backups
+   ```
+2. **Erst gegen eine Wegwerf-Datenbank prüfen**, nie direkt in die echte einspielen:
+   ```bash
+   docker compose -f compose.yaml -f compose.prod.yaml exec -T db sh -c \
+     'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d postgres -c "CREATE DATABASE restore_check OWNER \"$POSTGRES_USER\";"'
+   docker compose -f compose.yaml -f compose.prod.yaml exec -T db sh -c \
+     'gunzip -c /backups/<datei>.sql.gz | PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d restore_check -v ON_ERROR_STOP=1'
+   ```
+   Stichprobe gegen die Wegwerf-Datenbank (Zeilenzahlen, ob sie plausibel zum erwarteten Zeitpunkt des Dumps passen):
+   ```bash
+   docker compose -f compose.yaml -f compose.prod.yaml exec -T db sh -c \
+     'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d restore_check -c "select count(*) from accounts_profile;"'
+   ```
+   Danach aufräumen: `DROP DATABASE restore_check;` (gleicher Verbindungsaufbau wie beim Anlegen, `-d postgres`).
+3. **Erst wenn Schritt 2 überzeugt**, die echte Datenbank ersetzen — das braucht `web` gestoppt (offene Verbindungen verhindern sonst `DROP DATABASE`) und ist der eigentliche Ernstfall:
+   ```bash
+   docker compose -f compose.yaml -f compose.prod.yaml stop web
+   docker compose -f compose.yaml -f compose.prod.yaml exec -T db sh -c \
+     'PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d postgres -c "DROP DATABASE \"$POSTGRES_DB\";" -c "CREATE DATABASE \"$POSTGRES_DB\" OWNER \"$POSTGRES_USER\";"'
+   docker compose -f compose.yaml -f compose.prod.yaml exec -T db sh -c \
+     'gunzip -c /backups/<datei>.sql.gz | PGPASSWORD="$POSTGRES_PASSWORD" psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -v ON_ERROR_STOP=1'
+   docker compose -f compose.yaml -f compose.prod.yaml start web
+   ```
+
+**Einmal geprobt** (2026-09-17, lokal gegen `compose.yaml`/`compose.prod.yaml` — derselbe Mechanismus, den auch der Server verwendet, nur ohne Caddy/TLS davor): `scripts/backup.sh` gegen die lokale Entwicklungsdatenbank laufen lassen, den entstandenen Dump in eine frisch angelegte `restore_rehearsal`-Datenbank eingespielt (Schritt 2 oben) und die Zeilenzahlen dreier Tabellen (`accounts_profile`, `quiz_testresult`, `colors_colorcombination`) sowie die tatsächlichen Nickname-Werte gegen die Ursprungsdatenbank verglichen — identisch. Die Wegwerf-Datenbank danach gelöscht. Schritt 3 (Ersetzen der echten Datenbank) wurde bewusst **nicht** an einer Datenbank mit echten Nutzerdaten geprobt; der SQL-Inhalt ist zwischen Schritt 2 und 3 identisch, nur das Ziel unterscheidet sich.
 
 ## Fehlerbehebung
 

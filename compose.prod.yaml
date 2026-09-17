@@ -21,6 +21,13 @@
 services:
   db:
     restart: unless-stopped
+    # Nächtlicher pg_dump landet hier hinein, nicht auf den
+    # Host-Dateisystem (Task 2.14, ARCHITECTURE.md §11.4,
+    # scripts/backup.sh). Eigenes Volume statt eines Unterordners in
+    # postgres_data: Datenbank-Dateien und Dumps haben unterschiedliche
+    # Lebenszyklen und sollen sich nie versehentlich vermischen.
+    volumes:
+      - postgres_backups:/backups
 
   web:
     # Ohne dieses "image:" hat "web" nur das "build:" aus compose.yaml
@@ -54,3 +61,4 @@ services:
 volumes:
   caddy_data:
   caddy_config:
+  postgres_backups:

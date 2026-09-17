@@ -334,11 +334,13 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.14 · Datenschutz und Backups
 **Abhängig von:** 2.3, 1.12 · **Anforderungen:** PRD §9, NFR-9, ARCHITECTURE §11.4
 **Fertig, wenn:**
-- [ ] Datenschutzseite mit Inhalt: welche Daten, wo, wie lange, wie löschbar.
-- [ ] Nächtlicher `pg_dump`, Aufbewahrung 14 Tage.
-- [ ] **Eine Wiederherstellung wurde einmal erfolgreich durchgeführt** und dokumentiert.
+- [x] Datenschutzseite mit Inhalt: welche Daten, wo, wie lange, wie löschbar.
+- [x] Nächtlicher `pg_dump`, Aufbewahrung 14 Tage.
+- [x] **Eine Wiederherstellung wurde einmal erfolgreich durchgeführt** und dokumentiert.
 
-**Meilenstein v0.2 abgeschlossen, wenn** alle Abnahmekriterien aus PRD §11 (v0.2) erfüllt sind.
+> Backup als Docker-Volume über `scripts/backup.sh` + Cron (kein eigener vierter Container, ARCHITECTURE.md §2). Wiederherstellung lokal geprobt, Runbook in `docs/DEPLOYMENT.md` ("Backups"). Serverstandort (STRATO, Rechenzentrum innerhalb der EU) auf Rückfrage von der Nutzerin bestätigt.
+
+**Meilenstein v0.2 abgeschlossen** — alle Abnahmekriterien aus PRD §11 (v0.2) sind erfüllt.
 
 ---
 

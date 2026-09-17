@@ -30,11 +30,21 @@ def test_about_page_has_a_contact_email(gated_client):
     assert 'href="mailto:janajansen.dev@gmail.com"' in html
 
 
-def test_privacy_page_explains_it_is_a_placeholder(gated_client):
+def test_privacy_page_covers_what_where_how_long_and_deletion(gated_client):
     """
-    Roadmap 1.11: "Datenschutzseite als Platzhalter angelegt (Inhalt
-    kommt mit 2.14, sobald personenbezogene Daten entstehen)."
+    Task 2.14, PRD §9: "Kurze Datenschutzseite (welche Daten, wo, wie
+    lange, wie löschbar)". The placeholder from Task 1.11 is replaced
+    with real content now that accounts/profiles/test history exist.
     """
     html = gated_client.get(reverse("privacy")).content.decode()
 
-    assert "placeholder" in html
+    assert "placeholder" not in html
+    # welche Daten
+    assert "Argon2" in html
+    assert "Test history" in html
+    # wo
+    assert "STRATO" in html
+    # wie lange
+    assert "14 days" in html
+    # wie löschbar
+    assert "Delete your entire account" in html

@@ -6,9 +6,43 @@
 {% block content %}
   <h1>{% translate "Privacy" %}</h1>
   <p>
-    {% translate "This page is a placeholder. A full privacy notice — what data is stored, where, for how long, and how to have it deleted — will appear here once user accounts exist." %}
+    {% translate "This page describes what personal data this site stores, where, for how long, and how you can have it deleted. Magic Personality is a small, non-commercial project for a closed circle of about 3 to 10 people (see About) — there is no advertising, no analytics, and data is never shared with third parties." %}
   </p>
+
+  <h2>{% translate "What is stored" %}</h2>
+  <ul>
+    <li>{% translate "Account: your email address and a hashed password (Argon2) — the password itself is never stored." %}</li>
+    <li>{% translate "Profile: your nickname, an optional short bio, and the colors you have chosen or taken over from a test. Your profile picture is generated from these colors on the fly — it is never uploaded or stored as a file." %}</li>
+    <li>{% translate "Test history: each time you take the personality test, the date, your points per color, and the resulting combination are stored privately in your own history." %}</li>
+    <li>{% translate "Security logs: to prevent abuse, the IP address of every attempt to enter the invite code, register, or log in is recorded, together with the attempted email address for login attempts." %}</li>
+    <li>{% translate "Session: while you're logged in, a session identifier is stored in a cookie in your browser and matched against a record on the server, so you stay logged in between visits." %}</li>
+    <li>{% translate "Access cookie: this whole site sits behind an invite code. Once entered, a signed cookie remembers that on your device — it contains no personal data, only a signed \"granted\" marker." %}</li>
+  </ul>
+
+  <h2>{% translate "Where" %}</h2>
   <p>
-    {% translate "In the meantime: this site currently stores a signed access cookie (no personal data in it) and the IP addresses of invite-code attempts, to prevent abuse. There are no user accounts, profiles, or other personal data yet." %}
+    {% translate "This site runs on a single small server hosted at STRATO (a data center within the EU; the exact location isn't visible to us). Nightly backups of the database are kept in the same hosting environment for 14 days, then deleted automatically (see below)." %}
+  </p>
+
+  <h2>{% translate "How long" %}</h2>
+  <ul>
+    <li>{% translate "Account, profile, and test history: for as long as your account exists." %}</li>
+    <li>{% translate "Security logs (IP addresses of invite-code, registration, and login attempts): currently kept indefinitely — there is no automatic cleanup yet. Removable manually on request (see below)." %}</li>
+    <li>{% translate "Backups: 14 days on a rolling basis, then deleted automatically." %}</li>
+  </ul>
+
+  <h2>{% translate "How to delete it" %}</h2>
+  <ul>
+    <li>{% translate "Delete individual test history entries yourself, any time, from your profile page." %}</li>
+    <li>{% translate "Delete your entire account yourself, any time, from your profile page — this immediately and permanently removes your account, profile, color assignment, and test history." %}</li>
+    {% url 'about' as about_url %}
+    <li>
+      {% blocktranslate trimmed %}
+        For anything a self-service deletion can't reach (for example the security logs above), contact the person on the <a href="{{ about_url }}">About page</a>.
+      {% endblocktranslate %}
+    </li>
+  </ul>
+  <p>
+    {% translate "Note: deleted data may still exist in a backup for up to 14 days before that backup itself is deleted (see \"Where\" above)." %}
   </p>
 {% endblock %}
