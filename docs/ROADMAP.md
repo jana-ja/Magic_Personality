@@ -359,7 +359,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 - [x] Antworten erscheinen in der Reihenfolge der Seed-Datei, nicht nach Farbe sortiert.
 - [x] `T` für v2 per Simulation eingestellt (D-65).
 - [x] Qualitätsregeln aus D-65 eingehalten; automatisch prüfbare davon per Test gegen die Seed-Datei abgesichert.
-- [ ] Eigener Testdurchlauf, danach `"published": true`.
+- [x] Eigener Testdurchlauf, danach `"published": true` (2026-09-17).
 
 > Nachgetragen nach dem eigenen Durchlauf von v1: Das Ergebnis war zu ausgeglichen, weil bei zwei Antworten auch Farben Punkte bekommen, die man nicht hat (D-65).
 
