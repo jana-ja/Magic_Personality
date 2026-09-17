@@ -384,9 +384,11 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.3 · Suche nach Farbkombination
 **Abhängig von:** 3.2 · **Anforderungen:** FR-S3, D-21, D-27
 **Fertig, wenn:**
-- [ ] Ergebnis sind alle Profile, deren Kombination die gesuchte **enthält**.
-- [ ] Test: Suche „W" findet WU und WB; Suche „WU" findet WUB, aber nicht WB.
-- [ ] Auswahl der Suchfarben nutzt dieselbe Darstellung wie das Fünfeck.
+- [x] Ergebnis sind alle Profile, deren Kombination die gesuchte **enthält**.
+- [x] Test: Suche „W" findet WU und WB; Suche „WU" findet WUB, aber nicht WB.
+- [x] Auswahl der Suchfarben nutzt dieselbe Darstellung wie das Fünfeck.
+
+> Umsetzung siehe D-66: gleiche Geometrie/CSS-Klassen wie `apps.colors`, eigene schlanke Klasse statt Import aus dessen `views.py`.
 
 #### 3.4 · Freundschaften
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S4, D-20, D-22

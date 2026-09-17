@@ -30,4 +30,6 @@
       <p>{% translate "No profiles found." %}</p>
     {% endif %}
   {% endif %}
+
+  <p><a href="{% url 'social:search_colors' %}">{% translate "Search by colors instead" %}</a></p>
 {% endblock %}

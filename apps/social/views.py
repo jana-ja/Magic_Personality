@@ -1,17 +1,24 @@
 """
-Views der Social-App: fremde Profile ansehen (Task 3.1, FR-S1) und nach
-Nickname suchen (Task 3.2, FR-S2).
+Views der Social-App: fremde Profile ansehen (Task 3.1, FR-S1), nach
+Nickname suchen (Task 3.2, FR-S2) und nach Farbkombination suchen
+(Task 3.3, FR-S3).
 
-Suche nach Farbkombination (3.3) und Freundschaften (3.4/3.5) kommen
-mit den jeweils eigenen Tasks hinzu.
+Freundschaften (3.4/3.5) kommen mit den jeweils eigenen Tasks hinzu.
 """
 
+from dataclasses import dataclass
+
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, render
+from django.db.models import Q
+from django.http import Http404
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.views.decorators.http import require_GET
 
 from apps.accounts import avatar
 from apps.accounts.models import Profile
+from apps.colors import pentagon, selection
+from apps.colors.models import Color
 
 
 @login_required
@@ -57,3 +64,103 @@ def search(request):
 
     context = {"query": query, "results": results}
     return render(request, "social/search.html", context)
+
+
+@dataclass(frozen=True)
+class ColorToggle:
+    """
+    Eine Fünfeck-Ecke als Auswahl-Link für die Farbsuche, analog zu
+    `apps.colors.views.VertexLink` — eigene, kleine Klasse statt eines
+    Imports von dort: die Suche braucht nur Vertex, Ziel-URL und
+    Auswahlstatus, keine der übrigen Farb-Inhalte (Theme/Pole-Labels,
+    Info-Box), die dort mit dranhängen (Task 3.3).
+    """
+
+    vertex: pentagon.Vertex
+    toggle_url: str
+    is_selected: bool
+
+
+def _search_colors_url(url_code):
+    """Die URL für eine (bereits kanonische) Auswahl-URL-Form, analog
+    zu `apps.colors.views._url_for`."""
+    if not url_code:
+        return reverse("social:search_colors")
+    return reverse("social:search_colors_combination", kwargs={"code": url_code})
+
+
+def _color_pentagon_context(selected_colors):
+    """
+    Kontext für `social/_color_pentagon.html`. Nutzt dieselbe Geometrie
+    wie das Fünfeck aus `apps.colors` (`pentagon.vertices()`,
+    `pentagon.outline_points()`/`star_points()`/`view_box()`) — Task
+    3.3s DoD verlangt ausdrücklich dieselbe Darstellung. Anders als
+    `apps.colors.views.pentagon_context()` ohne Theme-/Pole-Labels: die
+    Suche zeigt keine Kombinations-Inhalte, nur die Auswahl selbst.
+    """
+    vertices = pentagon.vertices(Color.objects.all())
+    vertex_links = [
+        ColorToggle(
+            vertex=vertex,
+            toggle_url=_search_colors_url(
+                selection.canonical_url_code(selection.toggled(selected_colors, vertex.code))
+            ),
+            is_selected=vertex.code in selected_colors,
+        )
+        for vertex in vertices
+    ]
+    return {
+        "vertex_links": vertex_links,
+        "outline_points": pentagon.outline_points(vertices),
+        "star_points": pentagon.star_points(vertices),
+        "view_box": pentagon.view_box(vertices),
+        "name_size": pentagon.NAME_SIZE,
+        "has_selection": bool(selected_colors),
+        "reset_url": reverse("social:search_colors"),
+    }
+
+
+def _profiles_with_all_colors(selected_colors):
+    """
+    FR-S3/D-21: alle Profile, deren Farben die gesuchte Kombination
+    **enthalten** — eine Kette von Buchstaben-Prüfungen auf
+    `ColorCombination.code` (ARCHITECTURE.md §6.2). Alle Bedingungen
+    in einem einzigen `filter()`-Aufruf verknüpft, statt ihn je
+    Buchstabe erneut aufzurufen: so muss derselbe zugeordnete
+    Kombinations-Datensatz alle Buchstaben tragen, nicht nur
+    irgendeine Zeile der Relation.
+    """
+    conditions = Q()
+    for color in selected_colors:
+        conditions &= Q(color_assignments__combination__code__contains=color)
+    return Profile.objects.filter(conditions).distinct().order_by("nickname")
+
+
+@login_required
+@require_GET
+def search_by_colors(request, code=""):
+    """
+    FR-S3: Suche nach Farbkombination. Selektion und URL-Form
+    (kanonisch, kleingeschrieben, Redirect bei falscher Schreibweise,
+    404 bei ungültigem Code) laufen exakt wie beim Fünfeck selbst
+    (Task 1.6) über `apps.colors.selection` — dieselben reinen
+    Funktionen, keine zweite Auswahl-Logik im System.
+
+    Wie `profile_detail`/`search`: `login_required` zusätzlich zur
+    Zugangssperre (D-09), weil Profile anderer FR-S1 zufolge nur für
+    Angemeldete sichtbar sind.
+    """
+    if code:
+        selected_colors = selection.parse_url_code(code)
+        if selected_colors is None:
+            raise Http404("Not a valid color combination.")
+
+        canonical = selection.canonical_url_code(selected_colors)
+        if code != canonical:
+            return redirect(_search_colors_url(canonical), permanent=True)
+    else:
+        selected_colors = set()
+
+    context = _color_pentagon_context(selected_colors)
+    context["results"] = _profiles_with_all_colors(selected_colors) if selected_colors else []
+    return render(request, "social/search_colors.html", context)
