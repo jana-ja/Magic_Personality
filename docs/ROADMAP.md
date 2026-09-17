@@ -379,7 +379,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.2 · Suche nach Nickname
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S2
 **Fertig, wenn:**
-- [ ] Teilstring-Suche, Groß- und Kleinschreibung egal, Treffer verlinken auf das Profil.
+- [x] Teilstring-Suche, Groß- und Kleinschreibung egal, Treffer verlinken auf das Profil.
 
 #### 3.3 · Suche nach Farbkombination
 **Abhängig von:** 3.2 · **Anforderungen:** FR-S3, D-21, D-27
