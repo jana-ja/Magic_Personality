@@ -340,6 +340,16 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 
 > Backup als Docker-Volume über `scripts/backup.sh` + Cron (kein eigener vierter Container, ARCHITECTURE.md §2). Wiederherstellung lokal geprobt, Runbook in `docs/DEPLOYMENT.md` ("Backups"). Serverstandort (STRATO, Rechenzentrum innerhalb der EU) auf Rückfrage von der Nutzerin bestätigt.
 
+#### 2.15 · Hauptnavigation
+**Abhängig von:** 2.8, 1.6 · **Anforderungen:** FR-T7, NFR-3, NFR-5, NFR-6, D-64
+**Fertig, wenn:**
+- [x] Kopfbereich zeigt neben dem Projektnamen die Links „Colors“ (`/colors/`) und „Personality Test“ (`/quiz/`).
+- [x] Der aktive Bereich ist mit `aria-current="page"` markiert und nicht nur farblich hervorgehoben.
+- [x] Kein JavaScript nötig; bei 375 px Breite ohne horizontales Scrollen.
+- [x] `seed_questionnaire` ist Teil des Deployment-Ablaufs in `docs/DEPLOYMENT.md`.
+
+> Nachgetragen nach dem ersten Deployment von v0.2: Keine Aufgabe sah einen Einstieg in den Test vor, er war nur über die direkte URL erreichbar. Gleichzeitig fehlte `seed_questionnaire` im Deployment-Ablauf, `/quiz/` lieferte auf dem Server deshalb 404.
+
 **Meilenstein v0.2 abgeschlossen** — alle Abnahmekriterien aus PRD §11 (v0.2) sind erfüllt.
 
 ---

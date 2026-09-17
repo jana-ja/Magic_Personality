@@ -353,3 +353,12 @@ Ohne Login (Task 2.11) bekommt die Ergebnisseite ein von Django signiertes Token
 - **Docker-Volume statt Host-Pfad:** ARCHITECTURE.md §11.4 nennt wörtlich "in ein Volume". Ein Docker-Volume bleibt unabhängig davon funktionsfähig, wo `docker compose` gerade ausgeführt wird, und vermeidet Datei-Berechtigungsprobleme zwischen Host-Nutzer und dem `postgres`-Prozess im Container (der intern als eigener, containerinterner Nutzer läuft).
 - **Kein Restore-Skript:** Ein Backup läuft automatisiert und folgenlos — schlägt es fehl, gibt es morgen ein neues. Eine Wiederherstellung ersetzt im Ernstfall die einzige Datenbank der Anwendung; das verdient jedes Mal eine bewusste, im Moment getroffene Entscheidung (welches Backup, welche Zieldatenbank), keine Automatisierung, die im Zweifel zu leicht auf die falsche Datenbank zeigen könnte.
 - **Erst gegen eine Wegwerf-Datenbank, dann erst gegen die echte:** Genau der Fehler, den ein Restore-Runbook verhindern soll, wäre ein beschädigter oder unvollständiger Dump, der erst beim Ersetzen der echten Datenbank auffällt — dann ist es zu spät. Die Probe gegen `restore_check` (dieselbe Technik wie die hier tatsächlich durchgeführte Generalprobe) kostet nur wenige Sekunden und macht genau das unmöglich.
+
+### D-64 · Hauptnavigation im Kopfbereich statt Einstieg auf der Farbseite
+**Status:** Angenommen · 2026-09-17
+`templates/base.html` zeigt neben dem Projektnamen eine `<nav class="site-nav">` mit „Colors“ und „Personality Test“ (Task 2.15). Der aktive Bereich ergibt sich aus `request.resolver_match.app_name` und wird per `aria-current="page"` markiert, zusätzlich fett und unterstrichen (NFR-6). Rechts bleibt der Account-Bereich aus D-55 unverändert.
+**Warum:**
+- Nach dem Deployment von v0.2 war der Test nur über die direkte URL erreichbar. Keine Aufgabe hatte einen Einstieg vorgesehen, genauso wie zuvor bei Login/Registrierung (D-55).
+- Der Kopfbereich ist die einzige Stelle, die auf jeder Seite sichtbar ist. Ein Button nur auf `/colors/` hätte den Test von Profil-, About- oder Ergebnisseiten aus nicht erreichbar gemacht.
+- Bewusst nur zwei Punkte: Das Profil ist über den Nickname rechts schon erreichbar. Ein weiterer Punkt kommt erst mit der Profilsuche (v1.0) dazu.
+- Mobil reicht bei zwei kurzen Links ein Zeilenumbruch (`flex-wrap`) unter dem Projektnamen; ein Hamburger-Menü bräuchte JavaScript und brächte bei zwei Einträgen nichts.

@@ -21,7 +21,19 @@
   <a class="skip-link" href="#main-content">{% translate "Skip to main content" %}</a>
 
   <header class="site-header">
-    <a class="site-header__brand" href="/">{% translate "Magic Personality" %}</a>
+    {% comment %} Hauptnavigation (Task 2.15, D-64): der einzige sichtbare
+       Einstieg in den Test. Aktiver Bereich über die App der aufgerufenen
+       URL, markiert per aria-current — die Hervorhebung selbst ist nicht
+       nur farblich (NFR-6, siehe .site-nav in base.css). {% endcomment %}
+    {% with section=request.resolver_match.app_name %}
+    <div class="site-header__start">
+      <a class="site-header__brand" href="/">{% translate "Magic Personality" %}</a>
+      <nav class="site-nav" aria-label="{% translate 'Main' %}">
+        <a href="{% url 'colors:index' %}"{% if section == "colors" %} aria-current="page"{% endif %}>{% translate "Colors" %}</a>
+        <a href="{% url 'quiz:take_test' %}"{% if section == "quiz" %} aria-current="page"{% endif %}>{% translate "Personality Test" %}</a>
+      </nav>
+    </div>
+    {% endwith %}
     <nav class="site-header__auth" aria-label="{% translate 'Account' %}">
       {% if user.is_authenticated %}
         <a href="{% url 'profile' %}">{{ user.profile.nickname }}</a>

@@ -59,12 +59,15 @@ Alle Befehle im Verzeichnis aus dem vorigen Schritt, mit beiden Compose-Dateien:
 docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 1 --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
 Migrations laufen bewusst als **eigener** Schritt vor `up -d`, nicht beim Containerstart (D-29) — sonst migrieren mehrere Worker gleichzeitig, und ein Fehlschlag zeigt sich erst im Log statt im Deployment selbst.
 
 `seed_content` ist ein **eigener** Schritt, keine Migration (ARCHITECTURE.md §9/§1.1): Die Migrationen legen nur die leeren Strukturzeilen an (fünf Farben, 31 Kombinationen — "bewusst noch ohne Inhalt", `apps/colors/migrations/0002_seed_colors_and_combinations.py`), Namen, Ziel/Mittel, Eigenschaften, Perspektiven und Themes kommen erst mit diesem Befehl aus `seeds/colors_en.json`. Ohne ihn läuft die Seite scheinbar normal (Fünfeck mit den fünf Farbnamen, Struktur, Navigation — die kommen aus den Migrationen), zeigt aber zu jeder Auswahl nur leere Inhalte. Idempotent (D-Entscheidung, ARCHITECTURE.md §9), also gefahrlos bei jedem Deployment erneut ausführbar.
+
+`seed_questionnaire` ist aus demselben Grund ein eigener Schritt (ARCHITECTURE.md §9): Die Fragen kommen ausschließlich aus `seeds/questionnaire_v<version>.json`. Ohne ihn liefert `/quiz/` 404 ("No published questionnaire available yet."), weil der Test nur veröffentlichte Versionen anbietet. Für eine veröffentlichte, unveränderte Version ändert ein erneuter Lauf nichts (FR-T6, `seeds/questionnaire_README.md`). Kommt eine neue Version hinzu (`questionnaire_v2.json`), bekommt sie hier eine eigene Zeile; die alte bleibt stehen.
 
 Danach prüfen:
 
@@ -85,20 +88,21 @@ Bei jedem neuen Stand auf `main` (CI baut und veröffentlicht automatisch, D-31)
 docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py migrate
 docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en
+docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_questionnaire --questionnaire-version 1 --locale en
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
 
-Dieselben drei Zeilen wie beim ersten Deployment — `up -d` erneuert nur Container, deren Image sich geändert hat, `db` bleibt unangetastet.
+Dieselben Zeilen wie beim ersten Deployment — `up -d` erneuert nur Container, deren Image sich geändert hat, `db` bleibt unangetastet.
 
-**Ändert sich `compose.yaml`, `compose.prod.yaml` oder `Caddyfile` selbst** (nicht nur der Anwendungscode): Diese drei Dateien liegen nicht im Image, sondern direkt auf dem Server (siehe "Einmalige Einrichtung") — ein `git pull` (bei Sparse Checkout) bzw. erneutes Herunterladen der geänderten Datei *vor* den drei Befehlen oben bringt sie auf den aktuellen Stand. `docker compose ... pull` holt ausschließlich das Anwendungs-Image, nie diese Konfigurationsdateien.
+**Ändert sich `compose.yaml`, `compose.prod.yaml` oder `Caddyfile` selbst** (nicht nur der Anwendungscode): Diese drei Dateien liegen nicht im Image, sondern direkt auf dem Server (siehe "Einmalige Einrichtung") — ein `git pull` (bei Sparse Checkout) bzw. erneutes Herunterladen der geänderten Datei *vor* den Befehlen oben bringt sie auf den aktuellen Stand. `docker compose ... pull` holt ausschließlich das Anwendungs-Image, nie diese Konfigurationsdateien.
 
-**Rollback auf einen älteren Stand:** `IMAGE_TAG=<sha-tag>` in der Server-`.env` setzen (die von CI veröffentlichten Tags stehen im Build-Job in GitHub Actions bzw. unter den Package-Versionen auf GitHub), dann dieselben drei Schritte — `compose.prod.yaml` liest `IMAGE_TAG` selbst, keine Datei muss dafür bearbeitet werden. Zurück auf den neuesten Stand: `IMAGE_TAG` wieder aus der `.env` entfernen (Default ist `latest`).
+**Rollback auf einen älteren Stand:** `IMAGE_TAG=<sha-tag>` in der Server-`.env` setzen (die von CI veröffentlichten Tags stehen im Build-Job in GitHub Actions bzw. unter den Package-Versionen auf GitHub), dann dieselben Schritte — `compose.prod.yaml` liest `IMAGE_TAG` selbst, keine Datei muss dafür bearbeitet werden. Zurück auf den neuesten Stand: `IMAGE_TAG` wieder aus der `.env` entfernen (Default ist `latest`).
 
 ## CI/CD — warum kein automatischer Deploy
 
-`.github/workflows/ci.yml` baut und veröffentlicht bei jedem Push auf `main` automatisch ein neues Image (D-31) — das ist **Continuous Delivery**: ein deploybares Artefakt entsteht ohne Zutun. Der letzte Schritt, dieses Artefakt tatsächlich auf dem Server laufen zu lassen (**Continuous Deployment**), bleibt hier bewusst ein manueller Aufruf der drei Befehle oben, kein Auto-Trigger.
+`.github/workflows/ci.yml` baut und veröffentlicht bei jedem Push auf `main` automatisch ein neues Image (D-31) — das ist **Continuous Delivery**: ein deploybares Artefakt entsteht ohne Zutun. Der letzte Schritt, dieses Artefakt tatsächlich auf dem Server laufen zu lassen (**Continuous Deployment**), bleibt hier bewusst ein manueller Aufruf der Befehle oben, kein Auto-Trigger.
 
-Der Grund ist nicht Bequemlichkeit, sondern D-29: Migrations müssen *vor* dem Neustart von `web` laufen, als eigener, beobachtbarer Schritt. Ein rein image-beobachtender Auto-Updater (das verbreitetste Muster dafür heißt "Watchtower" — ein Container, der neue Digests erkennt und automatisch neu startet) kennt diesen Zwischenschritt nicht: Er würde `web` einfach mit dem neuen Image neu starten, sobald es in der Registry auftaucht — bei einer Migration, die neue Spalten oder Tabellen braucht, liefe die neue Codeversion dann gegen ein noch altes Schema. Für 3–10 Nutzende ist der manuelle Trigger (oder später ein eigenes kleines Deploy-Skript, das die drei Zeilen einfach nacheinander ausführt) kein nennenswerter Mehraufwand — ein "richtiges" CD mit automatischem Trigger würde stattdessen entweder den Migrationsschritt mit eingebaut bekommen (ein Skript, das CI selbst per SSH auf dem Server ausführt) oder bräuchte eine Möglichkeit, "Image da, aber noch nicht anwenden" von "jetzt anwenden" zu trennen — beides zusätzliche Komplexität, die diese Größenordnung (noch) nicht rechtfertigt.
+Der Grund ist nicht Bequemlichkeit, sondern D-29: Migrations müssen *vor* dem Neustart von `web` laufen, als eigener, beobachtbarer Schritt. Ein rein image-beobachtender Auto-Updater (das verbreitetste Muster dafür heißt "Watchtower" — ein Container, der neue Digests erkennt und automatisch neu startet) kennt diesen Zwischenschritt nicht: Er würde `web` einfach mit dem neuen Image neu starten, sobald es in der Registry auftaucht — bei einer Migration, die neue Spalten oder Tabellen braucht, liefe die neue Codeversion dann gegen ein noch altes Schema. Für 3–10 Nutzende ist der manuelle Trigger (oder später ein eigenes kleines Deploy-Skript, das die Zeilen einfach nacheinander ausführt) kein nennenswerter Mehraufwand — ein "richtiges" CD mit automatischem Trigger würde stattdessen entweder den Migrationsschritt mit eingebaut bekommen (ein Skript, das CI selbst per SSH auf dem Server ausführt) oder bräuchte eine Möglichkeit, "Image da, aber noch nicht anwenden" von "jetzt anwenden" zu trennen — beides zusätzliche Komplexität, die diese Größenordnung (noch) nicht rechtfertigt.
 
 ## Nach den ersten Tagen: HSTS anheben
 
@@ -160,6 +164,11 @@ Bewusst **kein** Skript dafür — eine Wiederherstellung ist ein seltener, folg
 ## Fehlerbehebung
 
 **Seite lädt, Fünfeck und Navigation sind da, aber jede Auswahl zeigt leere Inhalte:** `seed_content` wurde vergessen (siehe "Erstes Deployment" oben) — die Migrationen legen nur leere Zeilen an, den eigentlichen Content bringt erst `docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en`. Gegenprobe: `docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c "from apps.colors.models import ColorCombination; print(ColorCombination.objects.filter(name='').count())"` — `0` heißt durchgängig befüllt, jede andere Zahl zeigt fehlenden Content.
+
+**`/quiz/` liefert 404:** Der Test bietet nur veröffentlichte Fragebogen-Versionen an. Gegenprobe: `docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c "from apps.quiz.models import Questionnaire; print(list(Questionnaire.objects.values_list('version', 'question_count', 'published_at')))"`
+- Leere Liste: `seed_questionnaire` wurde nicht ausgeführt (siehe "Erstes Deployment").
+- `published_at` ist `None`: Das eingespielte Image enthielt noch eine unveröffentlichte Seed-Datei (`"published": false`). Mit dem aktuellen Image erneut `seed_questionnaire` ausführen; die Ausgabe endet dann mit "Soeben veröffentlicht."
+- Version mit `published_at` vorhanden, trotzdem 404: Der laufende `web`-Container ist älter als das Image, mit dem geseedet wurde. `docker compose -f compose.yaml -f compose.prod.yaml up -d` erneuert ihn.
 
 **`docker compose down` bricht mit "Resource is still in use" ab:** Betrifft praktisch immer ein Netzwerk (seltener ein Volume), an dem noch ein Container hängt — auch einer außerhalb dieses Compose-Projekts.
 

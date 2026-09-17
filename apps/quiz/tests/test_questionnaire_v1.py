@@ -110,3 +110,5 @@ def test_seed_file_imports(questions):
     questionnaire = Questionnaire.objects.get(version=1)
     assert questionnaire.question_count == QUESTION_COUNT
     assert questionnaire.questions.count() == QUESTION_COUNT
+    # Sonst liefert /quiz/ nach dem Deployment 404 (views._current_questionnaire).
+    assert questionnaire.is_published
