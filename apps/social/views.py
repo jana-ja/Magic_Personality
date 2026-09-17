@@ -1,24 +1,56 @@
 """
 Views der Social-App: fremde Profile ansehen (Task 3.1, FR-S1), nach
-Nickname suchen (Task 3.2, FR-S2) und nach Farbkombination suchen
-(Task 3.3, FR-S3).
+Nickname suchen (Task 3.2, FR-S2), nach Farbkombination suchen
+(Task 3.3, FR-S3) und Freundschaften (Task 3.4, FR-S4).
 
-Freundschaften (3.4/3.5) kommen mit den jeweils eigenen Tasks hinzu.
+Freundeslisten und Graph (3.5) kommen mit dem eigenen Task hinzu.
 """
 
 from dataclasses import dataclass
 
 from django.contrib.auth.decorators import login_required
+from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 
 from apps.accounts import avatar
 from apps.accounts.models import Profile
 from apps.colors import pentagon, selection
 from apps.colors.models import Color
+
+from . import friendships
+from .models import Friendship
+
+
+def _current_profile(request):
+    """Wie `apps.accounts.views.profile`: `get_object_or_404` statt
+    `request.user.profile` direkt, damit ein per `createsuperuser`
+    angelegter Account ohne Profil eine klare 404 statt eines
+    Serverfehlers auslöst."""
+    return get_object_or_404(Profile, user=request.user)
+
+
+def _relationship_context(viewer_profile, other_profile):
+    """
+    FR-S4: der aktuelle Stand zwischen zwei Profilen, fürs Template in
+    `profile_detail`. `relationship` ist eine von `None` (keine
+    Beziehung), `"pending_sent"` (ich habe angefragt),
+    `"pending_received"` (die andere Person hat angefragt) oder
+    `"friends"`.
+    """
+    friendship = Friendship.objects.between(viewer_profile, other_profile)
+    if friendship is None:
+        return {"friendship": None, "relationship": None}
+    if friendship.status == Friendship.Status.ACCEPTED:
+        relationship = "friends"
+    elif friendship.requested_by_id == viewer_profile.pk:
+        relationship = "pending_sent"
+    else:
+        relationship = "pending_received"
+    return {"friendship": friendship, "relationship": relationship}
 
 
 @login_required
@@ -32,15 +64,22 @@ def profile_detail(request, nickname):
     `login_required` genügt für "nur für eingeloggte Nutzende
     sichtbar" — die Zugangssperre (D-09) gilt davor ohnehin für jede
     URL, das hier ist die zusätzliche Login-Pflicht aus FR-S1.
+
+    Seit Task 3.4 zusätzlich der Freundschaftsstatus zur angesehenen
+    Person (FR-S4) — nicht beim eigenen Profil, da käme nur "keine
+    Beziehung zu sich selbst" heraus.
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     assignment = profile.color_assignments.select_related("combination").first()
+    viewer_profile = _current_profile(request)
 
     context = {
         "profile": profile,
         "combination": assignment.combination if assignment else None,
         **avatar.avatar_context(assignment),
     }
+    if viewer_profile.pk != profile.pk:
+        context.update(_relationship_context(viewer_profile, profile))
     return render(request, "social/profile_detail.html", context)
 
 
@@ -164,3 +203,78 @@ def search_by_colors(request, code=""):
     context = _color_pentagon_context(selected_colors)
     context["results"] = _profiles_with_all_colors(selected_colors) if selected_colors else []
     return render(request, "social/search_colors.html", context)
+
+
+@login_required
+@require_POST
+def send_friend_request(request, nickname):
+    """
+    FR-S4: Anfrage senden — vom fremden Profil aus (`/u/<nickname>/`).
+    Eine bereits bestehende Anfrage/Freundschaft (`friendships.send_request`
+    wirft dafür eine `ValidationError`) wird stillschweigend
+    übergangen: der reguläre UI-Pfad zeigt den "Anfrage senden"-Knopf
+    ohnehin nur, wenn noch keine Beziehung besteht (Roadmap-Test:
+    "Anfrage kann nicht doppelt gestellt werden" prüft nur, dass keine
+    zweite Zeile entsteht, nicht eine bestimmte Fehlerdarstellung).
+    """
+    target = get_object_or_404(Profile, nickname__iexact=nickname)
+    requester = _current_profile(request)
+    try:
+        friendships.send_request(requester, target)
+    except ValidationError:
+        pass
+    return redirect("social:profile_detail", nickname=target.nickname)
+
+
+def _redirect_to_other(friendship, acting_profile):
+    other = friendship.other_profile(acting_profile)
+    return redirect("social:profile_detail", nickname=other.nickname)
+
+
+@login_required
+@require_POST
+def accept_friend_request(request, pk):
+    """
+    FR-S4: Anfrage annehmen. `friendships.accept_request` wirft
+    `PermissionDenied`, wenn eine unbeteiligte Person oder die
+    anfragende Person selbst annimmt — Django beantwortet das
+    serienmäßig mit 403 (Roadmap-Test: "nicht von Dritten angenommen
+    werden").
+    """
+    friendship = get_object_or_404(Friendship, pk=pk)
+    acting_profile = _current_profile(request)
+    try:
+        friendships.accept_request(friendship, acting_profile)
+    except ValidationError:
+        pass
+    return _redirect_to_other(friendship, acting_profile)
+
+
+@login_required
+@require_POST
+def decline_friend_request(request, pk):
+    """FR-S4: Anfrage ablehnen — durch die Empfängerin oder, als
+    Rückzug der eigenen Anfrage, durch die anfragende Person selbst."""
+    friendship = get_object_or_404(Friendship, pk=pk)
+    acting_profile = _current_profile(request)
+    other = friendship.other_profile(acting_profile)
+    try:
+        friendships.decline_request(friendship, acting_profile)
+    except ValidationError:
+        pass
+    return redirect("social:profile_detail", nickname=other.nickname)
+
+
+@login_required
+@require_POST
+def remove_friendship(request, pk):
+    """FR-S4: bestehende Freundschaft auflösen — durch jede der beiden
+    Seiten."""
+    friendship = get_object_or_404(Friendship, pk=pk)
+    acting_profile = _current_profile(request)
+    other = friendship.other_profile(acting_profile)
+    try:
+        friendships.dissolve(friendship, acting_profile)
+    except ValidationError:
+        pass
+    return redirect("social:profile_detail", nickname=other.nickname)

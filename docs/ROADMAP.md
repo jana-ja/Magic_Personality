@@ -393,11 +393,13 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.4 · Freundschaften
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S4, D-20, D-22
 **Fertig, wenn:**
-- [ ] `Friendship` auf `Profile` (nicht auf `User`), Status PENDING oder ACCEPTED, mit Angabe wer angefragt hat.
-- [ ] Constraint verhindert doppelte Paarungen in beiden Richtungen und Selbstfreundschaft.
-- [ ] Anfrage senden, annehmen, ablehnen, bestehende Freundschaft auflösen.
-- [ ] Offene Anfragen sind im eigenen Profil sichtbar.
-- [ ] Test: Anfrage kann nicht doppelt gestellt und nicht von Dritten angenommen werden.
+- [x] `Friendship` auf `Profile` (nicht auf `User`), Status PENDING oder ACCEPTED, mit Angabe wer angefragt hat.
+- [x] Constraint verhindert doppelte Paarungen in beiden Richtungen und Selbstfreundschaft.
+- [x] Anfrage senden, annehmen, ablehnen, bestehende Freundschaft auflösen.
+- [x] Offene Anfragen sind im eigenen Profil sichtbar.
+- [x] Test: Anfrage kann nicht doppelt gestellt und nicht von Dritten angenommen werden.
+
+> Umsetzung siehe D-67: ein Datensatz je Paar in kanonischer Reihenfolge (statt fester Sender-/Empfänger-Rollen), Constraint deckt Duplikate und Selbstfreundschaft in einer Prüfung ab.
 
 #### 3.5 · Freundeslisten und Graph
 **Abhängig von:** 3.4 · **Anforderungen:** FR-S5, FR-S6
