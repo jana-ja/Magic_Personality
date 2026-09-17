@@ -1,10 +1,12 @@
-"""Views der Colors-App: das Fünfeck (Task 1.5, 1.6, 1.7)."""
+"""Views der Colors-App: das Fünfeck (Task 1.5, 1.6, 1.7, 2.13)."""
 
 from dataclasses import dataclass
 
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
+
+from apps.accounts.models import ColorAssignment
 
 from . import content, pentagon, selection
 from .models import Color
@@ -34,7 +36,26 @@ def index(request, code=""):
     else:
         selected_colors = set()
 
-    return render(request, "colors/index.html", pentagon_context(selected_colors))
+    context = pentagon_context(selected_colors)
+    context["my_colors_url"] = _my_colors_url(request.user)
+    return render(request, "colors/index.html", context)
+
+
+def _my_colors_url(user):
+    """
+    FR-C12: „Meine Farben auswählen" nur für eingeloggte Nutzende mit
+    hinterlegten Farben. `None`, wenn der Button nicht gezeigt werden
+    soll — das Template lässt ihn dann einfach weg (kein Fehler, wie
+    überall sonst bei fehlendem Inhalt, FR-C11).
+    """
+    if not user.is_authenticated:
+        return None
+    assignment = (
+        ColorAssignment.objects.filter(profile__user=user).select_related("combination").first()
+    )
+    if assignment is None:
+        return None
+    return _url_for(assignment.combination.code.lower())
 
 
 def _url_for(url_code):

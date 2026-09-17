@@ -96,5 +96,18 @@
        hx-swap="innerHTML"
        hx-push-url="true"
        role="button">{% translate "Reset selection" %}</a>
+    {% comment %} FR-C12: nur eingeloggt mit hinterlegten Farben
+       (apps.colors.views._my_colors_url, Task 2.13) — dieselbe
+       HTMX-Beschleunigung wie "Reset selection" oben. {% endcomment %}
+    {% if my_colors_url %}
+      <a class="button-row__button"
+         href="{{ my_colors_url }}"
+         hx-get="{{ my_colors_url }}"
+         hx-select="#colors-panel"
+         hx-target="#colors-panel"
+         hx-swap="innerHTML"
+         hx-push-url="true"
+         role="button">{% translate "Select my colors" %}</a>
+    {% endif %}
   </div>
 </aside>

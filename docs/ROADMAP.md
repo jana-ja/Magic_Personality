@@ -329,7 +329,7 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.13 · „Meine Farben auswählen"
 **Abhängig von:** 2.4, 1.8 · **Anforderungen:** FR-C12
 **Fertig, wenn:**
-- [ ] Button erscheint nur bei angemeldeten Nutzenden mit hinterlegten Farben und führt auf den passenden Code.
+- [x] Button erscheint nur bei angemeldeten Nutzenden mit hinterlegten Farben und führt auf den passenden Code.
 
 #### 2.14 · Datenschutz und Backups
 **Abhängig von:** 2.3, 1.12 · **Anforderungen:** PRD §9, NFR-9, ARCHITECTURE §11.4
