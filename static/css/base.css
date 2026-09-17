@@ -278,6 +278,35 @@ button {
   margin: 0;
 }
 
+/* Testhistorie (Task 2.12) ----------------------------------------------- */
+
+.test-history {
+  border-collapse: collapse;
+  width: 100%;
+  max-width: 40rem;
+  font-size: var(--font-size-sm);
+}
+
+.test-history th,
+.test-history td {
+  text-align: left;
+  padding: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.test-history form {
+  margin: 0;
+}
+
+.test-history button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-accent);
+  text-decoration: underline;
+  width: auto;
+}
+
 /* Mobil vs. Desktop (D-14, NFR-3) --------------------------------------
    Der eigentliche Layout-Unterschied für das Fünfeck kommt mit
    Task 1.10 — dieser Breakpoint ist der gemeinsame Referenzpunkt, den

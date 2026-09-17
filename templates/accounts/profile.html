@@ -40,5 +40,46 @@
     <button type="submit">{% translate "Save" %}</button>
   </form>
 
+  <h2>{% translate "Test history" %}</h2>
+  {% comment %} FR-P6: nur im eigenen Profil sichtbar, Datum, Punkte und
+     Ergebnis je Eintrag. Fremde Historie hat keinen Pfad hierher —
+     `profile` löst immer über request.user auf, nie über einen
+     Parameter (Task 2.12). {% endcomment %}
+  {% if test_results %}
+    <table class="test-history">
+      <thead>
+        <tr>
+          <th>{% translate "Date" %}</th>
+          <th>{% translate "Result" %}</th>
+          <th>{% translate "Points" %}</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for result in test_results %}
+          <tr>
+            <td>{{ result.taken_at|date:"Y-m-d H:i" }}</td>
+            <td>
+              <a href="{% url 'colors:combination' code=result.result_colors|lower %}">
+                {{ result.combination.name }}
+              </a>
+            </td>
+            <td>
+              {% for code, points in result.scores.items %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            </td>
+            <td>
+              <form method="post" action="{% url 'delete_test_result' result.pk %}">
+                {% csrf_token %}
+                <button type="submit">{% translate "Delete" %}</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>{% translate "You haven't taken the test yet." %}</p>
+  {% endif %}
+
   <p><a href="{% url 'delete_account' %}">{% translate "Delete account" %}</a></p>
 {% endblock %}

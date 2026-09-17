@@ -1,6 +1,7 @@
 """
 Views der Accounts-App: Registrierung (Task 2.2), Account-Löschung
-(Task 2.3), Profil ansehen/bearbeiten samt Profilbild (Task 2.4, 2.5).
+(Task 2.3), Profil ansehen/bearbeiten samt Profilbild (Task 2.4, 2.5),
+Testhistorie (Task 2.12).
 
 Login, Logout und Passwortänderung sind Djangos eigene Views
 (`django.contrib.auth.views`), direkt in `urls.py` verdrahtet — dafür
@@ -11,10 +12,13 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods
+from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.colors.content import LOCALE
+from apps.colors.models import ColorCombination
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
+from apps.quiz.models import TestResult
 
 from . import avatar
 from .forms import ProfileForm, RegistrationForm
@@ -93,5 +97,45 @@ def profile(request):
     else:
         form = ProfileForm(initial=initial, profile=profile)
 
-    context = {"form": form, **avatar.avatar_context(assignment)}
+    context = {
+        "form": form,
+        "test_results": _test_results_with_combinations(profile),
+        **avatar.avatar_context(assignment),
+    }
     return render(request, "accounts/profile.html", context)
+
+
+def _test_results_with_combinations(profile):
+    """
+    FR-P6: Historie mit Datum, Punkten und Ergebnis. `TestResult` kennt
+    nur `result_colors` (den Code, D-... siehe apps/quiz/models.py),
+    keine Fremdschlüssel auf `ColorCombination` — die Namen werden hier
+    in einer Abfrage nachgeladen statt je Eintrag einzeln, und direkt
+    an die Instanzen gehängt, damit das Template nicht selbst
+    nachschlagen muss.
+    """
+    test_results = list(profile.test_results.all())
+    combinations_by_code = {
+        combination.code: combination
+        for combination in ColorCombination.objects.filter(
+            locale=LOCALE, code__in={result.result_colors for result in test_results}
+        )
+    }
+    for result in test_results:
+        result.combination = combinations_by_code[result.result_colors]
+    return test_results
+
+
+@login_required
+@require_POST
+def delete_test_result(request, pk):
+    """
+    FR-P7/FR-P8: einzelne Historieneinträge sind löschbar. Referenziert
+    `ColorAssignment.test_result` gerade diesen Eintrag, leert
+    `on_delete=SET_NULL` (Task 2.1) automatisch nur die Referenz — die
+    Profilfarben selbst bleiben unverändert bestehen, ohne dass diese
+    View das selbst anfassen muss.
+    """
+    test_result = get_object_or_404(TestResult, pk=pk, profile__user=request.user)
+    test_result.delete()
+    return redirect("profile")

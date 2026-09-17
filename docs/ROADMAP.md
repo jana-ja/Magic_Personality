@@ -319,10 +319,12 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 2.12 · Testhistorie
 **Abhängig von:** 2.10 · **Anforderungen:** FR-P6 bis FR-P8, FR-T17, D-19
 **Fertig, wenn:**
-- [ ] Historie nur im eigenen Profil sichtbar, je Eintrag Datum, Punkte, Ergebnis.
-- [ ] Einzelne Einträge löschbar.
-- [ ] Löschen des referenzierten Eintrags leert die Referenz, lässt die Profilfarben aber bestehen.
-- [ ] Test: fremde Historie ist über keinen Pfad erreichbar.
+- [x] Historie nur im eigenen Profil sichtbar, je Eintrag Datum, Punkte, Ergebnis.
+- [x] Einzelne Einträge löschbar.
+- [x] Löschen des referenzierten Eintrags leert die Referenz, lässt die Profilfarben aber bestehen.
+- [x] Test: fremde Historie ist über keinen Pfad erreichbar.
+
+> `on_delete=SET_NULL` (schon seit Task 2.1 auf `ColorAssignment.test_result`) erledigt FR-P8 automatisch — die View muss die Referenz nicht selbst leeren.
 
 #### 2.13 · „Meine Farben auswählen"
 **Abhängig von:** 2.4, 1.8 · **Anforderungen:** FR-C12
