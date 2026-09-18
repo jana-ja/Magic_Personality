@@ -182,6 +182,24 @@ USE_TZ = True
 
 LOCALE_PATHS = [BASE_DIR / "locale"]
 
+# D-69: LANGUAGES auf Englisch eingeschränkt, obwohl LocaleMiddleware
+# (config/settings/base.py MIDDLEWARE, aktiv seit Task 0.4) den
+# Accept-Language-Header des Browsers auswerten würde. Ohne diese
+# Einschränkung wählt Djangos Standardliste aus über 100 Sprachen jede
+# vom Browser bevorzugte davon aus — unser eigener Katalog unter
+# locale/ ist zwar leer (nur en, siehe oben), aber für Wörter, die
+# zufällig mit einem von Django selbst mitgelieferten Admin-/Auth-Text
+# übereinstimmen ("Search", "Log out" o. Ä.), schlägt trotzdem dessen
+# eingebaute Übersetzung durch — Djangos Katalogsuche fasst alle
+# Apps zusammen, nicht nur unsere eigene. Ergebnis ohne diese Zeile:
+# eine Seite, die für Nutzende mit deutschsprachigem Browser fast
+# vollständig Englisch zeigt, aber zwei zufällig getroffene Wörter auf
+# Deutsch. Mit nur einem Eintrag in LANGUAGES kann LocaleMiddleware gar
+# nichts anderes mehr wählen als Englisch — aktiv bleibt sie trotzdem,
+# eine echte zweite Sprache braucht später nur einen weiteren Eintrag
+# hier plus einen Katalog unter locale/.
+LANGUAGES = [("en", "English")]
+
 
 # Statische Dateien -----------------------------------------------------
 
