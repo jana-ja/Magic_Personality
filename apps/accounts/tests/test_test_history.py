@@ -7,6 +7,7 @@ docs/ROADMAP.md: fremde Historie ist über keinen Pfad erreichbar.
 """
 
 import pytest
+from django.utils import timezone
 
 from apps.accounts.models import ColorAssignment, Profile, User
 from apps.colors.models import ColorCombination
@@ -51,7 +52,7 @@ def test_profile_shows_the_own_test_history(gated_client, user):
 
     html = response.content.decode()
     assert 'href="/colors/wu/"' in html
-    assert result.taken_at.strftime("%Y-%m-%d") in html
+    assert timezone.localtime(result.taken_at).strftime("%Y-%m-%d") in html
     assert "W: 5" in html
     assert "U: 3" in html
 
