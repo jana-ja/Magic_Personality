@@ -1,0 +1,41 @@
+{% load i18n l10n static %}
+{% comment %} Farbauswahl für die Suche (Task 3.3, FR-S3): dieselbe
+   SVG-Geometrie und dieselben CSS-Klassen wie das Fünfeck aus
+   `colors/_pentagon.html` (apps/colors/pentagon.py bleibt die einzige
+   Quelle für Koordinaten, D-27/ARCHITECTURE.md §4.4) — ohne
+   Linienbeschriftungen (Task 1.7) und ohne HTMX-Beschleunigung
+   (Task 1.8): hier gibt es keine Kombinations-Inhalte zum Anzeigen,
+   nur eine Auswahl, die bei jedem Klick sofort die Ergebnisliste
+   darunter neu lädt — ein normaler Seitenaufruf reicht, genau wie
+   das Fünfeck auch ohne JavaScript funktioniert (D-24). {% endcomment %}
+{% localize off %}
+<svg class="pentagon"
+     viewBox="{{ view_box }}"
+     aria-labelledby="color-search-pentagon-title">
+  <title id="color-search-pentagon-title">{% translate "Select colors to search for" %}</title>
+
+  <polygon class="pentagon__outline" points="{{ outline_points }}"/>
+  <polygon class="pentagon__star" points="{{ star_points }}"/>
+
+  {% for link in vertex_links %}
+    <a class="pentagon__vertex{% if has_selection %}{% if link.is_selected %} pentagon__vertex--selected{% else %} pentagon__vertex--unselected{% endif %}{% endif %}"
+       href="{{ link.toggle_url }}"
+       role="button"
+       aria-pressed="{% if link.is_selected %}true{% else %}false{% endif %}"
+       aria-label="{{ link.vertex.name }}"
+       style="--halo: {{ link.vertex.halo }};">
+      <circle class="pentagon__halo" cx="{{ link.vertex.x }}" cy="{{ link.vertex.y }}"
+              r="{{ link.vertex.symbol_size }}"/>
+      <image class="pentagon__symbol"
+             href="{% static link.vertex.symbol %}"
+             x="{{ link.vertex.symbol_x }}" y="{{ link.vertex.symbol_y }}"
+             width="{{ link.vertex.symbol_size }}" height="{{ link.vertex.symbol_size }}"/>
+      <text class="pentagon__name"
+            x="{{ link.vertex.label_x }}" y="{{ link.vertex.label_y }}"
+            font-size="{{ name_size }}"
+            text-anchor="{{ link.vertex.text_anchor }}"
+            dominant-baseline="{{ link.vertex.baseline }}">{{ link.vertex.name }}</text>
+    </a>
+  {% endfor %}
+</svg>
+{% endlocalize %}

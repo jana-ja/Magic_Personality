@@ -27,6 +27,26 @@ def test_unknown_path_without_cookie_redirects_to_the_gate(client):
     assert response.url.startswith(GATE_URL)
 
 
+@pytest.mark.parametrize(
+    "path",
+    ["/u/someone/", "/search/", "/search/colors/", "/friends/1/accept/"],
+)
+def test_social_urls_without_cookie_redirect_to_the_gate(client, path):
+    """
+    Task 3.6/Release-Durchsicht v1.0: die Middleware kennt keine
+    Ausnahmen für die mit M3 neu hinzugekommenen Pfade (apps.social)
+    — schon `test_unknown_path_without_cookie_redirects_to_the_gate`
+    belegt das strukturell (die Middleware unterscheidet nicht nach
+    Pfad), dieser Test hält es zusätzlich für die tatsächlichen
+    v1.0-URLs ausdrücklich fest, statt es nur aus der allgemeinen
+    Regel zu folgern.
+    """
+    response = client.get(path)
+
+    assert response.status_code == 302
+    assert response.url.startswith(GATE_URL)
+
+
 def test_admin_without_cookie_redirects_to_the_gate(client):
     """FR-A1: 'kein API-Endpunkt außer der Code-Eingabe' — auch /admin/ nicht."""
     response = client.get("/admin/")

@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Search" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Search" %}</h1>
+
+  {% comment %} FR-S2: Teilstring-Suche, Groß-/Kleinschreibung egal
+     (apps/social/views.py:search). GET statt POST, damit die Suche
+     eine eigene, teilbare URL hat und der Browser-Zurück-Button
+     funktioniert — wie beim Fünfeck (D-24), nur ohne HTMX-Beschleunigung,
+     dafür reicht ein einfaches Formular. {% endcomment %}
+  <form method="get" action="{% url 'social:search' %}">
+    <label for="search-nickname">{% translate "Nickname" %}</label>
+    <input type="search" name="q" id="search-nickname" value="{{ query }}">
+    <button type="submit">{% translate "Search" %}</button>
+  </form>
+
+  {% if query %}
+    {% if results %}
+      <ul class="search-results">
+        {% for result in results %}
+          <li>
+            <a href="{% url 'social:profile_detail' nickname=result.nickname %}">{{ result.nickname }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>{% translate "No profiles found." %}</p>
+    {% endif %}
+  {% endif %}
+
+  <p><a href="{% url 'social:search_colors' %}">{% translate "Search by colors instead" %}</a></p>
+{% endblock %}

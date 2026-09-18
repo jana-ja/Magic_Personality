@@ -372,46 +372,66 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 #### 3.1 · Fremde Profile
 **Abhängig von:** 2.4 · **Anforderungen:** FR-S1, D-19
 **Fertig, wenn:**
-- [ ] `/u/<nickname>/` zeigt Nickname, Bild, Bio, Farben — **nicht** Historie, **nicht** E-Mail.
-- [ ] Nur für Angemeldete erreichbar.
-- [ ] Test: Nicht-Angemeldete werden abgewiesen; Historie taucht in keiner Antwort auf.
+- [x] `/u/<nickname>/` zeigt Nickname, Bild, Bio, Farben — **nicht** Historie, **nicht** E-Mail.
+- [x] Nur für Angemeldete erreichbar.
+- [x] Test: Nicht-Angemeldete werden abgewiesen; Historie taucht in keiner Antwort auf.
 
 #### 3.2 · Suche nach Nickname
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S2
 **Fertig, wenn:**
-- [ ] Teilstring-Suche, Groß- und Kleinschreibung egal, Treffer verlinken auf das Profil.
+- [x] Teilstring-Suche, Groß- und Kleinschreibung egal, Treffer verlinken auf das Profil.
 
 #### 3.3 · Suche nach Farbkombination
 **Abhängig von:** 3.2 · **Anforderungen:** FR-S3, D-21, D-27
 **Fertig, wenn:**
-- [ ] Ergebnis sind alle Profile, deren Kombination die gesuchte **enthält**.
-- [ ] Test: Suche „W" findet WU und WB; Suche „WU" findet WUB, aber nicht WB.
-- [ ] Auswahl der Suchfarben nutzt dieselbe Darstellung wie das Fünfeck.
+- [x] Ergebnis sind alle Profile, deren Kombination die gesuchte **enthält**.
+- [x] Test: Suche „W" findet WU und WB; Suche „WU" findet WUB, aber nicht WB.
+- [x] Auswahl der Suchfarben nutzt dieselbe Darstellung wie das Fünfeck.
+
+> Umsetzung siehe D-66: gleiche Geometrie/CSS-Klassen wie `apps.colors`, eigene schlanke Klasse statt Import aus dessen `views.py`.
 
 #### 3.4 · Freundschaften
 **Abhängig von:** 3.1 · **Anforderungen:** FR-S4, D-20, D-22
 **Fertig, wenn:**
-- [ ] `Friendship` auf `Profile` (nicht auf `User`), Status PENDING oder ACCEPTED, mit Angabe wer angefragt hat.
-- [ ] Constraint verhindert doppelte Paarungen in beiden Richtungen und Selbstfreundschaft.
-- [ ] Anfrage senden, annehmen, ablehnen, bestehende Freundschaft auflösen.
-- [ ] Offene Anfragen sind im eigenen Profil sichtbar.
-- [ ] Test: Anfrage kann nicht doppelt gestellt und nicht von Dritten angenommen werden.
+- [x] `Friendship` auf `Profile` (nicht auf `User`), Status PENDING oder ACCEPTED, mit Angabe wer angefragt hat.
+- [x] Constraint verhindert doppelte Paarungen in beiden Richtungen und Selbstfreundschaft.
+- [x] Anfrage senden, annehmen, ablehnen, bestehende Freundschaft auflösen.
+- [x] Offene Anfragen sind im eigenen Profil sichtbar.
+- [x] Test: Anfrage kann nicht doppelt gestellt und nicht von Dritten angenommen werden.
+
+> Umsetzung siehe D-67: ein Datensatz je Paar in kanonischer Reihenfolge (statt fester Sender-/Empfänger-Rollen), Constraint deckt Duplikate und Selbstfreundschaft in einer Prüfung ab.
 
 #### 3.5 · Freundeslisten und Graph
 **Abhängig von:** 3.4 · **Anforderungen:** FR-S5, FR-S6
 **Fertig, wenn:**
-- [ ] Eigene Freundesliste im eigenen Profil.
-- [ ] Freundesliste fremder Profile einsehbar und navigierbar.
-- [ ] Über mindestens zwei Ebenen durchklickbar, ohne Sackgasse.
+- [x] Eigene Freundesliste im eigenen Profil.
+- [x] Freundesliste fremder Profile einsehbar und navigierbar.
+- [x] Über mindestens zwei Ebenen durchklickbar, ohne Sackgasse.
 
 #### 3.6 · Release-Durchsicht v1.0
 **Abhängig von:** 3.5 · **Anforderungen:** PRD §11 (v1.0)
 **Fertig, wenn:**
-- [ ] Alle Abnahmekriterien aus PRD §11 durchgegangen und abgehakt.
-- [ ] Zugriffsschutz durchgeprüft: Gate, Login-Pflicht, private Historie.
-- [ ] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen.
-- [ ] Backup-Wiederherstellung erneut geprobt.
-- [ ] `DECISIONS.md` ist vollständig.
+- [x] Alle Abnahmekriterien aus PRD §11 durchgegangen und abgehakt.
+- [x] Zugriffsschutz durchgeprüft: Gate, Login-Pflicht, private Historie.
+- [x] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen.
+- [x] Backup-Wiederherstellung erneut geprobt.
+- [x] `DECISIONS.md` ist vollständig.
+
+> **Abnahmekriterien PRD §11 (v1.0):**
+> - „Fremde Profile sind nur eingeloggt sichtbar und zeigen keine Historie." — `apps.social.views.profile_detail` (`@login_required`), Testhistorie/E-Mail nirgends im Kontext/Template (Task 3.1, `apps/social/tests/test_profile_detail.py`).
+> - „Beide Suchen liefern korrekte Ergebnisse, insbesondere die Teilmengen-Logik aus FR-S3." — Nickname-Suche (Task 3.2) und Farbsuche (Task 3.3) je mit eigener Testdatei; die DoD-Beispiele aus FR-S3 („W" findet WU/WB, „WU" findet WUB nicht WB) stehen wörtlich in `test_search_colors.py`.
+> - „Freundschaftsanfragen lassen sich senden, annehmen, ablehnen und auflösen." — Task 3.4, `apps/social/friendships.py` plus `test_friendships.py` (Modell-Constraints, Logik, Views einzeln).
+> - „Über Freundeslisten ist der Graph navigierbar." — Task 3.5, `test_friend_lists.py` inklusive eines Tests, der zwei Ebenen ohne Sackgasse durchklickt.
+>
+> Alle vier zusätzlich per komplettem Testlauf abgesichert (593 Tests, siehe unten) — nicht nur einzeln gelesen.
+>
+> **Zugriffsschutz:** `GateMiddleware` unterscheidet nicht nach Pfad (Task 0.5) — neu hinzugekommen ist ein expliziter Test für die v1.0-URLs selbst (`apps/core/tests/test_gate.py::test_social_urls_without_cookie_redirect_to_the_gate`), statt sich nur auf die allgemeine Regel zu verlassen. Login-Pflicht: jede Social-View trägt `@login_required` (`profile_detail`, `search`, `search_by_colors`, `send_friend_request`, `accept_friend_request`, `decline_friend_request`, `remove_friendship`). Private Historie: `TestResult` wird ausschließlich über `profile__user=request.user` gelesen (`apps/accounts/views.py`, `apps/quiz/views.py`), an keiner Stelle in `apps.social`.
+>
+> **Prüfung gegen `ARCHITECTURE.md`:** M3-Diff bleibt vollständig innerhalb von `apps/social` (plus kleine Ergänzungen in `apps/accounts/views.py`, `config/urls.py`, Templates) — Projektstruktur aus §5 unverändert eingehalten. Keine neuen Abhängigkeiten (`requirements/`, `compose*.yaml`, `Dockerfile`, `static/js/` unverändert seit v0.2). `Friendship` verweist auf `Profile`, nicht `User` (§6.1/D-22). Alle sichtbaren Texte laufen durch `gettext` (NFR-4, stichprobenartig per Grep über `templates/social/*.html` und den diff-Teil von `templates/accounts/profile.html` geprüft — keine hart codierten Strings). Mobil-Layout bei 375 px ohne horizontales Scrollen geprüft (NFR-3, `/search/colors/`, `/accounts/profile/`, `/u/<nickname>/`).
+>
+> **Backup-Wiederherstellung:** erneut geprobt (siehe `docs/DEPLOYMENT.md`, Abschnitt „Backups") — diesmal ausdrücklich mit der seit Task 3.4 neuen `social_friendship`-Tabelle: Dump erstellt, in eine Wegwerf-Datenbank eingespielt, Zeilenzahlen und alle drei DB-Constraints aus `Friendship.Meta` (D-67) nach der Wiederherstellung unverändert vorgefunden.
+>
+> **`DECISIONS.md`:** 67 Einträge (D-01 bis D-67), lückenlos durchnummeriert, keiner mit Status „Offen".
 
 **Meilenstein v1.0 abgeschlossen** — das Produkt gilt als fertig.
 
