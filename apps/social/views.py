@@ -88,10 +88,15 @@ def profile_detail(request, nickname):
     if viewer_profile.pk == profile.pk:
         return redirect("profile")
 
-    assignment = profile.color_assignments.select_related("combination").first()
+    assignment = profile.color_assignments.select_related("combination", "test_result").first()
+    test_result = assignment.test_result if assignment else None
     context = {
         "profile": profile,
         "combination": assignment.combination if assignment else None,
+        # D-70: nur die Punkte des Ergebnisses, aus dem die Profilfarben
+        # übernommen wurden (FR-P5) — weder Datum noch die übrige
+        # Historie, die bleibt privat (D-19).
+        "test_scores": test_result.ordered_scores if test_result else None,
         "friends": friendships.accepted_friends(profile),
         **avatar.avatar_context(assignment),
         **_relationship_context(viewer_profile, profile),

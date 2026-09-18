@@ -22,6 +22,15 @@
         {{ combination.name }}
       </a>
     </p>
+    {% if test_scores %}
+      {% comment %} D-70: Punkteverteilung des Testergebnisses, aus dem diese
+         Farben übernommen wurden (nur bei source = SELF_TEST, sonst
+         ist test_scores None). Nur die Punkte, keine Historie (D-19). {% endcomment %}
+      <p class="profile-test-scores">
+        {% translate "Points from the test result:" %}
+        {% for code, points in test_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
+      </p>
+    {% endif %}
   {% else %}
     <p>{% translate "No colors set yet." %}</p>
   {% endif %}

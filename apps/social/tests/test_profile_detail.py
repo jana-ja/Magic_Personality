@@ -122,3 +122,66 @@ def test_visiting_ones_own_profile_by_nickname_redirects_to_the_profile_page(gat
 
     assert response.status_code == 302
     assert response.url == "/accounts/profile/"
+
+
+# D-70: Punkteverteilung des übernommenen Testergebnisses -----------------
+
+
+def _adopt_test_result(profile, scores):
+    result = TestResult.objects.create(
+        profile=profile, questionnaire_version=1, scores=scores, result_colors="WU"
+    )
+    assignment = _assign_colors(profile)
+    assignment.source = ColorAssignment.Source.SELF_TEST
+    assignment.test_result = result
+    assignment.save()
+    return result
+
+
+def test_foreign_profile_shows_the_scores_of_the_adopted_test_result(
+    gated_client, user, other_user
+):
+    _adopt_test_result(other_user.profile, {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3})
+    gated_client.force_login(user)
+
+    html = gated_client.get("/u/jamie/").content.decode()
+
+    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in html
+
+
+def test_foreign_profile_shows_no_scores_for_manually_chosen_colors(gated_client, user, other_user):
+    _assign_colors(other_user.profile)
+    gated_client.force_login(user)
+
+    html = gated_client.get("/u/jamie/").content.decode()
+
+    assert "Points from the test result" not in html
+
+
+def test_foreign_profile_shows_no_scores_once_the_result_was_deleted(
+    gated_client, user, other_user
+):
+    """FR-P8: das Löschen leert die Referenz, die Farben bleiben."""
+    result = _adopt_test_result(other_user.profile, {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3})
+    result.delete()
+    gated_client.force_login(user)
+
+    html = gated_client.get("/u/jamie/").content.decode()
+
+    assert 'href="/colors/wu/"' in html
+    assert "Points from the test result" not in html
+
+
+def test_other_results_of_the_history_stay_private(gated_client, user, other_user):
+    _adopt_test_result(other_user.profile, {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3})
+    TestResult.objects.create(
+        profile=other_user.profile,
+        questionnaire_version=1,
+        scores={"W": 1, "U": 2, "B": 3, "R": 4, "G": 5},
+        result_colors="RG",
+    )
+    gated_client.force_login(user)
+
+    html = gated_client.get("/u/jamie/").content.decode()
+
+    assert "W: 1, U: 2, B: 3, R: 4, G: 5" not in html
