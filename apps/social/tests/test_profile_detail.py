@@ -104,3 +104,21 @@ def test_profile_without_colors_shows_a_neutral_message(gated_client, user, othe
 
     html = response.content.decode()
     assert "No colors set yet." in html
+
+
+# Das eigene Profil zeigt sich nicht wie ein fremdes -------------------------
+
+
+def test_visiting_ones_own_profile_by_nickname_redirects_to_the_profile_page(gated_client, user):
+    """
+    Sonst erschiene das eigene Profil wie ein fremdes, inklusive eines
+    "Anfrage senden"-Knopfs, der an der Selbstfreundschafts-Sperre in
+    apps.social.friendships.send_request ohnehin nur mit einem Fehler
+    enden würde.
+    """
+    gated_client.force_login(user)
+
+    response = gated_client.get("/u/alex/")
+
+    assert response.status_code == 302
+    assert response.url == "/accounts/profile/"

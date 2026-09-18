@@ -26,9 +26,10 @@
     <p>{% translate "No colors set yet." %}</p>
   {% endif %}
 
-  {% comment %} FR-S4: Freundschaftsstatus zur angesehenen Person.
-     Fehlt beim eigenen Profil (siehe apps/social/views.py:profile_detail)
-     — "relationship" ist dann schlicht nicht im Kontext. {% endcomment %}
+  {% comment %} FR-S4: Freundschaftsstatus zur angesehenen Person. Das
+     eigene Profil landet nie hier — apps/social/views.py:profile_detail
+     leitet dafür auf "profile" weiter, bevor dieser Teil überhaupt
+     gerendert wird. {% endcomment %}
   {% if relationship == "friends" %}
     <p>{% translate "You are friends." %}</p>
     <form method="post" action="{% url 'social:remove_friendship' pk=friendship.pk %}">

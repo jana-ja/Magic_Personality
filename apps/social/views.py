@@ -75,19 +75,27 @@ def profile_detail(request, nickname):
     damit sich der Graph über diese eine View beliebig weiterklicken
     lässt (Task 3.5-DoD: "über mindestens zwei Ebenen durchklickbar,
     ohne Sackgasse").
+
+    Das eigene Profil leitet auf `profile` weiter, statt sich selbst
+    wie ein fremdes Profil zu zeigen (samt "Anfrage senden"-Knopf, der
+    an der Selbstfreundschafts-Sperre aus `friendships.send_request`
+    ohnehin scheitern würde) — der Weg dorthin (Suche, Freundesliste,
+    eigener Profil-Link) soll nicht extra beachten müssen, wen er
+    gerade verlinkt.
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
-    assignment = profile.color_assignments.select_related("combination").first()
     viewer_profile = _current_profile(request)
+    if viewer_profile.pk == profile.pk:
+        return redirect("profile")
 
+    assignment = profile.color_assignments.select_related("combination").first()
     context = {
         "profile": profile,
         "combination": assignment.combination if assignment else None,
         "friends": friendships.accepted_friends(profile),
         **avatar.avatar_context(assignment),
+        **_relationship_context(viewer_profile, profile),
     }
-    if viewer_profile.pk != profile.pk:
-        context.update(_relationship_context(viewer_profile, profile))
     return render(request, "social/profile_detail.html", context)
 
 
