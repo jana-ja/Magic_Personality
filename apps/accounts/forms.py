@@ -113,12 +113,23 @@ class ProfileForm(forms.Form):
         self.profile.full_clean()
         self.profile.save()
 
-        colors = self.cleaned_data["colors"]
+        # Nur anfassen, was sich tatsächlich geändert hat: Das Formular
+        # schickt immer alle Felder mit. Ohne diesen Vergleich setzte jedes
+        # Speichern (z. B. nur die Bio geändert) die Farben auf SELF_MANUAL
+        # und löschte die Testreferenz (FR-P5) — Punkte in fremden Profilen
+        # (D-70) verschwanden, ohne dass die Person die Farben angefasst hat.
+        colors = canonical_code(self.cleaned_data["colors"])
+        current = ColorAssignment.objects.filter(profile=self.profile).select_related("combination")
+        current = current.first()
+        current_code = current.combination.code if current else ""
+        if colors == current_code:
+            return
+
         if colors:
-            # FR-P5/D-07: freie Wahl setzt source = SELF_MANUAL und
+            # FR-P5/D-07: geänderte freie Wahl setzt source = SELF_MANUAL und
             # leert die Testreferenz — unabhängig davon, wovon die
             # bisherige Zuordnung (falls vorhanden) stammte.
-            combination = ColorCombination.objects.get(code=canonical_code(colors), locale=LOCALE)
+            combination = ColorCombination.objects.get(code=colors, locale=LOCALE)
             ColorAssignment.objects.update_or_create(
                 profile=self.profile,
                 defaults={

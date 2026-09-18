@@ -127,3 +127,64 @@ def test_re_choosing_colors_overwrites_a_test_sourced_assignment(gated_client, u
     assert assignment.combination.code == "UB"
     assert assignment.source == ColorAssignment.Source.SELF_MANUAL
     assert assignment.test_result is None
+
+
+def _adopted_assignment(user, code="WU"):
+    result = TestResult.objects.create(
+        profile=user.profile,
+        questionnaire_version=1,
+        scores={"W": 9, "U": 10, "B": 6, "R": 2, "G": 3},
+        result_colors=code,
+    )
+    assignment = ColorAssignment.objects.create(
+        profile=user.profile,
+        author_profile=user.profile,
+        combination=ColorCombination.objects.get(code=code, locale="en"),
+        source=ColorAssignment.Source.SELF_TEST,
+        test_result=result,
+    )
+    return result, assignment
+
+
+def test_saving_only_the_bio_keeps_the_test_link(gated_client, user):
+    """Regression: das Formular schickt die unveränderten Farben mit; das
+    darf die Testreferenz nicht überschreiben (FR-P5)."""
+    result, _ = _adopted_assignment(user)
+    gated_client.force_login(user)
+
+    gated_client.post(PROFILE_URL, _valid_data(bio="Changed bio.", colors=["W", "U"]))
+
+    assignment = ColorAssignment.objects.get(profile=user.profile)
+    assert assignment.source == ColorAssignment.Source.SELF_TEST
+    assert assignment.test_result == result
+    user.profile.refresh_from_db()
+    assert user.profile.bio == "Changed bio."
+
+
+def test_saving_the_same_colors_in_another_order_keeps_the_test_link(gated_client, user):
+    result, _ = _adopted_assignment(user)
+    gated_client.force_login(user)
+
+    gated_client.post(PROFILE_URL, _valid_data(colors=["U", "W"]))
+
+    assert ColorAssignment.objects.get(profile=user.profile).test_result == result
+
+
+def test_actually_changing_the_colors_still_drops_the_test_link(gated_client, user):
+    _adopted_assignment(user)
+    gated_client.force_login(user)
+
+    gated_client.post(PROFILE_URL, _valid_data(colors=["W", "U", "B"]))
+
+    assignment = ColorAssignment.objects.get(profile=user.profile)
+    assert assignment.combination.code == "WUB"
+    assert assignment.source == ColorAssignment.Source.SELF_MANUAL
+    assert assignment.test_result is None
+
+
+def test_saving_without_colors_and_without_assignment_creates_nothing(gated_client, user):
+    gated_client.force_login(user)
+
+    gated_client.post(PROFILE_URL, _valid_data(bio="Only a bio."))
+
+    assert not ColorAssignment.objects.filter(profile=user.profile).exists()
