@@ -100,7 +100,7 @@ def profile(request):
 
     context = {
         "form": form,
-        "test_results": _test_results_with_combinations(profile),
+        "test_results": _test_results_with_combinations(profile, assignment),
         # FR-S4/Task 3.4-DoD: "Offene Anfragen sind im eigenen Profil
         # sichtbar" — beide Richtungen, damit auch eine selbst
         # gestellte, noch offene Anfrage hier auffindbar bleibt.
@@ -113,14 +113,16 @@ def profile(request):
     return render(request, "accounts/profile.html", context)
 
 
-def _test_results_with_combinations(profile):
+def _test_results_with_combinations(profile, assignment):
     """
     FR-P6: Historie mit Datum, Punkten und Ergebnis. `TestResult` kennt
     nur `result_colors` (den Code, D-... siehe apps/quiz/models.py),
     keine Fremdschlüssel auf `ColorCombination` — die Namen werden hier
     in einer Abfrage nachgeladen statt je Eintrag einzeln, und direkt
     an die Instanzen gehängt, damit das Template nicht selbst
-    nachschlagen muss.
+    nachschlagen muss. Ebenso `is_adopted`: ob die Profilfarben gerade
+    auf genau diesen Eintrag verweisen (FR-P5) — das Template zeigt dort
+    statt des Übernehmen-Knopfs einen Hinweis.
     """
     test_results = list(profile.test_results.all())
     combinations_by_code = {
@@ -131,6 +133,7 @@ def _test_results_with_combinations(profile):
     }
     for result in test_results:
         result.combination = combinations_by_code[result.result_colors]
+        result.is_adopted = assignment is not None and assignment.test_result_id == result.pk
     return test_results
 
 

@@ -181,3 +181,62 @@ def test_deleting_an_unreferenced_entry_leaves_the_color_assignment_untouched(ga
 
     assignment.refresh_from_db()
     assert assignment.test_result == referenced
+
+
+# Nachträgliche Übernahme ins Profil aus der Historie ---------------------
+
+
+def test_history_offers_to_adopt_a_result_into_the_profile(gated_client, user):
+    result = _make_result(user.profile)
+    gated_client.force_login(user)
+
+    html = gated_client.get(PROFILE_URL).content.decode()
+
+    assert f'action="/quiz/results/{result.pk}/adopt/"' in html
+    assert "Use for profile" in html
+
+
+def test_adopting_from_the_history_links_the_result_and_shows_its_scores_to_others(
+    gated_client, user, other_user
+):
+    """Auch für Zuordnungen, die vorher manuell gesetzt wurden und die
+    Testreferenz überschrieben hatten (FR-P5)."""
+    result = _make_result(user.profile, scores={"W": 9, "U": 10, "B": 6, "R": 2, "G": 3})
+    ColorAssignment.objects.create(
+        profile=user.profile,
+        author_profile=user.profile,
+        combination=ColorCombination.objects.get(code="BR", locale="en"),
+        source=ColorAssignment.Source.SELF_MANUAL,
+    )
+    gated_client.force_login(user)
+
+    response = gated_client.post(f"/quiz/results/{result.pk}/adopt/")
+
+    assert response.status_code == 302
+    assignment = ColorAssignment.objects.get(profile=user.profile)
+    assert assignment.source == ColorAssignment.Source.SELF_TEST
+    assert assignment.test_result == result
+    assert assignment.combination.code == "WU"
+
+    gated_client.force_login(other_user)
+    html = gated_client.get("/u/alex/").content.decode()
+    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in html
+
+
+def test_the_currently_adopted_result_shows_a_note_instead_of_the_button(gated_client, user):
+    adopted = _make_result(user.profile)
+    other = _make_result(user.profile, result_colors="BR")
+    ColorAssignment.objects.create(
+        profile=user.profile,
+        author_profile=user.profile,
+        combination=ColorCombination.objects.get(code="WU", locale="en"),
+        source=ColorAssignment.Source.SELF_TEST,
+        test_result=adopted,
+    )
+    gated_client.force_login(user)
+
+    html = gated_client.get(PROFILE_URL).content.decode()
+
+    assert "Shown in profile" in html
+    assert f'action="/quiz/results/{adopted.pk}/adopt/"' not in html
+    assert f'action="/quiz/results/{other.pk}/adopt/"' in html
