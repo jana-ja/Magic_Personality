@@ -464,19 +464,22 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.3 · Tabs und Freunde-Tab
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P11, FR-S5, FR-S6, D-73
 **Fertig, wenn:**
-- [ ] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/`, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
+- [ ] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/` = Pinnwand als Standardtab, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
 - [ ] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
 - [ ] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
 - [ ] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
+- [ ] Die Tab-Leiste enthält von Anfang an **Pinnwand** (Standard) und **Friends**; die Pinnwand zeigt bis zu ihrer Umsetzung einen „Coming soon"-Platzhalter (Task 4.7).
 - [ ] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
 
 #### 4.4 · Private Tabs: Testhistorie und Einstellungen
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P6, FR-P7, FR-P11, FR-U8, D-19, D-73
 **Fertig, wenn:**
 - [ ] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
-- [ ] Beide URLs antworten für jede andere Person mit **404** (nicht 403, damit nichts über Existenz verraten wird) und sind für Gäste hinter dem Login.
+- [ ] Beide URLs sind für Gäste hinter dem Login. Ruft eine **andere** Person sie auf (`/u/person_b/history/` als nicht person_b), **leitet die Seite auf `/u/person_b/` weiter** (302, der Ausgang hängt vom Betrachter ab) — kein 404 und kein 403. Existiert die Person nicht, bleibt es bei 404.
 - [ ] Die Tabs erscheinen nur für die eigene Person.
-- [ ] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar (ausdrücklich für die neuen URLs).
+- [ ] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar; die Weiterleitung enthält keinen Inhalt der privaten Seite (ausdrücklich für die neuen URLs).
+
+> Weiterleiten statt 404: Die Adresse verrät nichts, was nicht ohnehin öffentlich wäre — das Profil ist für jede angemeldete Person sichtbar, und die privaten Tabs gibt es bei jedem Profil gleichermaßen. Dieselbe Regel gilt für die Bearbeiten-Adressen (4.5, 4.6) und ist als Hilfsfunktion/Decorator für alle „nur eigene Person"-Seiten gedacht, damit sie nicht je Seite neu entschieden wird.
 
 #### 4.5 · Nickname und Bio einzeln bearbeiten
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P12, FR-P2, D-72, D-73
@@ -486,7 +489,8 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 - [ ] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
 - [ ] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
 - [ ] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
-- [ ] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben.
+- [ ] Bearbeiten-Adressen einer anderen Person (GET und POST) leiten auf deren Profil weiter und ändern nichts (Regel aus 4.4).
+- [ ] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben; ein POST auf die Bearbeiten-Adresse einer anderen Person verändert nichts.
 
 #### 4.6 · Farben bearbeiten: Testergebnis übernehmen oder am Fünfeck wählen
 **Abhängig von:** 4.5, 1.9 · **Anforderungen:** FR-P13, FR-P4, FR-P5, FR-P8, D-56, D-72
@@ -498,14 +502,15 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 - [ ] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
 - [ ] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
 
-#### 4.7 · Überblick: Hauptbereich und Sidebar
+#### 4.7 · Pinnwand-Platzhalter und Sidebar
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P14, D-70, NFR-6
 **Fertig, wenn:**
 - [ ] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
 - [ ] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
-- [ ] Hauptbereich „Activity" mit Leerzustand als Einladung (fremd: „No posts yet", eigen: „Write your first post" ohne Aktion, solange es keine Beiträge gibt — kein toter Link).
+- [ ] Hauptbereich ist der Tab **Pinnwand** mit einem „Coming soon"-Platzhalter (fremd und eigen; kurzer Satz, was dort einmal steht: Favoriten, eigene oder fremde Beiträge und Kommentare). Keine Knöpfe oder Links ohne Ziel.
+- [ ] Die Idee ist vermerkt: PRD §8.2 (Pinnwand), D-73 und der Abschnitt „Nicht in dieser Roadmap" halten fest, dass Pinnwand-Einträge auf Beiträge/Kommentare beliebiger Autorschaft verweisen.
 - [ ] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
-- [ ] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei.
+- [ ] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei; die Pinnwand zeigt den Platzhalter.
 
 #### 4.8 · Autorenkarte als Komponente
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P15, D-57
@@ -529,7 +534,7 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 **Abhängig von:** 4.9 · **Anforderungen:** PRD §11 (v1.2)
 **Fertig, wenn:**
 - [ ] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
-- [ ] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private Tabs für andere 404, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
+- [ ] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private und Bearbeiten-Adressen leiten andere auf das öffentliche Profil weiter, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
 - [ ] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
 - [ ] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
 - [ ] Backup-Wiederherstellung erneut geprobt.
@@ -541,7 +546,7 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 
 ## Nicht in dieser Roadmap
 
-Bewusst außerhalb, siehe PRD §8: Blogbeiträge und Kommentare zu Farben samt der Tabs dafür (die Profilseite aus M4 hält den Platz frei), fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
+Bewusst außerhalb, siehe PRD §8: Blogbeiträge und Kommentare zu Farben samt der Tabs dafür sowie der Inhalt der **Pinnwand** (Favoriten: eigene oder fremde Beiträge und Kommentare; Tab und Platzhalter kommen mit Task 4.3/4.7, die Profilseite hält den Platz frei), fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
 
 Der **Cloud-Umzug** ist als eigener Lern-Task nach v1.0 vorgesehen und in `ARCHITECTURE.md` §12 vorbereitet.
 

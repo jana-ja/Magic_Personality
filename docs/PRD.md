@@ -188,10 +188,10 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 
 - **FR-P9** Eigenes und fremdes Profil sind **dieselbe Seite** unter `/u/<nickname>/`. Nur für die eigene Person kommen Bearbeiten-Knöpfe und private Bereiche hinzu; `/accounts/profile/` führt dorthin weiter.
 - **FR-P10** Der **Kopfbereich** zeigt ein Banner aus den Profilfarben (gleichbreite Streifen in WUBRG-Reihenfolge wie beim Profilbild, neutral ohne Farben), Profilbild, Nickname, Kombinationsname und die passende Freundschaftsaktion.
-- **FR-P11** Unterhalb des Kopfes stehen **Tabs** als echte Links: Überblick und Freunde für alle, Testhistorie und Einstellungen nur für die eigene Person. Tabs für Beiträge und Kommentare kommen erst mit diesen Inhalten.
+- **FR-P11** Unterhalb des Kopfes stehen **Tabs** als echte Links: **Pinnwand** (Standardtab) und Freunde für alle, Testhistorie und Einstellungen nur für die eigene Person. Tabs für Beiträge und Kommentare kommen erst mit diesen Inhalten; die Pinnwand ist von Anfang an in der Leiste und zeigt bis dahin einen „Coming soon"-Platzhalter. Die privaten Adressen (Testhistorie, Einstellungen, Bearbeiten) führen für jede andere Person auf das Profil der Person aus der Adresse weiter.
 - **FR-P12** Nickname, Bio und Farben sind **einzeln bearbeitbar**; jeder Bereich hat ein eigenes Formular und speichert ausschließlich seine eigenen Daten. Unveränderte Angaben werden nie überschrieben.
 - **FR-P13** Farben werden entweder **aus einem Testergebnis der Historie übernommen** oder **manuell am Fünfeck** gewählt (1 bis 5); ohne JavaScript bleiben Kontrollkästchen.
-- **FR-P14** Die **Sidebar** zeigt Bio, Farben samt Punkten des verknüpften Testergebnisses (D-70) und eine Freundesvorschau. Der Hauptbereich zeigt Aktivität und ist bis zu den ersten Beiträgen ein freundlicher Leerzustand.
+- **FR-P14** Die **Sidebar** zeigt Bio, Farben samt Punkten des verknüpften Testergebnisses (D-70) und eine Freundesvorschau. Der Hauptbereich ist die **Pinnwand** (siehe §8.2), bis zu ihrer Umsetzung ein „Coming soon"-Platzhalter.
 - **FR-P15** Eine **Autorenkarte** (Profilbild, Nickname, Kombination) ist eine wiederverwendbare Komponente; sie steht in Freundeslisten und Suchergebnissen und später neben Beiträgen und Kommentaren.
 - **FR-P16** Die Seite hat ein eigenständiges **Mobil-Layout** (NFR-3): Sidebar unter dem Hauptbereich, Tabs umbrechen, kein horizontales Scrollen bei 375 px.
 
@@ -303,6 +303,7 @@ Vorbereitet ist:
 Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt · nur Name und Farbeinschätzung, keine persönlichen Inhalte · Übernahme oder Löschung durch die betroffene Person · Umgang mit Duplikaten · Darstellung abweichender Einschätzungen.
 
 ### 8.2 Weitere Ideen
+- **Pinnwand** im Profil: Nutzende zeigen dort ihre **Favoriten** — eigene oder fremde Beiträge und Kommentare. Welche Arten von Beiträgen und Kommentaren es gibt, ist noch offen und wird vor dem Bau festgelegt; der Tab ist ab v1.2 vorhanden (FR-P11). Vorzumerken: Ein Pinnwand-Eintrag verweist auf einen Beitrag oder Kommentar **beliebiger Autorschaft**, er kopiert nichts; wird das Original gelöscht, verschwindet der Eintrag. Ob fremde Autor:innen der Aufnahme zustimmen müssen, ist offen.
 - Nutzende ergänzen fehlende Inhalte zu 3er-, 4er- und 5er-Kombinationen.
 - Rechtekonzept: kuratierte „Facts" gegenüber unbestätigten Nutzereindrücken.
 - Auswertungen des sozialen Graphen (Farbverteilung im direkten und im erweiterten Umkreis).
@@ -357,7 +358,8 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 - Über Freundeslisten ist der Graph navigierbar.
 
 **v1.2**
-- Eigenes und fremdes Profil sind dieselbe Seite; private Bereiche (Testhistorie, Einstellungen) sind für andere auf keinem Pfad erreichbar.
+- Eigenes und fremdes Profil sind dieselbe Seite; private Bereiche (Testhistorie, Einstellungen) sind für andere auf keinem Pfad erreichbar, ihre Adressen leiten auf das öffentliche Profil weiter.
+- Die Pinnwand ist Standardtab und zeigt einen „Coming soon"-Platzhalter; private Adressen führen für andere Personen auf das Profil der Adresse weiter.
 - Nickname, Bio und Farben lassen sich einzeln bearbeiten; das Speichern eines Bereichs verändert nie einen anderen, insbesondere nie die Testverknüpfung der Farben.
 - Farben sind aus einem Testergebnis der Historie oder manuell am Fünfeck wählbar, mit und ohne JavaScript.
 - Banner, Tabs und Sidebar funktionieren mit Tastatur und Screenreader und bei 375 px ohne horizontales Scrollen.
