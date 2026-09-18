@@ -165,6 +165,17 @@ Bewusst **kein** Skript dafür — eine Wiederherstellung ist ein seltener, folg
 
 **Erneut geprobt** (2026-09-17, Task 3.6/Release-Durchsicht v1.0, derselbe Ablauf, diesmal ausdrücklich gegen den seit M3 gewachsenen Schema-Stand): `db` einmal mit allen drei Compose-Dateien zusammen hochgefahren (`-f compose.yaml -f compose.override.yaml -f compose.prod.yaml up -d db`, damit sowohl der Host-Port aus `compose.override.yaml` als auch das `postgres_backups`-Volume aus `compose.prod.yaml` gleichzeitig da sind — mit nur `-f compose.yaml -f compose.prod.yaml` allein, wie im Server-Befehl oben, verschwindet lokal der Host-Port, weil `compose.override.yaml` dann nicht mehr automatisch eingelesen wird). `scripts/backup.sh` gelaufen, in eine frische `restore_check`-Datenbank eingespielt (Schritt 2), Zeilenzahlen von `accounts_profile`/`quiz_testresult`/`colors_colorcombination` sowie zusätzlich `social_friendship` (Task 3.4, seit dem letzten Probelauf neu) gegen die Ursprungsdatenbank verglichen — identisch, `\d social_friendship` zeigte alle drei Constraints aus `apps.social.models.Friendship.Meta` (D-67) korrekt wiederhergestellt. Wegwerf-Datenbank danach gelöscht.
 
+## Admin-Zugang (D-71)
+
+Das Django-Admin liegt unter `/admin/` (hinter der Zugangssperre, also erst den Invite-Code eingeben). Hinein kommt nur ein Account mit `is_staff`. Einen vorhandenen Account zum Superuser machen — bevorzugt statt `createsuperuser`, weil das einen Account **ohne Profil** anlegt (der Nickname im Kopfbereich bliebe leer, `/accounts/profile/` gäbe 404):
+
+```bash
+docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c \
+  "from apps.accounts.models import User; User.objects.filter(email='deine@mail.example').update(is_staff=True, is_superuser=True)"
+```
+
+Danach in `/admin/` mit den normalen Zugangsdaten anmelden. Weitere Admins lassen sich dort selbst über „Users" ernennen.
+
 ## Fehlerbehebung
 
 **Seite lädt, Fünfeck und Navigation sind da, aber jede Auswahl zeigt leere Inhalte:** `seed_content` wurde vergessen (siehe "Erstes Deployment" oben) — die Migrationen legen nur leere Zeilen an, den eigentlichen Content bringt erst `docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en`. Gegenprobe: `docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c "from apps.colors.models import ColorCombination; print(ColorCombination.objects.filter(name='').count())"` — `0` heißt durchgängig befüllt, jede andere Zahl zeigt fehlenden Content.
