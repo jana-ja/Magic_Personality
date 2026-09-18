@@ -425,3 +425,13 @@ Alle Modelle aus `accounts`, `colors`, `quiz`, `social` und `core` sind im Admin
 **Status:** Angenommen · 2026-09-19
 `ProfileForm.save()` vergleicht die abgeschickten Farben mit der bestehenden Zuordnung (kanonischer Code, Reihenfolge egal) und lässt sie bei Übereinstimmung unangetastet. Nur eine echte Änderung setzt `source = SELF_MANUAL` und leert die Testreferenz (FR-P5).
 **Warum:** Das Formular schickt immer alle Felder mit. Vorher setzte jedes Speichern — auch bei geänderter Bio — die Farben auf manuell und löschte die Verknüpfung zum Testergebnis; die Punkte in fremden Profilen (D-70) verschwanden unbemerkt. Das ist die Mindestlösung; eigenständig bearbeitbare Bereiche folgen mit der Profil-Überarbeitung (v1.2).
+
+### D-73 · Profil v1.2: eine Seite, Banner aus Profilfarben, Tabs als Links, Bereiche einzeln bearbeitbar
+**Status:** Angenommen · 2026-09-19
+Grundlage für M4 (`docs/ROADMAP.md`, PRD §5.5.1). Gewählt aus drei Skizzen (Steckbrief-Spalte mit Pinnwand, Kopfbereich mit Tabs und Sidebar, Steckbrief-Tabelle mit Gästebuch) sowie einem MySpace-Layout mit farbigen Kopfleisten: Kopfbereich mit Tabs plus Sidebar.
+- **Eine Seite für eigen und fremd** unter `/u/<nickname>/`; die eigene Person bekommt Bearbeiten-Knöpfe und private Tabs (Testhistorie, Einstellungen), andere sehen dafür 404. `/accounts/profile/` leitet weiter.
+- **Banner** aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge, wie das Profilbild; neutral ohne Farben. Text steht nie auf den Bannerfarben, damit der Kontrast nicht von der Farbwahl abhängt (NFR-6). Offen gelassene Frage der Skizzen (Banner bei mehr als zwei Farben) damit beantwortet.
+- **Tabs sind echte Links** auf eigene URLs mit `aria-current`, kein ARIA-Tabs-Widget und kein JavaScript-Zwang (D-24). Tabs für Beiträge und Kommentare entstehen erst mit den Inhalten, es gibt keine Tabs ohne Ziel.
+- **Bereiche einzeln bearbeitbar**, jeder mit eigenem Formular, das nur seine Daten speichert (Ursache des Fehlers, den D-72 nur abmildert). Die Farbwahl erhält zwei Wege: Testergebnis aus der Historie oder manuell am Fünfeck; das ersetzt D-56 (Task 4.6).
+- **Autorenkarte** (Profilbild, Nickname, Kombination) als wiederverwendbare Komponente, damit Farben später überall als Identität erscheinen, wo jemand etwas schreibt.
+**Warum:** Blogbeiträge und Kommentare zu Farben sollen später den meisten Raum bekommen, Bio, Farben und Freunde sind Basisinfos in einer Sidebar. Kopfbereich mit Tabs skaliert dafür am besten und liegt am nächsten am Muster heutiger Plattformen; der MySpace-Look wurde erwogen und verworfen, seine Bausteine (Top-Freunde, Farbthematik) stecken in Autorenkarte und Banner.

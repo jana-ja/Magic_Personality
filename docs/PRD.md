@@ -57,6 +57,12 @@ Accounts, Personality Test, eigenes Profil mit Testhistorie. „Eigene Farben se
 ### v1.0 — Social
 Fremde Profile ansehen, Suche nach Nickname und Farbkombination, Freundesliste. Mit v1.0 gilt das Produkt als fertig.
 
+### v1.1 — Nachbesserungen aus der Nutzung
+Fehlerbehebungen und kleine Ergänzungen nach v1.0 (Such-Link in der Navigation, Punkte des übernommenen Testergebnisses im fremden Profil, Übernahme aus der Historie, Django-Admin, Sprache nur Englisch, kein Überschreiben unveränderter Farben beim Speichern).
+
+### v1.2 — Profil-Überarbeitung
+Ein Profil für eigene und fremde Ansicht, Kopfbereich mit Farbbanner, Tabs, Sidebar mit Kurzinfos, einzeln bearbeitbare Bereiche und eine wiederverwendbare Autorenkarte. Bereitet Blogbeiträge und Kommentare zu Farben vor (§8.2), die später den meisten Platz auf der Seite bekommen.
+
 ---
 
 ## 5. Funktionale Anforderungen
@@ -177,6 +183,17 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 - **FR-P6** Die **Testhistorie ist privat** und nur im eigenen Profil sichtbar. Jeder Eintrag zeigt Datum, Punkte pro Farbe und die resultierende Kombination.
 - **FR-P7** Einzelne Historieneinträge können gelöscht werden.
 - **FR-P8** Wird der Eintrag gelöscht, auf den die Profilfarben verweisen, bleiben die Farben bestehen; die Referenz wird geleert (FR-P5).
+
+### 5.5.1 Profil-Überarbeitung (v1.2)
+
+- **FR-P9** Eigenes und fremdes Profil sind **dieselbe Seite** unter `/u/<nickname>/`. Nur für die eigene Person kommen Bearbeiten-Knöpfe und private Bereiche hinzu; `/accounts/profile/` führt dorthin weiter.
+- **FR-P10** Der **Kopfbereich** zeigt ein Banner aus den Profilfarben (gleichbreite Streifen in WUBRG-Reihenfolge wie beim Profilbild, neutral ohne Farben), Profilbild, Nickname, Kombinationsname und die passende Freundschaftsaktion.
+- **FR-P11** Unterhalb des Kopfes stehen **Tabs** als echte Links: Überblick und Freunde für alle, Testhistorie und Einstellungen nur für die eigene Person. Tabs für Beiträge und Kommentare kommen erst mit diesen Inhalten.
+- **FR-P12** Nickname, Bio und Farben sind **einzeln bearbeitbar**; jeder Bereich hat ein eigenes Formular und speichert ausschließlich seine eigenen Daten. Unveränderte Angaben werden nie überschrieben.
+- **FR-P13** Farben werden entweder **aus einem Testergebnis der Historie übernommen** oder **manuell am Fünfeck** gewählt (1 bis 5); ohne JavaScript bleiben Kontrollkästchen.
+- **FR-P14** Die **Sidebar** zeigt Bio, Farben samt Punkten des verknüpften Testergebnisses (D-70) und eine Freundesvorschau. Der Hauptbereich zeigt Aktivität und ist bis zu den ersten Beiträgen ein freundlicher Leerzustand.
+- **FR-P15** Eine **Autorenkarte** (Profilbild, Nickname, Kombination) ist eine wiederverwendbare Komponente; sie steht in Freundeslisten und Suchergebnissen und später neben Beiträgen und Kommentaren.
+- **FR-P16** Die Seite hat ein eigenständiges **Mobil-Layout** (NFR-3): Sidebar unter dem Hauptbereich, Tabs umbrechen, kein horizontales Scrollen bei 375 px.
 
 ### 5.6 Social (v1.0)
 
@@ -338,3 +355,10 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 - Beide Suchen liefern korrekte Ergebnisse, insbesondere die Teilmengen-Logik aus FR-S3.
 - Freundschaftsanfragen lassen sich senden, annehmen, ablehnen und auflösen.
 - Über Freundeslisten ist der Graph navigierbar.
+
+**v1.2**
+- Eigenes und fremdes Profil sind dieselbe Seite; private Bereiche (Testhistorie, Einstellungen) sind für andere auf keinem Pfad erreichbar.
+- Nickname, Bio und Farben lassen sich einzeln bearbeiten; das Speichern eines Bereichs verändert nie einen anderen, insbesondere nie die Testverknüpfung der Farben.
+- Farben sind aus einem Testergebnis der Historie oder manuell am Fünfeck wählbar, mit und ohne JavaScript.
+- Banner, Tabs und Sidebar funktionieren mit Tastatur und Screenreader und bei 375 px ohne horizontales Scrollen.
+- Die Autorenkarte erscheint in Freundeslisten und Suchergebnissen.

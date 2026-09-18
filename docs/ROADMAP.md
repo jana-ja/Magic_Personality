@@ -437,9 +437,111 @@ Kein Nutzerwert, aber alles Folgende hängt daran. Bewusst klein gehalten.
 
 ---
 
+# M4 · v1.2 — Profil-Überarbeitung
+
+Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzigen „Speichern"-Knopf für alle Angaben fehleranfällig ist (unveränderte Farben wurden überschrieben, siehe D-72), und dass der Platz auf der Seite später Blogbeiträgen und Kommentaren zu Farben gehören soll (PRD §8.2). Gestaltung und Begründung: D-73. Anforderungen: PRD §5.5.1 (FR-P9 bis FR-P16). Jeder Task lässt die Anwendung lauffähig; die Reihenfolge ist bindend, wo Abhängigkeiten genannt sind.
+
+#### 4.1 · Eine Profilseite für eigene und fremde Ansicht
+**Abhängig von:** 3.5 · **Anforderungen:** FR-P9, D-73
+**Fertig, wenn:**
+- [ ] `/u/<nickname>/` zeigt die eigene Person genauso wie fremde Profile; der bisherige Sonderfall-Redirect in `profile_detail` entfällt.
+- [ ] `/accounts/profile/` und alle Redirects darauf (Login, Speichern, Löschen) führen auf `/u/<eigener-nickname>/`; der Link im Kopfbereich ebenso.
+- [ ] Die Seite kennt den Betrachter (`is_owner`) und blendet Bearbeiten-Knöpfe, Anfragen und private Bereiche nur für die eigene Person ein.
+- [ ] Bestehende Funktionen bleiben erhalten (Bio, Farben mit Punkten, Freunde, Freundschaftsaktionen, Historie, Anfragen) — zunächst im heutigen Aussehen, noch ohne Redesign.
+- [ ] Test: eigenes Profil unter der neuen URL zeigt Bearbeiten-Zugänge, fremdes nicht; alte URL leitet weiter.
+
+> Ein Profil ohne Nickname-Änderung im Weg: Ändert jemand den Nickname, führen alle Weiterleitungen auf die neue URL. Ein `createsuperuser`-Account ohne Profil ergibt weiterhin eine klare 404.
+
+#### 4.2 · Kopfbereich mit Farbbanner und Freundschaftsaktion
+**Abhängig von:** 4.1 · **Anforderungen:** FR-P10, NFR-5, NFR-6, D-73
+**Fertig, wenn:**
+- [ ] Banner aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge (1 bis 5); ohne Farben neutral. Umsetzung wie das Profilbild (`border-radius`/Streifen, keine SVG-`clipPath`, D-57), Farben nur über CSS-Eigenschaft je Streifen.
+- [ ] Profilbild überlappt das Banner; Nickname, Kombinationsname (verlinkt auf `/colors/<code>/`) und Bio-Zeile stehen auf der Seitenfläche, nie auf den Bannerfarben (Kontrast unabhängig von der Farbwahl).
+- [ ] Die Freundschaftsaktion (Anfrage senden, zurückziehen, annehmen/ablehnen, Freund entfernen) sitzt im Kopf und nutzt unverändert die POST-Endpunkte aus Task 3.4.
+- [ ] Beim eigenen Profil steht statt der Aktion ein Hinweis „you".
+- [ ] Test: alle vier Beziehungszustände zeigen die richtige Aktion; ein Profil ohne Farben rendert das neutrale Banner.
+
+#### 4.3 · Tabs und Freunde-Tab
+**Abhängig von:** 4.2 · **Anforderungen:** FR-P11, FR-S5, FR-S6, D-73
+**Fertig, wenn:**
+- [ ] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/`, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
+- [ ] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
+- [ ] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
+- [ ] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
+- [ ] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
+
+#### 4.4 · Private Tabs: Testhistorie und Einstellungen
+**Abhängig von:** 4.3 · **Anforderungen:** FR-P6, FR-P7, FR-P11, FR-U8, D-19, D-73
+**Fertig, wenn:**
+- [ ] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
+- [ ] Beide URLs antworten für jede andere Person mit **404** (nicht 403, damit nichts über Existenz verraten wird) und sind für Gäste hinter dem Login.
+- [ ] Die Tabs erscheinen nur für die eigene Person.
+- [ ] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar (ausdrücklich für die neuen URLs).
+
+#### 4.5 · Nickname und Bio einzeln bearbeiten
+**Abhängig von:** 4.1 · **Anforderungen:** FR-P12, FR-P2, D-72, D-73
+**Fertig, wenn:**
+- [ ] Nickname und Bio haben je ein eigenes Formular und eigenen POST-Endpunkt; jeder speichert ausschließlich sein Feld.
+- [ ] Ohne JavaScript öffnet „Edit" eine eigene Seite mit nur diesem Formular; mit HTMX tauscht sich der Bereich an Ort und Stelle aus (D-24: Progressive Enhancement, der Zustand steht in der URL).
+- [ ] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
+- [ ] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
+- [ ] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
+- [ ] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben.
+
+#### 4.6 · Farben bearbeiten: Testergebnis übernehmen oder am Fünfeck wählen
+**Abhängig von:** 4.5, 1.9 · **Anforderungen:** FR-P13, FR-P4, FR-P5, FR-P8, D-56, D-72
+**Fertig, wenn:**
+- [ ] Eigenes Formular mit zwei Wegen: ein Testergebnis aus der Historie wählen (Radio je Eintrag mit Datum, Punkten, Kombination) oder manuell 1 bis 5 Farben wählen.
+- [ ] Testergebnis wählen setzt `source = SELF_TEST` und die Testreferenz (wie `adopt_result`); manuelle Wahl setzt `SELF_MANUAL` und leert die Referenz **nur bei tatsächlicher Änderung** (D-72).
+- [ ] Manuelle Wahl am Fünfeck mit derselben Geometrie/Darstellung wie in `apps.colors` und der Suche (D-66). Ohne JavaScript bleiben fünf Kontrollkästchen, mit JavaScript schaltet das Fünfeck die Kästchen; eigenes Skript klein, kein Framework (ARCHITECTURE.md §4.3).
+- [ ] Ohne Farben speichern entfernt die Zuordnung (wie bisher).
+- [ ] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
+- [ ] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
+
+#### 4.7 · Überblick: Hauptbereich und Sidebar
+**Abhängig von:** 4.3 · **Anforderungen:** FR-P14, D-70, NFR-6
+**Fertig, wenn:**
+- [ ] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
+- [ ] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
+- [ ] Hauptbereich „Activity" mit Leerzustand als Einladung (fremd: „No posts yet", eigen: „Write your first post" ohne Aktion, solange es keine Beiträge gibt — kein toter Link).
+- [ ] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
+- [ ] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei.
+
+#### 4.8 · Autorenkarte als Komponente
+**Abhängig von:** 4.2 · **Anforderungen:** FR-P15, D-57
+**Fertig, wenn:**
+- [ ] `templates/social/_author_card.html`: Profilbild (bestehender `_avatar.html`), Nickname als Link, Kombinationsname als Chip; Größenvarianten klein und mittel.
+- [ ] Freundesliste (Tab und Vorschau) und beide Suchen nutzen die Komponente statt eigener Listen-Markup.
+- [ ] Mehrere Karten auf einer Seite erzeugen kein doppeltes `id` (D-57).
+- [ ] Die Komponente ist so gebaut, dass Beiträge und Kommentare sie später ohne Änderung einbinden (nur Profil als Kontext, keine Sonderfälle).
+- [ ] Test: Karte rendert mit und ohne Farben; Suchergebnisse und Freundesliste zeigen sie.
+
+#### 4.9 · Mobiles Layout und Barrierefreiheit
+**Abhängig von:** 4.7, 4.8 · **Anforderungen:** FR-P16, NFR-3, NFR-5, NFR-6
+**Fertig, wenn:**
+- [ ] Bei 375 px: Banner und Kopf gestapelt, Tabs umbrechen, Sidebar-Karten unter dem Hauptbereich, kein horizontales Scrollen, Trefferflächen ausreichend groß.
+- [ ] Tastatur: alle Tabs, Edit-Links und Freundschaftsaktionen erreichbar und sichtbar fokussiert; Bearbeiten-Bereiche setzen den Fokus sinnvoll.
+- [ ] Bereichsüberschriften und Landmarks für Screenreader (`aria-labelledby` an den Karten); Tabs als Navigation mit `aria-current`, nicht als ARIA-Tabs-Widget.
+- [ ] Nach HTMX-Austausch eines Bereichs wird die Änderung angesagt (Live-Region, wie Task 1.9).
+- [ ] Eigenes Skript für Fünfeck-Formularfeld und Bereichsaustausch bleibt klein und ohne Framework.
+
+#### 4.10 · Release-Durchsicht v1.2
+**Abhängig von:** 4.9 · **Anforderungen:** PRD §11 (v1.2)
+**Fertig, wenn:**
+- [ ] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
+- [ ] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private Tabs für andere 404, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
+- [ ] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
+- [ ] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
+- [ ] Backup-Wiederherstellung erneut geprobt.
+- [ ] `DECISIONS.md` ist vollständig, D-56 als ersetzt markiert.
+
+**Meilenstein v1.2 abgeschlossen** — das Profil ist bereit für Blogbeiträge und Kommentare.
+
+---
+
 ## Nicht in dieser Roadmap
 
-Bewusst außerhalb, siehe PRD §8: fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
+Bewusst außerhalb, siehe PRD §8: Blogbeiträge und Kommentare zu Farben samt der Tabs dafür (die Profilseite aus M4 hält den Platz frei), fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
 
 Der **Cloud-Umzug** ist als eigener Lern-Task nach v1.0 vorgesehen und in `ARCHITECTURE.md` §12 vorbereitet.
 
@@ -457,6 +559,13 @@ Der **Cloud-Umzug** ist als eigener Lern-Task nach v1.0 vorgesehen und in `ARCHI
                  2.6 → 2.7 → 2.8 → 2.9
                                     ↓
                  3.1 → 3.4 → 3.5                                  [v1.0]
+                                    ↓
+                 4.1 → 4.2 → 4.3 → 4.4                            [v1.2]
+                  │     │     └→ 4.7 ─┐
+                  │     └→ 4.8 ───────┴→ 4.9 → 4.10
+                  └→ 4.5 → 4.6 ─────────────────↗
 ```
 
-**Die drei Tasks mit dem größten Risiko:** 1.4 (Content-Erfassung, größter Einzelposten), 2.7 (Fragenqualität entscheidet über das Produktziel P2), 1.9 plus 1.10 (Fünfeck-Bedienung auf allen Geräten).
+**Die drei Tasks mit dem größten Risiko in v0.1 bis v1.0:** 1.4 (Content-Erfassung, größter Einzelposten), 2.7 (Fragenqualität entscheidet über das Produktziel P2), 1.9 plus 1.10 (Fünfeck-Bedienung auf allen Geräten).
+
+**Größtes Risiko in v1.2:** 4.6 (Fünfeck als Formularfeld, zwei Wege der Farbwahl, Erhalt der Testverknüpfung) und 4.1 (URL-Umbau: alle Redirects und Links auf die neue Profil-URL, ohne Bestandsdaten anzufassen).
