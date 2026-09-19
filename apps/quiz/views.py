@@ -11,9 +11,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from apps.accounts.models import ColorAssignment, Profile
+from apps.accounts.color_assignments import adopt_test_result
+from apps.accounts.models import Profile
 from apps.colors.content import LOCALE
-from apps.colors.models import ColorCombination
 
 from . import anonymous_result
 from .evaluation import evaluate_combination
@@ -146,23 +146,8 @@ def adopt_result(request, pk):
     wenn die Person das ausdrücklich anstößt.
     """
     test_result = get_object_or_404(TestResult, pk=pk, profile__user=request.user)
-    # Nicht evaluate_combination(test_result.scores) neu berechnen: die
-    # Auswertungsregel oder `result_threshold` könnten sich seither
-    # geändert haben — result_colors ist das Ergebnis, das zum
-    # Testzeitpunkt tatsächlich angezeigt wurde (FR-T14 übernimmt
-    # *dieses* Ergebnis, kein neu berechnetes).
-    combination = ColorCombination.objects.get(code=test_result.result_colors, locale=LOCALE)
-
-    ColorAssignment.objects.update_or_create(
-        profile=test_result.profile,
-        defaults={
-            "author_profile": test_result.profile,
-            "combination": combination,
-            "source": ColorAssignment.Source.SELF_TEST,
-            "test_result": test_result,
-        },
-    )
-    return redirect("profile")
+    adopt_test_result(test_result)
+    return redirect(test_result.profile)
 
 
 @login_required

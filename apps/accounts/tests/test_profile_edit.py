@@ -1,5 +1,7 @@
 """
-Tests für „Profil ansehen und bearbeiten" (Task 2.4, FR-P1, FR-P4).
+Tests für das Speichern der Farben im Profil (Task 2.4, FR-P1, FR-P4, D-72; seit Task 4.6
+über /u/<nickname>/edit/colors/ — Nickname und Bio siehe test_profile_sections.py, die
+Wahl zwischen Testergebnis und Fünfeck siehe apps/social/tests/test_profile_colors.py).
 """
 
 import pytest
@@ -10,7 +12,8 @@ from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
 
-PROFILE_URL = "/accounts/profile/"
+PROFILE_URL = "/u/alex/edit/colors/"  # Farben speichern (POST)
+PROFILE_PAGE = "/u/alex/"
 
 
 @pytest.fixture
@@ -21,59 +24,16 @@ def user():
 
 
 def _valid_data(**overrides):
-    data = {"nickname": "alex", "bio": "Hi there.", "colors": []}
+    data = {"colors": []}
     data.update(overrides)
     return data
 
 
 def test_profile_page_requires_login(gated_client):
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     assert response.status_code == 302
     assert response.url.startswith("/accounts/login/")
-
-
-def test_profile_page_shows_current_values(gated_client, user):
-    gated_client.force_login(user)
-
-    response = gated_client.get(PROFILE_URL)
-
-    assert response.status_code == 200
-    html = response.content.decode()
-    assert 'value="alex"' in html
-    assert "Hi there." in html
-
-
-def test_updating_nickname_and_bio(gated_client, user):
-    gated_client.force_login(user)
-
-    gated_client.post(PROFILE_URL, _valid_data(nickname="alexandra", bio="New bio."))
-
-    user.profile.refresh_from_db()
-    assert user.profile.nickname == "alexandra"
-    assert user.profile.bio == "New bio."
-
-
-def test_nickname_collision_is_reported(gated_client, user):
-    Profile.objects.create(nickname="Taken")
-    gated_client.force_login(user)
-
-    response = gated_client.post(PROFILE_URL, _valid_data(nickname="taken"))
-
-    assert response.status_code == 200
-    assert "already taken" in response.content.decode()
-    user.profile.refresh_from_db()
-    assert user.profile.nickname == "alex"
-
-
-def test_keeping_the_own_nickname_is_not_a_collision(gated_client, user):
-    gated_client.force_login(user)
-
-    response = gated_client.post(PROFILE_URL, _valid_data(nickname="alex", bio="Updated."))
-
-    assert response.status_code == 302
-    user.profile.refresh_from_db()
-    assert user.profile.bio == "Updated."
 
 
 def test_choosing_colors_creates_a_manual_color_assignment(gated_client, user):
@@ -146,19 +106,17 @@ def _adopted_assignment(user, code="WU"):
     return result, assignment
 
 
-def test_saving_only_the_bio_keeps_the_test_link(gated_client, user):
-    """Regression: das Formular schickt die unveränderten Farben mit; das
-    darf die Testreferenz nicht überschreiben (FR-P5)."""
+def test_saving_the_unchanged_colors_keeps_the_test_link(gated_client, user):
+    """Regression (D-72): das Formular schickt die unveränderten Farben mit;
+    das darf die Testreferenz nicht überschreiben (FR-P5)."""
     result, _ = _adopted_assignment(user)
     gated_client.force_login(user)
 
-    gated_client.post(PROFILE_URL, _valid_data(bio="Changed bio.", colors=["W", "U"]))
+    gated_client.post(PROFILE_URL, _valid_data(colors=["W", "U"]))
 
     assignment = ColorAssignment.objects.get(profile=user.profile)
     assert assignment.source == ColorAssignment.Source.SELF_TEST
     assert assignment.test_result == result
-    user.profile.refresh_from_db()
-    assert user.profile.bio == "Changed bio."
 
 
 def test_saving_the_same_colors_in_another_order_keeps_the_test_link(gated_client, user):
@@ -182,9 +140,9 @@ def test_actually_changing_the_colors_still_drops_the_test_link(gated_client, us
     assert assignment.test_result is None
 
 
-def test_saving_without_colors_and_without_assignment_creates_nothing(gated_client, user):
+def test_saving_no_colors_without_an_assignment_creates_nothing(gated_client, user):
     gated_client.force_login(user)
 
-    gated_client.post(PROFILE_URL, _valid_data(bio="Only a bio."))
+    gated_client.post(PROFILE_URL, _valid_data())
 
     assert not ColorAssignment.objects.filter(profile=user.profile).exists()

@@ -29,7 +29,15 @@ def test_unknown_path_without_cookie_redirects_to_the_gate(client):
 
 @pytest.mark.parametrize(
     "path",
-    ["/u/someone/", "/search/", "/search/colors/", "/friends/1/accept/"],
+    [
+        "/u/someone/",
+        "/u/someone/friends/",
+        "/u/someone/history/",
+        "/u/someone/settings/",
+        "/search/",
+        "/search/colors/",
+        "/friends/1/accept/",
+    ],
 )
 def test_social_urls_without_cookie_redirect_to_the_gate(client, path):
     """

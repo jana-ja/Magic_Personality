@@ -15,6 +15,7 @@ from django.contrib.auth.base_user import AbstractBaseUser, BaseUserManager
 from django.contrib.auth.models import PermissionsMixin
 from django.db import models
 from django.db.models.functions import Lower
+from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -105,6 +106,11 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.nickname
+
+    def get_absolute_url(self):
+        """Die Profilseite (Task 4.1, FR-P9): dieselbe Adresse für die
+        eigene Person und alle anderen."""
+        return reverse("social:profile_detail", kwargs={"nickname": self.nickname})
 
 
 class ColorAssignment(models.Model):

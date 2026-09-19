@@ -6,6 +6,8 @@ Der wichtigste Fall steht wörtlich in der Definition of Done in
 docs/ROADMAP.md: fremde Historie ist über keinen Pfad erreichbar.
 """
 
+import re
+
 import pytest
 from django.utils import timezone
 
@@ -15,7 +17,19 @@ from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
 
-PROFILE_URL = "/accounts/profile/"
+
+def _bars(html):
+    """Punkte je Farbe aus den Balken der Sidebar (Buchstabe und Zahl, Task 4.7)."""
+    return dict(
+        (code, int(points))
+        for code, points in re.findall(
+            r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>', html, re.S
+        )
+    )
+
+
+PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
+PROFILE_PAGE = "/u/alex/history/"
 
 
 @pytest.fixture
@@ -48,7 +62,7 @@ def test_profile_shows_the_own_test_history(gated_client, user):
     result = _make_result(user.profile)
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     html = response.content.decode()
     assert 'href="/colors/wu/"' in html
@@ -60,7 +74,7 @@ def test_profile_shows_the_own_test_history(gated_client, user):
 def test_profile_without_any_test_yet_shows_no_history(gated_client, user):
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     html = response.content.decode()
     assert "haven" in html.lower()
@@ -73,7 +87,7 @@ def test_history_lists_points_in_wubrg_order(gated_client, user):
     _make_result(user.profile, scores={"B": 6, "G": 18, "R": 2, "U": 10, "W": 9})
     gated_client.force_login(user)
 
-    html = gated_client.get(PROFILE_URL).content.decode()
+    html = gated_client.get(PROFILE_PAGE).content.decode()
 
     assert "W: 9, U: 10, B: 6, R: 2, G: 18" in html
 
@@ -82,7 +96,7 @@ def test_history_never_shows_someone_elses_results(gated_client, user, other_use
     other_result = _make_result(other_user.profile, result_colors="BR")
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     html = response.content.decode()
     assert "jamie" not in html
@@ -90,7 +104,7 @@ def test_history_never_shows_someone_elses_results(gated_client, user, other_use
 
 
 def test_profile_page_requires_login(gated_client):
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     assert response.status_code == 302
     assert response.url.startswith("/accounts/login/")
@@ -190,7 +204,7 @@ def test_history_offers_to_adopt_a_result_into_the_profile(gated_client, user):
     result = _make_result(user.profile)
     gated_client.force_login(user)
 
-    html = gated_client.get(PROFILE_URL).content.decode()
+    html = gated_client.get(PROFILE_PAGE).content.decode()
 
     assert f'action="/quiz/results/{result.pk}/adopt/"' in html
     assert "Use for profile" in html
@@ -220,7 +234,7 @@ def test_adopting_from_the_history_links_the_result_and_shows_its_scores_to_othe
 
     gated_client.force_login(other_user)
     html = gated_client.get("/u/alex/").content.decode()
-    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in html
+    assert _bars(html) == {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3}
 
 
 def test_the_currently_adopted_result_shows_a_note_instead_of_the_button(gated_client, user):
@@ -235,7 +249,7 @@ def test_the_currently_adopted_result_shows_a_note_instead_of_the_button(gated_c
     )
     gated_client.force_login(user)
 
-    html = gated_client.get(PROFILE_URL).content.decode()
+    html = gated_client.get(PROFILE_PAGE).content.decode()
 
     assert "Shown in profile" in html
     assert f'action="/quiz/results/{adopted.pk}/adopt/"' not in html

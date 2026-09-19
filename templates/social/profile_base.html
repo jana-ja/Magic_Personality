@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{{ profile.nickname }}{% endblock %}
+
+{% block extra_head %}
+  {% comment %} Farbwahl als Fünfeck (Task 4.6): Ereignisse per Delegation, deshalb auf jeder
+     Profilseite geladen — auch das per HTMX nachgeladene Formular funktioniert. {% endcomment %}
+  <script src="{% static 'js/profile_colors.js' %}" defer></script>
+  {% comment %} Fokus und Ansage nach dem Austausch eines Bereichs per HTMX (Task 4.9). {% endcomment %}
+  <script src="{% static 'js/profile_sections.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+  {% comment %} Gemeinsames Gerüst aller Profil-Tabs (Task 4.3): Kopfbereich
+     (Task 4.2) und Tab-Leiste; der Inhalt des Tabs kommt aus tab_content. {% endcomment %}
+  {% comment %} Live-Region (Task 4.9, NFR-5): bewusst außerhalb aller ausgetauschten Bereiche, damit
+     Screenreader Änderungen zuverlässig ansagen; profile_sections.js füllt sie. Die Texte sind
+     übersetzt und stehen als data-Attribute hier (wie bei den Color Infos). {% endcomment %}
+  <div id="profile-live-region" class="visually-hidden" aria-live="polite"
+       data-editing-text="{% translate 'Editing. The form is open.' %}"
+       data-saved-text="{% translate 'Saved.' %}"
+       data-cancelled-text="{% translate 'Editing cancelled.' %}"></div>
+
+  {% include "social/_profile_header.html" %}
+  {% include "social/_profile_tabs.html" %}
+
+  {% block tab_content %}{% endblock %}
+{% endblock %}

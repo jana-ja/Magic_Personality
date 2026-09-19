@@ -15,7 +15,8 @@ from apps.colors.models import Color, ColorCombination
 
 pytestmark = pytest.mark.django_db
 
-PROFILE_URL = "/accounts/profile/"
+PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
+PROFILE_PAGE = "/u/alex/"
 
 
 def test_no_colors_yields_no_segments():
@@ -91,7 +92,7 @@ def user():
 def test_profile_without_colors_renders_a_neutral_avatar(gated_client, user):
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     html = response.content.decode()
     assert 'class="avatar__segment avatar__segment--neutral"' in html
@@ -108,7 +109,7 @@ def test_profile_with_colors_renders_the_matching_segments(gated_client, user):
     )
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     html = response.content.decode()
     assert Color.objects.get(code="W").hex in html

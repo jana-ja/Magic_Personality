@@ -33,7 +33,7 @@ class Segment:
     hex: str
 
 
-def segments(color_codes):
+def segments(color_codes, hex_by_code=None):
     """
     `color_codes`: Sequenz von Farbcodes, z. B. `["W", "U"]` — schon in
     der gewünschten Reihenfolge, typischerweise
@@ -44,7 +44,8 @@ def segments(color_codes):
     if not color_codes:
         return []
 
-    hex_by_code = dict(Color.objects.filter(code__in=color_codes).values_list("code", "hex"))
+    if hex_by_code is None:
+        hex_by_code = dict(Color.objects.filter(code__in=color_codes).values_list("code", "hex"))
     width = 100 / len(color_codes)
     return [
         Segment(x=index * width, width=width, hex=hex_by_code[code])
@@ -52,11 +53,14 @@ def segments(color_codes):
     ]
 
 
-def avatar_context(color_assignment):
+def avatar_context(color_assignment, hex_by_code=None):
     """
     Kontext für den Avatar-Baustein (`templates/accounts/_avatar.html`).
     `color_assignment`: die `ColorAssignment` des Profils oder `None`
     (kein Datensatz -> neutrale Darstellung, siehe Task 2.5s DoD).
+    `hex_by_code`: optional die Farbwerte, wenn der Aufrufer viele Bilder
+    rendert und sie einmal geladen hat (Autorenkarten, Task 4.8) — sonst
+    fragt jedes Bild sie selbst ab.
     """
     color_codes = color_assignment.combination.color_codes if color_assignment else []
-    return {"segments": segments(color_codes), "view_box": VIEW_BOX}
+    return {"segments": segments(color_codes, hex_by_code), "view_box": VIEW_BOX}

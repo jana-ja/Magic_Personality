@@ -1,85 +1,26 @@
-{% extends "base.html" %}
+{% extends "social/profile_base.html" %}
 {% load i18n %}
 
-{% block title %}{{ profile.nickname }}{% endblock %}
+{% block tab_content %}
+  {% comment %} Tab "Pinboard" (Standardtab, Task 4.3/4.7, D-73). Hauptbereich: die Pinnwand für
+     Favoriten (PRD §8.2) — bis zu ihrer Umsetzung ein Coming-soon-Platzhalter ohne Knöpfe oder
+     Links ohne Ziel. Daneben die Sidebar mit den Kurzinfos; im DOM steht sie hinter dem
+     Hauptbereich, mobil landet sie damit darunter (FR-P16). {% endcomment %}
+  <div class="profile-layout">
+    <div class="profile-layout__main">
+      <section class="profile-pinboard" aria-labelledby="pinboard-heading">
+        <h2 id="pinboard-heading">{% translate "Pinboard" %}</h2>
+        <p class="profile-pinboard__soon">
+          <strong>{% translate "Coming soon" %}</strong><br>
+          {% translate "Soon you'll be able to pin your favorites here — your own or other people's posts and comments." %}
+        </p>
+      </section>
+    </div>
 
-{% block content %}
-  <h1>{{ profile.nickname }}</h1>
-
-  {% include "accounts/_avatar.html" %}
-
-  {% if profile.bio %}
-    <p class="profile-bio">{{ profile.bio }}</p>
-  {% endif %}
-
-  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail —
-     dieselbe Darstellung wie der Ergebnis-Link im eigenen Profil
-     (templates/accounts/profile.html). {% endcomment %}
-  <h2>{% translate "Colors" %}</h2>
-  {% if combination %}
-    <p>
-      <a href="{% url 'colors:combination' code=combination.code|lower %}">
-        {{ combination.name }}
-      </a>
-    </p>
-    {% if test_scores %}
-      {% comment %} D-70: Punkteverteilung des Testergebnisses, aus dem diese
-         Farben übernommen wurden (nur bei source = SELF_TEST, sonst
-         ist test_scores None). Nur die Punkte, keine Historie (D-19). {% endcomment %}
-      <p class="profile-test-scores">
-        {% translate "Points from the test result:" %}
-        {% for code, points in test_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
-      </p>
-    {% endif %}
-  {% else %}
-    <p>{% translate "No colors set yet." %}</p>
-  {% endif %}
-
-  {% comment %} FR-S4: Freundschaftsstatus zur angesehenen Person. Das
-     eigene Profil landet nie hier — apps/social/views.py:profile_detail
-     leitet dafür auf "profile" weiter, bevor dieser Teil überhaupt
-     gerendert wird. {% endcomment %}
-  {% if relationship == "friends" %}
-    <p>{% translate "You are friends." %}</p>
-    <form method="post" action="{% url 'social:remove_friendship' pk=friendship.pk %}">
-      {% csrf_token %}
-      <button type="submit">{% translate "Remove friend" %}</button>
-    </form>
-  {% elif relationship == "pending_sent" %}
-    <p>{% translate "Friend request sent." %}</p>
-    <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
-      {% csrf_token %}
-      <button type="submit">{% translate "Cancel request" %}</button>
-    </form>
-  {% elif relationship == "pending_received" %}
-    <p>{% blocktranslate with nickname=profile.nickname %}{{ nickname }} sent you a friend request.{% endblocktranslate %}</p>
-    <form method="post" action="{% url 'social:accept_friend_request' pk=friendship.pk %}">
-      {% csrf_token %}
-      <button type="submit">{% translate "Accept" %}</button>
-    </form>
-    <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
-      {% csrf_token %}
-      <button type="submit">{% translate "Decline" %}</button>
-    </form>
-  {% elif relationship == None %}
-    <form method="post" action="{% url 'social:send_friend_request' nickname=profile.nickname %}">
-      {% csrf_token %}
-      <button type="submit">{% translate "Send friend request" %}</button>
-    </form>
-  {% endif %}
-
-  {% comment %} FR-S6: die Freundesliste **dieses** Profils, unabhängig
-     von der Beziehung der ansehenden Person dazu — jeder Eintrag führt
-     wieder auf dieselbe View, der Graph lässt sich beliebig
-     weiterklicken (Task 3.5-DoD). {% endcomment %}
-  <h2>{% translate "Friends" %}</h2>
-  {% if friends %}
-    <ul class="friend-list">
-      {% for friend in friends %}
-        <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>{% translate "No friends yet." %}</p>
-  {% endif %}
+    <aside class="profile-layout__side" aria-label="{% translate 'About this profile' %}">
+      {% include "social/_card_bio.html" %}
+      {% include "social/_card_colors.html" %}
+      {% include "social/_card_friends.html" %}
+    </aside>
+  </div>
 {% endblock %}

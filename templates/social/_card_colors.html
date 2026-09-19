@@ -1,0 +1,36 @@
+{% load i18n %}
+{% comment %} Sidebar-Karte "Colors" (Task 4.7, FR-P14, D-70): Kombination als Link auf die Colors und, wenn die
+   Farben aus einem Testergebnis stammen, dessen Punkte je Farbe — Buchstabe und Zahl stehen dabei, der
+   Balken ist nur Anschauung (NFR-6). Nur diese Punkte, keine Historie (D-19). Für die eigene Person mit
+   Bearbeiten-Zugang (Task 4.6) und einem Hinweis, dass die Farben aus dem Test stammen. {% endcomment %}
+<section id="profile-colors" class="profile-card" aria-labelledby="colors-heading">
+  <h2 id="colors-heading">{% translate "Colors" %}</h2>
+  {% if is_owner and editing == "colors" %}
+    {% include "social/_edit_colors.html" %}
+  {% else %}
+    {% if combination %}
+      <p class="profile-card__lead">
+        <a href="{% url 'colors:combination' code=combination.code|lower %}">{{ combination.name }}</a>
+      </p>
+      {% if score_bars %}
+        {% if is_owner %}<p class="profile-card__hint">{% translate "From your test result." %}</p>{% endif %}
+        <p class="profile-card__label">{% translate "Points from the test result" %}</p>
+        <ul class="score-bars" aria-label="{% translate 'Points per color' %}">
+          {% for bar in score_bars %}
+            <li class="score-bar" title="{{ bar.name }}">
+              <span class="score-bar__label">{{ bar.code }}</span><span class="visually-hidden">{{ bar.name }}</span>
+              <span class="score-bar__track"><span class="score-bar__fill" style="--bar-width: {{ bar.percent }}%; --bar-color: {{ bar.color }};"></span></span>
+              <span class="score-bar__value">{{ bar.points }}</span>
+            </li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% else %}
+      <p class="profile-card__empty">{% translate "No colors set yet." %}</p>
+    {% endif %}
+    {% if is_owner %}
+      <a class="profile-edit-link" href="{% url 'social:edit_colors' nickname=profile.nickname %}"
+         hx-get="{% url 'social:edit_colors' nickname=profile.nickname %}" hx-target="#profile-colors" hx-select="#profile-colors" hx-swap="outerHTML">{% translate "Edit colors" %}</a>
+    {% endif %}
+  {% endif %}
+</section>

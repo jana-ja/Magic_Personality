@@ -6,6 +6,8 @@ wörtlich drin: nicht angemeldete Nutzende werden abgewiesen, und die
 Testhistorie taucht in keiner Antwort auf.
 """
 
+import re
+
 import pytest
 
 from apps.accounts.models import ColorAssignment, Profile, User
@@ -13,6 +15,16 @@ from apps.colors.models import ColorCombination
 from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
+
+
+def _bars(html):
+    """Punkte je Farbe aus den Balken der Sidebar (Buchstabe und Zahl, Task 4.7)."""
+    return dict(
+        (code, int(points))
+        for code, points in re.findall(
+            r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>', html, re.S
+        )
+    )
 
 
 @pytest.fixture
@@ -106,24 +118,6 @@ def test_profile_without_colors_shows_a_neutral_message(gated_client, user, othe
     assert "No colors set yet." in html
 
 
-# Das eigene Profil zeigt sich nicht wie ein fremdes -------------------------
-
-
-def test_visiting_ones_own_profile_by_nickname_redirects_to_the_profile_page(gated_client, user):
-    """
-    Sonst erschiene das eigene Profil wie ein fremdes, inklusive eines
-    "Anfrage senden"-Knopfs, der an der Selbstfreundschafts-Sperre in
-    apps.social.friendships.send_request ohnehin nur mit einem Fehler
-    enden würde.
-    """
-    gated_client.force_login(user)
-
-    response = gated_client.get("/u/alex/")
-
-    assert response.status_code == 302
-    assert response.url == "/accounts/profile/"
-
-
 # D-70: Punkteverteilung des übernommenen Testergebnisses -----------------
 
 
@@ -146,7 +140,7 @@ def test_foreign_profile_shows_the_scores_of_the_adopted_test_result(
 
     html = gated_client.get("/u/jamie/").content.decode()
 
-    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in html
+    assert _bars(html) == {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3}
 
 
 def test_foreign_profile_shows_no_scores_for_manually_chosen_colors(gated_client, user, other_user):

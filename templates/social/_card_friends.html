@@ -1,0 +1,17 @@
+{% load i18n social_tags %}
+{% comment %} Sidebar-Karte "Friends" (Task 4.7, FR-P14, FR-S6): Vorschau auf höchstens acht Freunde, alle im Tab
+   "Friends". Jeder Eintrag führt auf ein Profil, der Graph bleibt durchklickbar. Die Einträge sind
+   Autorenkarten (Task 4.8). {% endcomment %}
+<section class="profile-card" aria-labelledby="friends-card-heading">
+  <h2 id="friends-card-heading">{% translate "Friends" %}{% if friends_count %} <span class="profile-card__count">{{ friends_count }}</span>{% endif %}</h2>
+  {% if friends_preview %}
+    <ul class="friend-list author-list">
+      {% for friend in friends_preview %}
+        <li>{% author_card friend size="small" %}</li>
+      {% endfor %}
+    </ul>
+    <a href="{% url 'social:profile_friends' nickname=profile.nickname %}">{% translate "Show all friends" %}</a>
+  {% else %}
+    <p class="profile-card__empty">{% translate "No friends yet." %}</p>
+  {% endif %}
+</section>

@@ -14,14 +14,14 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.accounts import avatar
 from apps.accounts.models import Profile
 from apps.colors import pentagon, selection
 from apps.colors.models import Color
 
-from . import friendships
+from . import friendships, profile_page
+from .decorators import owner_only
 from .models import Friendship
 
 
@@ -31,26 +31,6 @@ def _current_profile(request):
     angelegter Account ohne Profil eine klare 404 statt eines
     Serverfehlers auslöst."""
     return get_object_or_404(Profile, user=request.user)
-
-
-def _relationship_context(viewer_profile, other_profile):
-    """
-    FR-S4: der aktuelle Stand zwischen zwei Profilen, fürs Template in
-    `profile_detail`. `relationship` ist eine von `None` (keine
-    Beziehung), `"pending_sent"` (ich habe angefragt),
-    `"pending_received"` (die andere Person hat angefragt) oder
-    `"friends"`.
-    """
-    friendship = Friendship.objects.between(viewer_profile, other_profile)
-    if friendship is None:
-        return {"friendship": None, "relationship": None}
-    if friendship.status == Friendship.Status.ACCEPTED:
-        relationship = "friends"
-    elif friendship.requested_by_id == viewer_profile.pk:
-        relationship = "pending_sent"
-    else:
-        relationship = "pending_received"
-    return {"friendship": friendship, "relationship": relationship}
 
 
 @login_required
@@ -65,42 +45,89 @@ def profile_detail(request, nickname):
     sichtbar" — die Zugangssperre (D-09) gilt davor ohnehin für jede
     URL, das hier ist die zusätzliche Login-Pflicht aus FR-S1.
 
-    Seit Task 3.4 zusätzlich der Freundschaftsstatus zur angesehenen
-    Person (FR-S4) — nicht beim eigenen Profil, da käme nur "keine
-    Beziehung zu sich selbst" heraus. Seit Task 3.5 zusätzlich die
-    Freundesliste **dieses** Profils, unabhängig von der Beziehung zur
-    ansehenden Person (FR-S6: "von einem Profil aus ist dessen
-    Freundesliste einsehbar", keine Einschränkung auf gemeinsame
-    Freunde) — jeder Eintrag verlinkt wieder auf `profile_detail`,
-    damit sich der Graph über diese eine View beliebig weiterklicken
-    lässt (Task 3.5-DoD: "über mindestens zwei Ebenen durchklickbar,
-    ohne Sackgasse").
+    Seit Task 4.1 (FR-P9, D-73) ist das auch die Seite der eigenen
+    Person: derselbe View, `is_owner` im Kontext schaltet die
+    Bearbeiten-Zugänge und die privaten Bereiche ein
+    (`profile_page.profile_context`). Der frühere Redirect des eigenen
+    Profils auf `/accounts/profile/` entfällt — die Richtung ist jetzt
+    umgekehrt.
 
-    Das eigene Profil leitet auf `profile` weiter, statt sich selbst
-    wie ein fremdes Profil zu zeigen (samt "Anfrage senden"-Knopf, der
-    an der Selbstfreundschafts-Sperre aus `friendships.send_request`
-    ohnehin scheitern würde) — der Weg dorthin (Suche, Freundesliste,
-    eigener Profil-Link) soll nicht extra beachten müssen, wen er
-    gerade verlinkt.
+    Seit Task 4.3 (FR-P11) ist das der Tab „Pinboard" (Standardtab);
+    die Freundesliste steht im Tab „Friends" (`profile_friends`).
+    Weiterhin je Profil: Freundschaftsstatus (FR-S4, Task 3.4) im Kopf
+    und die Punkte des übernommenen Testergebnisses (D-70).
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     viewer_profile = _current_profile(request)
-    if viewer_profile.pk == profile.pk:
-        return redirect("profile")
+    context = profile_page.profile_context(profile, viewer_profile)
+    return render(request, "social/profile_detail.html", context)
 
-    assignment = profile.color_assignments.select_related("combination", "test_result").first()
-    test_result = assignment.test_result if assignment else None
-    context = {
-        "profile": profile,
-        "combination": assignment.combination if assignment else None,
-        # D-70: nur die Punkte des Ergebnisses, aus dem die Profilfarben
-        # übernommen wurden (FR-P5) — weder Datum noch die übrige
-        # Historie, die bleibt privat (D-19).
-        "test_scores": test_result.ordered_scores if test_result else None,
-        "friends": friendships.accepted_friends(profile),
-        **avatar.avatar_context(assignment),
-        **_relationship_context(viewer_profile, profile),
-    }
+
+@login_required
+@require_GET
+def profile_friends(request, nickname):
+    """
+    Tab „Friends" (Task 4.3, FR-P11, FR-S5, FR-S6): die Freundesliste
+    **dieses** Profils, unabhängig von der Beziehung der ansehenden Person
+    dazu (FR-S6: keine Einschränkung auf gemeinsame Freunde) — jeder
+    Eintrag verlinkt wieder auf ein Profil, der Graph lässt sich beliebig
+    weiterklicken (Task 3.5-DoD). Die eigene Person sieht hier zusätzlich
+    ihre offenen Anfragen (FR-S4); bei fremden Profilen erscheinen die
+    offenen Anfragen dieser Person nirgends.
+    """
+    profile = get_object_or_404(Profile, nickname__iexact=nickname)
+    viewer_profile = _current_profile(request)
+    context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.FRIENDS)
+    return render(request, "social/profile_friends.html", context)
+
+
+@owner_only
+@require_GET
+def profile_history(request, profile):
+    """
+    Tab „Test history" (Task 4.4, FR-P6, FR-P7, D-19): nur für die eigene
+    Person; jede andere Person wird von `owner_only` auf das öffentliche
+    Profil weitergeleitet, bevor dieser View läuft.
+    """
+    context = profile_page.profile_context(profile, profile, tab=profile_page.HISTORY)
+    return render(request, "social/profile_history.html", context)
+
+
+@owner_only
+@require_GET
+def profile_settings(request, profile):
+    """Tab „Settings" (Task 4.4): Passwort ändern und Account löschen, nur
+    für die eigene Person (`owner_only`)."""
+    context = profile_page.profile_context(profile, profile, tab=profile_page.SETTINGS)
+    return render(request, "social/profile_settings.html", context)
+
+
+@owner_only
+@require_http_methods(["GET", "POST"])
+def edit_profile_section(request, profile, section):
+    """
+    Nickname oder Bio einzeln bearbeiten (Task 4.5, FR-P12, D-73). Jeder
+    Bereich hat sein eigenes Formular und speichert nur sich selbst; die
+    Adresse ist nur für die eigene Person erreichbar (`owner_only`, jede
+    andere wird weitergeleitet, auch bei POST).
+
+    GET zeigt dieselbe Profilseite wie sonst, nur mit diesem einen Bereich
+    im Bearbeiten-Modus — ohne JavaScript ist das die "eigene Seite" mit
+    dem Formular, mit HTMX holt sich der Bereich per `hx-select` genau sein
+    Stück daraus und tauscht es an Ort und Stelle (D-24). Erfolgreiches
+    Speichern leitet auf das Profil weiter — bei geändertem Nickname auf
+    die neue Adresse; Fehler (z. B. vergebener Nickname) erscheinen im
+    Formular.
+    """
+    if request.method == "POST":
+        form = profile_page.edit_form_for(section, profile, request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(profile)
+    else:
+        form = profile_page.edit_form_for(section, profile)
+
+    context = profile_page.profile_context(profile, profile, editing=section, edit_form=form)
     return render(request, "social/profile_detail.html", context)
 
 
@@ -120,7 +147,11 @@ def search(request):
     query = request.GET.get("q", "").strip()
     results = []
     if query:
-        results = Profile.objects.filter(nickname__icontains=query).order_by("nickname")
+        results = (
+            Profile.objects.filter(nickname__icontains=query)
+            .order_by("nickname")
+            .prefetch_related("color_assignments__combination")
+        )
 
     context = {"query": query, "results": results}
     return render(request, "social/search.html", context)
@@ -193,7 +224,12 @@ def _profiles_with_all_colors(selected_colors):
     conditions = Q()
     for color in selected_colors:
         conditions &= Q(color_assignments__combination__code__contains=color)
-    return Profile.objects.filter(conditions).distinct().order_by("nickname")
+    return (
+        Profile.objects.filter(conditions)
+        .distinct()
+        .order_by("nickname")
+        .prefetch_related("color_assignments__combination")
+    )
 
 
 @login_required

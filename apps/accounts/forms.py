@@ -10,6 +10,7 @@ from apps.colors.content import LOCALE
 from apps.colors.models import Color, ColorCombination
 from apps.colors.utils import canonical_code
 
+from .color_assignments import adopt_test_result
 from .models import ColorAssignment, Profile, User
 
 
@@ -20,6 +21,17 @@ def _nickname_is_taken(nickname, *, exclude_profile=None):
     if exclude_profile is not None:
         conflicts = conflicts.exclude(pk=exclude_profile.pk)
     return conflicts.exists()
+
+
+def _validate_nickname_characters(nickname):
+    """
+    Der Nickname steht in der Adresse des Profils (`/u/<nickname>/`,
+    Task 4.1): ein "/" ließe sich dort nicht abbilden und würde jede Seite
+    mit dem Namen im Kopfbereich zum Absturz bringen; ein Name nur aus
+    Punkten ("." oder "..") würde vom Browser als Pfadangabe aufgelöst.
+    """
+    if "/" in nickname or set(nickname) == {"."}:
+        raise ValidationError(_("The nickname can't contain a slash or consist only of dots."))
 
 
 class RegistrationForm(forms.Form):
@@ -44,6 +56,7 @@ class RegistrationForm(forms.Form):
 
     def clean_nickname(self):
         nickname = self.cleaned_data["nickname"].strip()
+        _validate_nickname_characters(nickname)
         if _nickname_is_taken(nickname):
             raise ValidationError(_("This nickname is already taken."))
         return nickname
@@ -78,18 +91,67 @@ class RegistrationForm(forms.Form):
         return user, profile
 
 
-class ProfileForm(forms.Form):
+class NicknameForm(forms.Form):
     """
-    Bearbeitung des eigenen Profils (Task 2.4, FR-P1, FR-P4). Farben
-    sind hier bewusst fünf einzelne Kontrollkästchen (W/U/B/R/G) statt
-    einer Fünfeck-Auswahl wie in `apps.colors`: dort steuert die
-    Selektion die URL und damit den angezeigten Content (D-24), hier
-    geht es nur darum, eine der 31 Kombinationen zu speichern — hierfür
-    ein zweites Fünfeck nachzubauen wäre unnötiger Aufwand.
+    Nickname ändern (Task 4.5, FR-P12, FR-P2). Eigenes Formular mit eigenem
+    Endpunkt: speichert ausschließlich den Nickname und fasst weder Bio noch
+    Farben an.
     """
 
-    nickname = forms.CharField(label=_("Nickname"), max_length=50)
-    bio = forms.CharField(label=_("Bio"), required=False, widget=forms.Textarea)
+    nickname = forms.CharField(
+        label=_("Nickname"), max_length=50, widget=forms.TextInput(attrs={"autofocus": True})
+    )
+
+    def __init__(self, *args, profile, **kwargs):
+        self.profile = profile
+        super().__init__(*args, **kwargs)
+
+    def clean_nickname(self):
+        nickname = self.cleaned_data["nickname"].strip()
+        _validate_nickname_characters(nickname)
+        if _nickname_is_taken(nickname, exclude_profile=self.profile):
+            raise ValidationError(_("This nickname is already taken."))
+        return nickname
+
+    def save(self):
+        self.profile.nickname = self.cleaned_data["nickname"]
+        self.profile.full_clean()
+        self.profile.save(update_fields=["nickname"])
+
+
+class BioForm(forms.Form):
+    """Bio ändern (Task 4.5, FR-P12). Speichert ausschließlich die Bio."""
+
+    bio = forms.CharField(
+        label=_("Bio"), required=False, widget=forms.Textarea(attrs={"autofocus": True})
+    )
+
+    def __init__(self, *args, profile, **kwargs):
+        self.profile = profile
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        self.profile.bio = self.cleaned_data["bio"]
+        self.profile.full_clean()
+        self.profile.save(update_fields=["bio"])
+
+
+class ColorsForm(forms.Form):
+    """
+    Farben ändern (Task 4.6, FR-P4, FR-P5, FR-P13). Eine Auswahl aus
+    zwei Wegen: ein Testergebnis der eigenen Historie (`choice` = dessen
+    Primärschlüssel) oder die manuelle Wahl von 1 bis 5 Farben (`choice` =
+    `"manual"`). Fehlt `choice`, gilt `"manual"` — so bleibt das alte
+    Abschicken nur mit Farben gültig.
+
+    `colors` sind fünf Kontrollkästchen; das Fünfeck im Profil ist nur eine
+    Bedienhilfe darüber (templates/social/_color_field.html, Task 4.6) und
+    schickt dieselben Felder ab.
+    """
+
+    MANUAL = "manual"
+
+    choice = forms.CharField(required=False)
     colors = forms.MultipleChoiceField(
         label=_("Colors"),
         required=False,
@@ -99,25 +161,30 @@ class ProfileForm(forms.Form):
 
     def __init__(self, *args, profile, **kwargs):
         self.profile = profile
+        self.test_result = None
         super().__init__(*args, **kwargs)
 
-    def clean_nickname(self):
-        nickname = self.cleaned_data["nickname"].strip()
-        if _nickname_is_taken(nickname, exclude_profile=self.profile):
-            raise ValidationError(_("This nickname is already taken."))
-        return nickname
+    def clean_choice(self):
+        choice = self.cleaned_data["choice"].strip() or self.MANUAL
+        if choice == self.MANUAL:
+            return choice
+        # Nur Einträge der eigenen Historie: `profile.test_results` ist die
+        # Grenze, ein fremder Primärschlüssel ist hier schlicht ungültig.
+        if not choice.isdigit():
+            raise ValidationError(_("Choose one of your test results or pick the colors yourself."))
+        self.test_result = self.profile.test_results.filter(pk=int(choice)).first()
+        if self.test_result is None:
+            raise ValidationError(_("Choose one of your test results or pick the colors yourself."))
+        return choice
 
     def save(self):
-        self.profile.nickname = self.cleaned_data["nickname"]
-        self.profile.bio = self.cleaned_data["bio"]
-        self.profile.full_clean()
-        self.profile.save()
+        if self.test_result is not None:
+            adopt_test_result(self.test_result)
+            return
 
-        # Nur anfassen, was sich tatsächlich geändert hat: Das Formular
-        # schickt immer alle Felder mit. Ohne diesen Vergleich setzte jedes
-        # Speichern (z. B. nur die Bio geändert) die Farben auf SELF_MANUAL
-        # und löschte die Testreferenz (FR-P5) — Punkte in fremden Profilen
-        # (D-70) verschwanden, ohne dass die Person die Farben angefasst hat.
+        # Nur anfassen, was sich tatsächlich geändert hat (D-72): ein
+        # unverändert abgeschicktes Formular darf die Testreferenz nicht
+        # überschreiben (FR-P5).
         colors = canonical_code(self.cleaned_data["colors"])
         current = ColorAssignment.objects.filter(profile=self.profile).select_related("combination")
         current = current.first()

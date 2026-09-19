@@ -12,17 +12,13 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from apps.colors.content import LOCALE
-from apps.colors.models import ColorCombination
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
 from apps.quiz.models import TestResult
-from apps.social import friendships
 
-from . import avatar
-from .forms import ProfileForm, RegistrationForm
+from .forms import RegistrationForm
 from .models import Profile
 
 
@@ -74,67 +70,17 @@ def delete_account(request):
 
 
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_GET
 def profile(request):
     """
-    FR-P1/FR-P4: eigenes Profil ansehen und bearbeiten. `get_object_or_404`
-    statt `request.user.profile` direkt zu verwenden: ein per
-    `createsuperuser` angelegter Account hat kein Profil (Task 0.2/2.1,
-    D-22) — das ergibt hier eine klare 404 statt eines Serverfehlers.
+    Alte Adresse der Profilseite: seit Task 4.1 (FR-P9, D-73) ist sie
+    `/u/<nickname>/`, seit Task 4.6 gibt es hier auch kein Speichern mehr
+    (Farben: `/u/<nickname>/edit/colors/`). `get_object_or_404` statt
+    `request.user.profile`: ein per `createsuperuser` angelegter Account
+    hat kein Profil (Task 0.2/2.1, D-22) — das ergibt hier eine klare 404
+    statt eines Serverfehlers.
     """
-    profile = get_object_or_404(Profile, user=request.user)
-    assignment = profile.color_assignments.select_related("combination").first()
-    initial = {
-        "nickname": profile.nickname,
-        "bio": profile.bio,
-        "colors": list(assignment.combination.code) if assignment else [],
-    }
-
-    if request.method == "POST":
-        form = ProfileForm(request.POST, profile=profile)
-        if form.is_valid():
-            form.save()
-            return redirect("profile")
-    else:
-        form = ProfileForm(initial=initial, profile=profile)
-
-    context = {
-        "form": form,
-        "test_results": _test_results_with_combinations(profile, assignment),
-        # FR-S4/Task 3.4-DoD: "Offene Anfragen sind im eigenen Profil
-        # sichtbar" — beide Richtungen, damit auch eine selbst
-        # gestellte, noch offene Anfrage hier auffindbar bleibt.
-        "friend_requests_received": friendships.pending_requests_received(profile),
-        "friend_requests_sent": friendships.pending_requests_sent(profile),
-        # FR-S5/Task 3.5-DoD: "Eigene Freundesliste im eigenen Profil".
-        "friends": friendships.accepted_friends(profile),
-        **avatar.avatar_context(assignment),
-    }
-    return render(request, "accounts/profile.html", context)
-
-
-def _test_results_with_combinations(profile, assignment):
-    """
-    FR-P6: Historie mit Datum, Punkten und Ergebnis. `TestResult` kennt
-    nur `result_colors` (den Code, D-... siehe apps/quiz/models.py),
-    keine Fremdschlüssel auf `ColorCombination` — die Namen werden hier
-    in einer Abfrage nachgeladen statt je Eintrag einzeln, und direkt
-    an die Instanzen gehängt, damit das Template nicht selbst
-    nachschlagen muss. Ebenso `is_adopted`: ob die Profilfarben gerade
-    auf genau diesen Eintrag verweisen (FR-P5) — das Template zeigt dort
-    statt des Übernehmen-Knopfs einen Hinweis.
-    """
-    test_results = list(profile.test_results.all())
-    combinations_by_code = {
-        combination.code: combination
-        for combination in ColorCombination.objects.filter(
-            locale=LOCALE, code__in={result.result_colors for result in test_results}
-        )
-    }
-    for result in test_results:
-        result.combination = combinations_by_code[result.result_colors]
-        result.is_adopted = assignment is not None and assignment.test_result_id == result.pk
-    return test_results
+    return redirect(get_object_or_404(Profile, user=request.user))
 
 
 @login_required
@@ -149,4 +95,4 @@ def delete_test_result(request, pk):
     """
     test_result = get_object_or_404(TestResult, pk=pk, profile__user=request.user)
     test_result.delete()
-    return redirect("profile")
+    return redirect("social:profile_history", nickname=test_result.profile.nickname)

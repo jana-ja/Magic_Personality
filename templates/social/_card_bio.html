@@ -1,0 +1,19 @@
+{% load i18n %}
+{% comment %} Sidebar-Karte "About" (Task 4.7, FR-P14): Bio, für die eigene Person mit Bearbeiten-Zugang
+   (Task 4.5). Feste id für den HTMX-Austausch. Ohne Bio eine leere Karte mit Hinweis, kein Fehler. {% endcomment %}
+<section id="profile-bio" class="profile-card" aria-labelledby="bio-heading">
+  <h2 id="bio-heading">{% translate "About" %}</h2>
+  {% if is_owner and editing == "bio" %}
+    {% include "social/_edit_bio.html" %}
+  {% else %}
+    {% if profile.bio %}
+      <p class="profile-bio">{{ profile.bio|linebreaksbr }}</p>
+    {% else %}
+      <p class="profile-card__empty">{% translate "No bio yet." %}</p>
+    {% endif %}
+    {% if is_owner %}
+      <a class="profile-edit-link" href="{% url 'social:edit_bio' nickname=profile.nickname %}"
+         hx-get="{% url 'social:edit_bio' nickname=profile.nickname %}" hx-target="#profile-bio" hx-select="#profile-bio" hx-swap="outerHTML">{% if profile.bio %}{% translate "Edit bio" %}{% else %}{% translate "Add a bio" %}{% endif %}</a>
+    {% endif %}
+  {% endif %}
+</section>

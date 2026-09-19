@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n social_tags %}
 
 {% block title %}{% translate "Search by colors" %}{% endblock %}
 
@@ -10,18 +10,16 @@
 
   {% if has_selection %}
     {% if results %}
-      <ul class="search-results">
+      <ul class="search-results author-list">
         {% for profile in results %}
-          <li>
-            <a href="{% url 'social:profile_detail' nickname=profile.nickname %}">{{ profile.nickname }}</a>
-          </li>
+          <li>{% author_card profile %}</li>
         {% endfor %}
       </ul>
     {% else %}
       <p>{% translate "No profiles found." %}</p>
     {% endif %}
-    <p><a href="{{ reset_url }}">{% translate "Reset selection" %}</a></p>
+    <p><a class="tap-target" href="{{ reset_url }}">{% translate "Reset selection" %}</a></p>
   {% endif %}
 
-  <p><a href="{% url 'social:search' %}">{% translate "Search by nickname instead" %}</a></p>
+  <p><a class="tap-target" href="{% url 'social:search' %}">{% translate "Search by nickname instead" %}</a></p>
 {% endblock %}

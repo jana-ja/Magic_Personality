@@ -107,6 +107,10 @@ Ungefähr 100 Zeilen, ohne Framework:
 2. **Optimistische Hervorhebung:** Die Farbmarkierung im Fünfeck wird sofort umgeschaltet, bevor die Antwort da ist. Der Server-Zustand korrigiert das anschließend.
 3. **Live-Region** (NFR-5): Nach dem HTMX-Swap wird der neue Kombinationsname angesagt.
 
+### 4.3.1 Weitere eigene Skripte (Stand v1.2)
+
+Neben `main.js` (Fünfeck, siehe oben) gibt es kleine, framework-freie Skripte je Funktion: `quiz.js`, `quiz_claim.js` (Test, Zwischenspeicher), `profile_colors.js` (Farbwahl am Fünfeck als Bedienhilfe über echten Kontrollkästchen, D-74) und `profile_sections.js` (Fokus und Ansage nach dem HTMX-Austausch eines Profilbereichs, Task 4.9). Zusammen rund 280 Zeilen, keine Abhängigkeiten. Regel unverändert: jede Funktion muss auch ohne das Skript benutzbar bleiben (Progressive Enhancement) — die Skripte schalten nur um, was serverseitig schon als Formular oder Link da ist. Ein Test hält die Gesamtgröße im Blick (`apps/social/tests/test_profile_accessibility.py`).
+
 ### 4.4 Fünfeck-Geometrie
 
 Ein handgeschriebenes SVG mit fünf Positionen, aus `wheel_position` berechnet. Positionen liegen in **einer** Konstante — damit stimmen Nachbarschaften, `leaning_toward`-Richtungen und die Darstellung immer überein und lassen sich in einem Test gegen die Datenbank prüfen.
@@ -126,7 +130,7 @@ magic_personality/
 │   ├── colors/          # Color, ColorCombination, Trait, CombinationTrait, Perspective
 │   ├── accounts/        # User, Profile, ColorAssignment, Auth-Views, Avatar
 │   ├── quiz/            # Questionnaire, Question, AnswerOption, TestResult, Auswertung
-│   └── social/          # Friendship, Suche
+│   └── social/          # Friendship, Suche, Profilseite (Tabs, Bearbeiten), Autorenkarte
 ├── locale/              # Übersetzungskataloge (NFR-4)
 ├── static/              # CSS, htmx.min.js, eigenes JS, Mana-Symbole
 ├── templates/
@@ -185,6 +189,7 @@ Reine Berechnung aus `wheel_position` (FR-C9), als Eigenschaft am Modell, nicht 
 | Rate Limiting (FR-U6) | `django-axes` für Login-Versuche, eigener Decorator für Registrierung und Invite-Gate |
 | Invite-Gate (FR-A1) | Eigene Middleware, prüft ein signiertes Cookie. Freigelistet: Gate-View, Healthcheck, statische Dateien. **Alles** andere ist gesperrt, auch API-Pfade |
 | Kein Passwort-Reset (FR-U7) | Djangos Reset-URLs werden nicht eingebunden. Zurücksetzen per Management-Command auf dem Server |
+| Private Profil-Adressen (FR-P9, D-73) | Decorator `owner_only` (`apps/social/decorators.py`): Gäste zum Login, unbekannter Nickname 404, jede **andere** Person 302 auf das öffentliche Profil der Adresse — ohne Inhalt, auch bei POST. Gilt für Testhistorie, Einstellungen und alle Bearbeiten-Adressen |
 | Account-Löschung (FR-U8) | View mit Bestätigung; `on_delete=CASCADE` auf Profile, TestResult, ColorAssignment, Friendship |
 | `noindex` (FR-A4) | Header über Middleware plus `robots.txt` |
 

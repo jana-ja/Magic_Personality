@@ -444,101 +444,136 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.1 · Eine Profilseite für eigene und fremde Ansicht
 **Abhängig von:** 3.5 · **Anforderungen:** FR-P9, D-73
 **Fertig, wenn:**
-- [ ] `/u/<nickname>/` zeigt die eigene Person genauso wie fremde Profile; der bisherige Sonderfall-Redirect in `profile_detail` entfällt.
-- [ ] `/accounts/profile/` und alle Redirects darauf (Login, Speichern, Löschen) führen auf `/u/<eigener-nickname>/`; der Link im Kopfbereich ebenso.
-- [ ] Die Seite kennt den Betrachter (`is_owner`) und blendet Bearbeiten-Knöpfe, Anfragen und private Bereiche nur für die eigene Person ein.
-- [ ] Bestehende Funktionen bleiben erhalten (Bio, Farben mit Punkten, Freunde, Freundschaftsaktionen, Historie, Anfragen) — zunächst im heutigen Aussehen, noch ohne Redesign.
-- [ ] Test: eigenes Profil unter der neuen URL zeigt Bearbeiten-Zugänge, fremdes nicht; alte URL leitet weiter.
+- [x] `/u/<nickname>/` zeigt die eigene Person genauso wie fremde Profile; der bisherige Sonderfall-Redirect in `profile_detail` entfällt.
+- [x] `/accounts/profile/` und alle Redirects darauf (Login, Speichern, Löschen) führen auf `/u/<eigener-nickname>/`; der Link im Kopfbereich ebenso.
+- [x] Die Seite kennt den Betrachter (`is_owner`) und blendet Bearbeiten-Knöpfe, Anfragen und private Bereiche nur für die eigene Person ein.
+- [x] Bestehende Funktionen bleiben erhalten (Bio, Farben mit Punkten, Freunde, Freundschaftsaktionen, Historie, Anfragen) — zunächst im heutigen Aussehen, noch ohne Redesign.
+- [x] Test: eigenes Profil unter der neuen URL zeigt Bearbeiten-Zugänge, fremdes nicht; alte URL leitet weiter.
 
 > Ein Profil ohne Nickname-Änderung im Weg: Ändert jemand den Nickname, führen alle Weiterleitungen auf die neue URL. Ein `createsuperuser`-Account ohne Profil ergibt weiterhin eine klare 404.
+
+> Umsetzung: gemeinsamer Kontext in `apps/social/profile_page.py`, `Profile.get_absolute_url()` als einzige Quelle der Profil-Adresse. `/accounts/profile/` bleibt nur als Speichern-Endpunkt (POST) des Sammelformulars bis Task 4.5. Dabei ergänzt: Nicknames mit „/" oder nur aus Punkten werden abgewiesen, weil der Nickname jetzt in jeder Seite als Adresse im Kopfbereich steht und sonst ein Reverse-Fehler alle Seiten der Person zum Absturz brächte.
 
 #### 4.2 · Kopfbereich mit Farbbanner und Freundschaftsaktion
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P10, NFR-5, NFR-6, D-73
 **Fertig, wenn:**
-- [ ] Banner aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge (1 bis 5); ohne Farben neutral. Umsetzung wie das Profilbild (`border-radius`/Streifen, keine SVG-`clipPath`, D-57), Farben nur über CSS-Eigenschaft je Streifen.
-- [ ] Profilbild überlappt das Banner; Nickname, Kombinationsname (verlinkt auf `/colors/<code>/`) und Bio-Zeile stehen auf der Seitenfläche, nie auf den Bannerfarben (Kontrast unabhängig von der Farbwahl).
-- [ ] Die Freundschaftsaktion (Anfrage senden, zurückziehen, annehmen/ablehnen, Freund entfernen) sitzt im Kopf und nutzt unverändert die POST-Endpunkte aus Task 3.4.
-- [ ] Beim eigenen Profil steht statt der Aktion ein Hinweis „you".
-- [ ] Test: alle vier Beziehungszustände zeigen die richtige Aktion; ein Profil ohne Farben rendert das neutrale Banner.
+- [x] Banner aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge (1 bis 5); ohne Farben neutral. Umsetzung wie das Profilbild (`border-radius`/Streifen, keine SVG-`clipPath`, D-57), Farben nur über CSS-Eigenschaft je Streifen.
+- [x] Profilbild überlappt das Banner; Nickname, Kombinationsname (verlinkt auf `/colors/<code>/`) und Bio-Zeile stehen auf der Seitenfläche, nie auf den Bannerfarben (Kontrast unabhängig von der Farbwahl).
+- [x] Die Freundschaftsaktion (Anfrage senden, zurückziehen, annehmen/ablehnen, Freund entfernen) sitzt im Kopf und nutzt unverändert die POST-Endpunkte aus Task 3.4.
+- [x] Beim eigenen Profil steht statt der Aktion ein Hinweis „you".
+- [x] Test: alle vier Beziehungszustände zeigen die richtige Aktion; ein Profil ohne Farben rendert das neutrale Banner.
+
+> Umsetzung: `templates/social/_profile_header.html` (Banner, Profilbild, Name, Kombination, Bio-Zeile auf 140 Zeichen gekürzt) und `_friend_action.html` (aus `profile_detail.html` in den Kopf verschoben). Das Banner sind `div`-Streifen mit `--segment-color`, dieselben `segments` wie beim Profilbild. Die Bereiche „Colors" und „Friends" weiter unten bleiben bis 4.7 bzw. 4.3 unverändert. Im Browser bei 1024 px und 375 px geprüft (kein horizontales Scrollen, Aktion umbricht unter den Namen).
 
 #### 4.3 · Tabs und Freunde-Tab
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P11, FR-S5, FR-S6, D-73
 **Fertig, wenn:**
-- [ ] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/` = Pinnwand als Standardtab, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
-- [ ] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
-- [ ] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
-- [ ] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
-- [ ] Die Tab-Leiste enthält von Anfang an **Pinnwand** (Standard) und **Friends**; die Pinnwand zeigt bis zu ihrer Umsetzung einen „Coming soon"-Platzhalter (Task 4.7).
-- [ ] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
+- [x] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/` = Pinnwand als Standardtab, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
+- [x] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
+- [x] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
+- [x] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
+- [x] Die Tab-Leiste enthält von Anfang an **Pinnwand** (Standard) und **Friends**; die Pinnwand zeigt bis zu ihrer Umsetzung einen „Coming soon"-Platzhalter (Task 4.7).
+- [x] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
+
+> Umsetzung: `profile_base.html` (Kopf + Tab-Leiste) als Grundgerüst, `profile_detail.html` = Tab Pinboard, `profile_friends.html` = Tab Friends unter `/u/<nickname>/friends/`. Der Kontext ist nach Tab geteilt (`profile_page.profile_context(tab=…)`). Bis 4.7 stehen auf dem Pinboard-Tab vorläufig noch Formular, Farben und das Private der eigenen Person unter dem Coming-soon-Platzhalter. Anfragen annehmen/ablehnen leitet weiterhin auf das Profil der anderen Person, nicht zurück auf den Friends-Tab. Im Browser bei 1024 und 375 px geprüft.
 
 #### 4.4 · Private Tabs: Testhistorie und Einstellungen
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P6, FR-P7, FR-P11, FR-U8, D-19, D-73
 **Fertig, wenn:**
-- [ ] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
-- [ ] Beide URLs sind für Gäste hinter dem Login. Ruft eine **andere** Person sie auf (`/u/person_b/history/` als nicht person_b), **leitet die Seite auf `/u/person_b/` weiter** (302, der Ausgang hängt vom Betrachter ab) — kein 404 und kein 403. Existiert die Person nicht, bleibt es bei 404.
-- [ ] Die Tabs erscheinen nur für die eigene Person.
-- [ ] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar; die Weiterleitung enthält keinen Inhalt der privaten Seite (ausdrücklich für die neuen URLs).
+- [x] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
+- [x] Beide URLs sind für Gäste hinter dem Login. Ruft eine **andere** Person sie auf (`/u/person_b/history/` als nicht person_b), **leitet die Seite auf `/u/person_b/` weiter** (302, der Ausgang hängt vom Betrachter ab) — kein 404 und kein 403. Existiert die Person nicht, bleibt es bei 404.
+- [x] Die Tabs erscheinen nur für die eigene Person.
+- [x] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar; die Weiterleitung enthält keinen Inhalt der privaten Seite (ausdrücklich für die neuen URLs).
 
 > Weiterleiten statt 404: Die Adresse verrät nichts, was nicht ohnehin öffentlich wäre — das Profil ist für jede angemeldete Person sichtbar, und die privaten Tabs gibt es bei jedem Profil gleichermaßen. Dieselbe Regel gilt für die Bearbeiten-Adressen (4.5, 4.6) und ist als Hilfsfunktion/Decorator für alle „nur eigene Person"-Seiten gedacht, damit sie nicht je Seite neu entschieden wird.
+
+> Umsetzung: `apps/social/decorators.py:owner_only` trifft die Entscheidung (Gäste → Login, unbekannter Nickname → 404, andere Person → 302 auf `/u/<nickname>/` ohne Inhalt, auch bei POST) und reicht der View das Profil statt des Nicknames; Tasks 4.5 und 4.6 nutzen ihn für die Bearbeiten-Adressen. Die Einstellungen verlinken die bestehenden Seiten „Passwort ändern" (bisher nirgends in der Oberfläche verlinkt) und „Account löschen". Historie löschen führt zurück auf den History-Tab, Übernehmen auf das Profil (dort erscheinen die Punkte).
 
 #### 4.5 · Nickname und Bio einzeln bearbeiten
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P12, FR-P2, D-72, D-73
 **Fertig, wenn:**
-- [ ] Nickname und Bio haben je ein eigenes Formular und eigenen POST-Endpunkt; jeder speichert ausschließlich sein Feld.
-- [ ] Ohne JavaScript öffnet „Edit" eine eigene Seite mit nur diesem Formular; mit HTMX tauscht sich der Bereich an Ort und Stelle aus (D-24: Progressive Enhancement, der Zustand steht in der URL).
-- [ ] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
-- [ ] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
-- [ ] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
-- [ ] Bearbeiten-Adressen einer anderen Person (GET und POST) leiten auf deren Profil weiter und ändern nichts (Regel aus 4.4).
-- [ ] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben; ein POST auf die Bearbeiten-Adresse einer anderen Person verändert nichts.
+- [x] Nickname und Bio haben je ein eigenes Formular und eigenen POST-Endpunkt; jeder speichert ausschließlich sein Feld.
+- [x] Ohne JavaScript öffnet „Edit" eine eigene Seite mit nur diesem Formular; mit HTMX tauscht sich der Bereich an Ort und Stelle aus (D-24: Progressive Enhancement, der Zustand steht in der URL).
+- [x] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
+- [x] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
+- [x] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
+- [x] Bearbeiten-Adressen einer anderen Person (GET und POST) leiten auf deren Profil weiter und ändern nichts (Regel aus 4.4).
+- [x] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben; ein POST auf die Bearbeiten-Adresse einer anderen Person verändert nichts.
+
+> Umsetzung: Endpunkte `/u/<nickname>/edit/nickname/` und `/edit/bio/` (beide `owner_only`, GET und POST), Formulare `NicknameForm`, `BioForm` und — als Rest des früheren `ProfileForm` — `ColorsForm` in `apps/accounts/forms.py`. Die Bearbeiten-Adresse rendert dieselbe Profilseite mit **einem** Bereich im Bearbeiten-Modus (`editing`); mit HTMX holt sich der Link per `hx-select` genau diesen Bereich (`#profile-name`, `#profile-bio`) daraus, ohne JavaScript ist es die volle Seite. Bio-Speichern tauscht zusätzlich die Kurzfassung im Kopf mit (`hx-select-oob`, sonst bliebe sie veraltet). Der Nickname-Speichern ist bewusst ein normales POST, weil sich dabei Adresse und Kopf ändern. `/accounts/profile/` speichert nur noch die Farben, bis Task 4.6 sie ersetzt. Im Browser durchgespielt: Bio inline, vergebener Nickname (Fehler im Formular, nichts geändert), Umbenennen (Adresse, Kopfzeilen-Link und Tabs folgen).
 
 #### 4.6 · Farben bearbeiten: Testergebnis übernehmen oder am Fünfeck wählen
 **Abhängig von:** 4.5, 1.9 · **Anforderungen:** FR-P13, FR-P4, FR-P5, FR-P8, D-56, D-72
 **Fertig, wenn:**
-- [ ] Eigenes Formular mit zwei Wegen: ein Testergebnis aus der Historie wählen (Radio je Eintrag mit Datum, Punkten, Kombination) oder manuell 1 bis 5 Farben wählen.
-- [ ] Testergebnis wählen setzt `source = SELF_TEST` und die Testreferenz (wie `adopt_result`); manuelle Wahl setzt `SELF_MANUAL` und leert die Referenz **nur bei tatsächlicher Änderung** (D-72).
-- [ ] Manuelle Wahl am Fünfeck mit derselben Geometrie/Darstellung wie in `apps.colors` und der Suche (D-66). Ohne JavaScript bleiben fünf Kontrollkästchen, mit JavaScript schaltet das Fünfeck die Kästchen; eigenes Skript klein, kein Framework (ARCHITECTURE.md §4.3).
-- [ ] Ohne Farben speichern entfernt die Zuordnung (wie bisher).
-- [ ] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
-- [ ] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
+- [x] Eigenes Formular mit zwei Wegen: ein Testergebnis aus der Historie wählen (Radio je Eintrag mit Datum, Punkten, Kombination) oder manuell 1 bis 5 Farben wählen.
+- [x] Testergebnis wählen setzt `source = SELF_TEST` und die Testreferenz (wie `adopt_result`); manuelle Wahl setzt `SELF_MANUAL` und leert die Referenz **nur bei tatsächlicher Änderung** (D-72).
+- [x] Manuelle Wahl am Fünfeck mit derselben Geometrie/Darstellung wie in `apps.colors` und der Suche (D-66). Ohne JavaScript bleiben fünf Kontrollkästchen, mit JavaScript schaltet das Fünfeck die Kästchen; eigenes Skript klein, kein Framework (ARCHITECTURE.md §4.3).
+- [x] Ohne Farben speichern entfernt die Zuordnung (wie bisher).
+- [x] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
+- [x] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
+
+> Umsetzung siehe D-74 (ersetzt D-56). Endpunkt `/u/<nickname>/edit/colors/` (`owner_only`), `ColorsForm` mit `choice` (Testergebnis-Primärschlüssel oder „manual") und `colors`; gemeinsame Übernahme-Funktion `apps/accounts/color_assignments.py:adopt_test_result` für Ergebnisseite, Historie und Formular. Fünfeck-Feld in `templates/social/_color_field.html` (Geometrie aus `apps.colors.pentagon`, Ecken als `role="checkbox"`), `static/js/profile_colors.js` 50 Zeilen. Im Browser mit JavaScript geprüft (Fünfeck statt Kästchen, Mausklick und Leertaste, beide Wege speichern, Kopf und Banner ziehen mit) und ohne (Klasse `js` entfernt: Kästchen sichtbar, Fünfeck versteckt). Speichern ist bewusst ein normales POST, weil sich der Kopf ändert.
 
 #### 4.7 · Pinnwand-Platzhalter und Sidebar
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P14, D-70, NFR-6
 **Fertig, wenn:**
-- [ ] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
-- [ ] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
-- [ ] Hauptbereich ist der Tab **Pinnwand** mit einem „Coming soon"-Platzhalter (fremd und eigen; kurzer Satz, was dort einmal steht: Favoriten, eigene oder fremde Beiträge und Kommentare). Keine Knöpfe oder Links ohne Ziel.
-- [ ] Die Idee ist vermerkt: PRD §8.2 (Pinnwand), D-73 und der Abschnitt „Nicht in dieser Roadmap" halten fest, dass Pinnwand-Einträge auf Beiträge/Kommentare beliebiger Autorschaft verweisen.
-- [ ] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
-- [ ] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei; die Pinnwand zeigt den Platzhalter.
+- [x] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
+- [x] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
+- [x] Hauptbereich ist der Tab **Pinnwand** mit einem „Coming soon"-Platzhalter (fremd und eigen; kurzer Satz, was dort einmal steht: Favoriten, eigene oder fremde Beiträge und Kommentare). Keine Knöpfe oder Links ohne Ziel.
+- [x] Die Idee ist vermerkt: PRD §8.2 (Pinnwand), D-73 und der Abschnitt „Nicht in dieser Roadmap" halten fest, dass Pinnwand-Einträge auf Beiträge/Kommentare beliebiger Autorschaft verweisen.
+- [x] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
+- [x] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei; die Pinnwand zeigt den Platzhalter.
+
+> Umsetzung: `profile_detail.html` = Hauptbereich (Pinnwand-Platzhalter) plus `<aside>` mit den Karten `_card_bio.html`, `_card_colors.html` und `_card_friends.html`; die Sidebar steht im DOM hinter dem Hauptbereich und landet mobil darunter, sie gibt es nur im Pinboard-Tab. Die Punkte kommen als Balken mit Buchstabe **und** Zahl (`profile_page.score_bars`, Länge relativ zum höchsten Wert, Balkenfarbe wie der Halo der Ecke, weil Weiß als `Color.hex` kaum zu sehen wäre, D-42). Die Freundesvorschau zeigt höchstens acht Einträge (`FRIENDS_PREVIEW_LIMIT`) als einfache Liste, Task 4.8 ersetzt sie durch die Autorenkarte. Beim Bearbeiten der Farben wird die Sidebar per `:has()` breiter, damit das Fünfeck genug Trefferfläche hat (ohne `:has()` bleibt es funktionsfähig, nur schmaler). Im Browser bei 1024 und 375 px geprüft: eigenes und fremdes Profil, Bearbeiten in der Sidebar, kein horizontales Scrollen.
 
 #### 4.8 · Autorenkarte als Komponente
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P15, D-57
 **Fertig, wenn:**
-- [ ] `templates/social/_author_card.html`: Profilbild (bestehender `_avatar.html`), Nickname als Link, Kombinationsname als Chip; Größenvarianten klein und mittel.
-- [ ] Freundesliste (Tab und Vorschau) und beide Suchen nutzen die Komponente statt eigener Listen-Markup.
-- [ ] Mehrere Karten auf einer Seite erzeugen kein doppeltes `id` (D-57).
-- [ ] Die Komponente ist so gebaut, dass Beiträge und Kommentare sie später ohne Änderung einbinden (nur Profil als Kontext, keine Sonderfälle).
-- [ ] Test: Karte rendert mit und ohne Farben; Suchergebnisse und Freundesliste zeigen sie.
+- [x] `templates/social/_author_card.html`: Profilbild (bestehender `_avatar.html`), Nickname als Link, Kombinationsname als Chip; Größenvarianten klein und mittel.
+- [x] Freundesliste (Tab und Vorschau) und beide Suchen nutzen die Komponente statt eigener Listen-Markup.
+- [x] Mehrere Karten auf einer Seite erzeugen kein doppeltes `id` (D-57).
+- [x] Die Komponente ist so gebaut, dass Beiträge und Kommentare sie später ohne Änderung einbinden (nur Profil als Kontext, keine Sonderfälle).
+- [x] Test: Karte rendert mit und ohne Farben; Suchergebnisse und Freundesliste zeigen sie.
+
+> Umsetzung: Inklusions-Tag `{% author_card profile size="small|medium" %}` (`apps/social/templatetags/social_tags.py`, Template `_author_card.html`) — braucht nur ein Profil, keine Sonderfälle je Einsatzort. Eingesetzt in der Freundesliste (medium), der Freundesvorschau der Sidebar und den offenen Anfragen (small) sowie in beiden Suchen (medium). Das Profilbild ist in der Karte Dekoration (`aria-hidden`), die Kombination steht als Text im Chip. Listen holen Zuordnung und Kombination per Prefetch (`friendships.prefetch_for_cards`), die fünf Farbwerte lädt das Tag einmal je Rendering: zusätzliche Karten kosten keine zusätzlichen Abfragen (per Test abgesichert). Dafür bekam `avatar.segments()` einen optionalen Parameter `hex_by_code`. Im Browser geprüft: Friends-Tab, Nickname- und Farbsuche, keine doppelten ids.
 
 #### 4.9 · Mobiles Layout und Barrierefreiheit
 **Abhängig von:** 4.7, 4.8 · **Anforderungen:** FR-P16, NFR-3, NFR-5, NFR-6
 **Fertig, wenn:**
-- [ ] Bei 375 px: Banner und Kopf gestapelt, Tabs umbrechen, Sidebar-Karten unter dem Hauptbereich, kein horizontales Scrollen, Trefferflächen ausreichend groß.
-- [ ] Tastatur: alle Tabs, Edit-Links und Freundschaftsaktionen erreichbar und sichtbar fokussiert; Bearbeiten-Bereiche setzen den Fokus sinnvoll.
-- [ ] Bereichsüberschriften und Landmarks für Screenreader (`aria-labelledby` an den Karten); Tabs als Navigation mit `aria-current`, nicht als ARIA-Tabs-Widget.
-- [ ] Nach HTMX-Austausch eines Bereichs wird die Änderung angesagt (Live-Region, wie Task 1.9).
-- [ ] Eigenes Skript für Fünfeck-Formularfeld und Bereichsaustausch bleibt klein und ohne Framework.
+- [x] Bei 375 px: Banner und Kopf gestapelt, Tabs umbrechen, Sidebar-Karten unter dem Hauptbereich, kein horizontales Scrollen, Trefferflächen ausreichend groß.
+- [x] Tastatur: alle Tabs, Edit-Links und Freundschaftsaktionen erreichbar und sichtbar fokussiert; Bearbeiten-Bereiche setzen den Fokus sinnvoll.
+- [x] Bereichsüberschriften und Landmarks für Screenreader (`aria-labelledby` an den Karten); Tabs als Navigation mit `aria-current`, nicht als ARIA-Tabs-Widget.
+- [x] Nach HTMX-Austausch eines Bereichs wird die Änderung angesagt (Live-Region, wie Task 1.9).
+- [x] Eigenes Skript für Fünfeck-Formularfeld und Bereichsaustausch bleibt klein und ohne Framework.
+
+> Umsetzung und Prüfung (im Browser bei 375 px, alle Profilseiten samt Bearbeiten-Ansichten und beide Suchen): kein horizontales Scrollen, keine Bedienelemente unter 44 px Höhe mehr — dafür bekamen Tabs, Bearbeiten-Links, Kombinations-Links, Autorenkarten, Einstellungs-Links, Schaltflächen und Eingabefelder `min-height: 2.75rem` (Hilfsklasse `.tap-target`). Die Testhistorie-Tabelle stapelt mobil zu Zeilen mit `data-label`. Tastatur: alle Tabs, Links, Schaltflächen und die Fünfeck-Ecken sind erreichbar und über `:focus-visible` sichtbar fokussiert; nach dem Öffnen eines Bereichs steht der Fokus im ersten Feld (`autofocus`), nach Speichern oder Abbrechen springt er auf den „Edit"-Link zurück (`static/js/profile_sections.js`, 32 Zeilen). Screenreader: Karten, Historie und Anfragen tragen `aria-labelledby`, die Sidebar ist ein beschriftetes `<aside>`, die Tabs eine beschriftete Navigation mit `aria-current` (kein ARIA-Tabs-Widget), Balken nennen die Farbe, Historie-Schaltflächen nennen das Ergebnis (`aria-label`). Die Live-Region `#profile-live-region` steht außerhalb der ausgetauschten Bereiche und sagt „Editing. The form is open.", „Saved." bzw. „Editing cancelled." an (im Browser mit `Saved.` und Fokus auf dem Edit-Link nachgewiesen). Eigenes JavaScript zusammen unter 320 Zeilen, ohne Framework (per Test abgesichert).
 
 #### 4.10 · Release-Durchsicht v1.2
 **Abhängig von:** 4.9 · **Anforderungen:** PRD §11 (v1.2)
 **Fertig, wenn:**
-- [ ] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
-- [ ] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private und Bearbeiten-Adressen leiten andere auf das öffentliche Profil weiter, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
-- [ ] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
-- [ ] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
-- [ ] Backup-Wiederherstellung erneut geprobt.
-- [ ] `DECISIONS.md` ist vollständig, D-56 als ersetzt markiert.
+- [x] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
+- [x] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private und Bearbeiten-Adressen leiten andere auf das öffentliche Profil weiter, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
+- [x] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
+- [x] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
+- [x] Backup-Wiederherstellung erneut geprobt.
+- [x] `DECISIONS.md` ist vollständig, D-56 als ersetzt markiert.
+
+> **Abnahmekriterien PRD §11 (v1.2):**
+> - „Eigenes und fremdes Profil sind dieselbe Seite; private Bereiche sind für andere auf keinem Pfad erreichbar, ihre Adressen leiten auf das öffentliche Profil weiter." — Task 4.1/4.4, `test_profile_page.py`, `test_private_tabs.py` und die Matrix in `test_access_control.py`.
+> - „Nickname, Bio und Farben lassen sich einzeln bearbeiten; das Speichern eines Bereichs verändert nie einen anderen, insbesondere nie die Testverknüpfung." — Task 4.5/4.6, `test_profile_sections.py`, `test_profile_colors.py`, `test_profile_edit.py` (D-72).
+> - „Farben sind aus einem Testergebnis oder manuell am Fünfeck wählbar, mit und ohne JavaScript." — Task 4.6, im Browser mit JavaScript (Fünfeck, Maus, Leertaste) und ohne (Klasse `js` entfernt: Kästchen) nachgewiesen.
+> - „Banner, Tabs und Sidebar funktionieren mit Tastatur und Screenreader und bei 375 px ohne horizontales Scrollen." — Task 4.2/4.3/4.7/4.9, im Browser über zehn Seiten bei 375 px gemessen (kein Überlauf, keine Bedienelemente unter 44 px), Struktur und Ansagetexte per `test_profile_accessibility.py`. Nicht abgedeckt: ein Durchlauf mit einem echten Screenreader (VoiceOver/NVDA).
+> - „Die Autorenkarte erscheint in Freundeslisten und Suchergebnissen." — Task 4.8, `test_author_card.py`.
+>
+> **Zugriffsschutz:** Neue Matrix `apps/social/tests/test_access_control.py` läuft über **alle** Adressmuster der Social-App: ohne Gate-Cookie überall Weiterleitung zum Gate, ohne Anmeldung überall zum Login (GET und POST), für Testhistorie, Einstellungen und alle drei Bearbeiten-Adressen leitet jede andere Person (GET und POST) leer auf das öffentliche Profil weiter, die eigene Person erreicht sie, ein unbekannter Nickname liefert 404. Ein Test lädt sämtliche Adressen eines fremden Profils (samt Suche und Listen) und weist nach, dass nicht übernommene Historieneinträge nirgends vorkommen; fremde Historieneinträge lassen sich weder löschen noch übernehmen. Ein neu hinzugefügtes Adressmuster ohne Zuordnung in der Matrix lässt einen Test fehlschlagen.
+>
+> **Gegen `ARCHITECTURE.md`:** keine Migrationen, keine neuen Abhängigkeiten, `compose*.yaml`/`Dockerfile`/`Caddyfile` unverändert (`git diff main` leer). Bewusste, dokumentierte Erweiterungen: rund 280 Zeilen eigenes JavaScript in fünf kleinen Skripten (davon 83 neu in v1.2, ohne Framework, jede Funktion auch ohne Skript nutzbar; jetzt in §4.3.1 festgehalten und per Test begrenzt), der Decorator `owner_only` (neue Zeile in §7) und die Projektstruktur (§5). Das Fünfeck-Formularfeld weicht von D-56 ab und ist als D-74 dokumentiert.
+>
+> **Bestandsdaten:** Ohne Migrationen bleibt das Schema unverändert. Zusätzlich ein Vorher-nachher-Vergleich: Datensatz mit übernommenem Testergebnis, manueller Farbwahl, gelöschter Referenz, Profil ohne Farben, angenommenen und offenen Freundschaften; alle Tabellen (`accounts_profile`, `accounts_colorassignment`, `quiz_testresult`, `social_friendship`, `accounts_user` ohne `last_login`) vor und nach **196 Anfragen** (jede Adresse jedes Profils aus Sicht jedes Testkontos, dazu unveränderte Bio-, Nickname- und Farben-Formulare) — Zeile für Zeile identisch, kein einziger Fehlerstatus.
+>
+> **Backup-Wiederherstellung:** erneut geprobt (siehe `docs/DEPLOYMENT.md`), Zeilenzahlen, Constraints und Inhaltsprüfsumme identisch.
+>
+> **`DECISIONS.md`:** 74 Einträge (D-01 bis D-74), lückenlos, keiner „Offen"; D-56 als ersetzt durch D-74 markiert, D-73 um den Namen des Decorators präzisiert.
 
 **Meilenstein v1.2 abgeschlossen** — das Profil ist bereit für Blogbeiträge und Kommentare.
 

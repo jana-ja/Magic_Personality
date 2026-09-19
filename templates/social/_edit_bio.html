@@ -1,0 +1,16 @@
+{% load i18n %}
+{% comment %} Bio bearbeiten (Task 4.5, FR-P12): eigenes Formular, eigener Endpunkt. Mit HTMX tauscht
+   sich der Bereich an Ort und Stelle (der Server antwortet auf das POST mit der Profilseite, hx-select
+   holt den Bereich heraus); ohne JavaScript ist es ein normales POST mit Weiterleitung. {% endcomment %}
+<form method="post" action="{% url 'social:edit_bio' nickname=profile.nickname %}" class="profile-edit-form"
+      hx-post="{% url 'social:edit_bio' nickname=profile.nickname %}" hx-target="#profile-bio" hx-select="#profile-bio" hx-select-oob="#profile-head-bio" hx-swap="outerHTML">
+  {% csrf_token %}
+  <label for="{{ edit_form.bio.id_for_label }}">{{ edit_form.bio.label }}</label>
+  {{ edit_form.bio }}
+  {% for error in edit_form.bio.errors %}
+    <p class="form-errors" role="alert">{{ error }}</p>
+  {% endfor %}
+  <button type="submit">{% translate "Save bio" %}</button>
+  <a href="{{ profile.get_absolute_url }}"
+     hx-get="{{ profile.get_absolute_url }}" hx-target="#profile-bio" hx-select="#profile-bio" hx-swap="outerHTML">{% translate "Cancel" %}</a>
+</form>

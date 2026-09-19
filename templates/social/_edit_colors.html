@@ -1,0 +1,46 @@
+{% load i18n %}
+{% comment %} Farben bearbeiten (Task 4.6, FR-P13): ein Formular, eine Auswahl aus zwei Wegen —
+   ein Testergebnis der eigenen Historie (Radio je Eintrag) oder die manuelle Wahl von 1 bis 5
+   Farben. Bewusst ein normales POST ohne HTMX: die Farben ändern Banner, Profilbild und
+   Kombination im Kopf, das verlangt eine echte Navigation (wie beim Nickname). {% endcomment %}
+<form method="post" action="{% url 'social:edit_colors' nickname=profile.nickname %}" class="profile-edit-form color-edit">
+  {% csrf_token %}
+  {% for error in edit_form.non_field_errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+  {% for error in edit_form.choice.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+
+  {% with chosen=edit_form.choice.value|default:"manual"|stringformat:"s" %}
+    <fieldset class="color-edit__group">
+      <legend>{% translate "Use a test result" %}</legend>
+      {% if test_results %}
+        {% for result in test_results %}
+          <label class="color-edit__option">
+            <input type="radio" name="choice" value="{{ result.pk }}"{% if chosen == result.pk|stringformat:"s" %} checked{% endif %}>
+            <span>
+              {{ result.taken_at|date:"Y-m-d" }} · {{ result.combination.name }} ·
+              {% for code, points in result.ordered_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% if result.is_adopted %}<em>({% translate "shown in profile" %})</em>{% endif %}
+            </span>
+          </label>
+        {% endfor %}
+      {% else %}
+        <p>
+          {% translate "You haven't taken the test yet." %}
+          <a href="{% url 'quiz:take_test' %}">{% translate "Take the test" %}</a>
+        </p>
+      {% endif %}
+    </fieldset>
+
+    <fieldset class="color-edit__group">
+      <legend>{% translate "Choose manually" %}</legend>
+      <label class="color-edit__option">
+        <input type="radio" name="choice" value="manual"{% if chosen == "manual" %} checked{% endif %}>
+        <span>{% translate "Pick 1 to 5 colors, or none to clear them." %}</span>
+      </label>
+      {% include "social/_color_field.html" %}
+    </fieldset>
+  {% endwith %}
+
+  <button type="submit">{% translate "Save colors" %}</button>
+  <a href="{{ profile.get_absolute_url }}"
+     hx-get="{{ profile.get_absolute_url }}" hx-target="#profile-colors" hx-select="#profile-colors" hx-swap="outerHTML">{% translate "Cancel" %}</a>
+</form>

@@ -1,0 +1,60 @@
+{% load i18n %}
+{% comment %} Kopfbereich der Profilseite (Task 4.2, FR-P10, D-73). Banner aus
+   gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge — dieselben
+   `segments` wie beim Profilbild (apps/accounts/avatar.py), Farben nur über
+   die Custom Property je Streifen. Ohne Farben ein neutraler Balken.
+   Alle Texte stehen auf der Seitenfläche, nie auf den Bannerfarben: der
+   Kontrast hängt so nicht von der Farbwahl ab (NFR-6). Das Banner ist
+   Dekoration (aria-hidden); die Farben nennen Kombinationsname und Text. {% endcomment %}
+<header class="profile-head">
+  <div class="profile-banner" aria-hidden="true">
+    {% for segment in segments %}
+      <span class="profile-banner__stripe" style="--segment-color: {{ segment.hex }};"></span>
+    {% empty %}
+      <span class="profile-banner__stripe profile-banner__stripe--neutral"></span>
+    {% endfor %}
+  </div>
+
+  <div class="profile-head__body">
+    <div class="profile-head__avatar">
+      {% include "accounts/_avatar.html" %}
+    </div>
+
+    <div class="profile-head__id">
+      {% comment %} Nickname (Task 4.5): für die eigene Person mit Bearbeiten-Zugang. Der Bereich
+         hat eine feste id, damit HTMX ihn aus der Bearbeiten-Seite herausholen und an Ort und
+         Stelle tauschen kann (D-24) — ohne JavaScript folgt der Link normal auf diese Seite. {% endcomment %}
+      <div id="profile-name">
+        <h1 class="profile-head__name">{{ profile.nickname }}</h1>
+        {% if is_owner %}
+          {% if editing == "nickname" %}
+            {% include "social/_edit_nickname.html" %}
+          {% else %}
+            <a class="profile-edit-link" href="{% url 'social:edit_nickname' nickname=profile.nickname %}"
+               hx-get="{% url 'social:edit_nickname' nickname=profile.nickname %}" hx-target="#profile-name" hx-select="#profile-name" hx-swap="outerHTML">{% translate "Edit nickname" %}</a>
+          {% endif %}
+        {% endif %}
+      </div>
+      {% if combination %}
+        <p class="profile-head__combination">
+          <a href="{% url 'colors:combination' code=combination.code|lower %}">{{ combination.name }}</a>
+        </p>
+      {% endif %}
+      {% comment %} Feste id, damit der HTMX-Austausch der Bio (templates/social/_edit_bio.html)
+         auch diese Kurzfassung im Kopf mitzieht (hx-select-oob) — sie bleibt sonst veraltet. {% endcomment %}
+      <div id="profile-head-bio">
+        {% if profile.bio %}
+          <p class="profile-head__bio">{{ profile.bio|truncatechars:140 }}</p>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="profile-head__action">
+      {% if is_owner %}
+        <span class="profile-head__you">{% translate "you" %}</span>
+      {% else %}
+        {% include "social/_friend_action.html" %}
+      {% endif %}
+    </div>
+  </div>
+</header>
