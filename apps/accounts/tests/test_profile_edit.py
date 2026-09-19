@@ -1,6 +1,7 @@
 """
-Tests für die Farbwahl im Profil (Task 2.4, FR-P1, FR-P4; seit Task 4.5 nur noch
-Farben — Nickname und Bio siehe apps/social/tests/test_profile_sections.py).
+Tests für das Speichern der Farben im Profil (Task 2.4, FR-P1, FR-P4, D-72; seit Task 4.6
+über /u/<nickname>/edit/colors/ — Nickname und Bio siehe test_profile_sections.py, die
+Wahl zwischen Testergebnis und Fünfeck siehe apps/social/tests/test_profile_colors.py).
 """
 
 import pytest
@@ -11,7 +12,7 @@ from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
 
-PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
+PROFILE_URL = "/u/alex/edit/colors/"  # Farben speichern (POST)
 PROFILE_PAGE = "/u/alex/"
 
 

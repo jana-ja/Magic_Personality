@@ -9,10 +9,13 @@ damit dieselbe Seite — die zweite nur, um Formularfehler auf derselben
 Vorlage anzuzeigen, bis Task 4.5 die Bereiche einzeln bearbeitbar macht.
 """
 
+from dataclasses import dataclass
+
 from apps.accounts import avatar
 from apps.accounts.forms import BioForm, ColorsForm, NicknameForm
+from apps.colors import pentagon
 from apps.colors.content import LOCALE
-from apps.colors.models import ColorCombination
+from apps.colors.models import Color, ColorCombination
 
 from . import friendships
 from .models import Friendship
@@ -81,7 +84,7 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
     die beiden rufen nur Views auf, die vorher `owner_only` passiert haben.
 
-    `editing` (`"nickname"` oder `"bio"`, Task 4.5) schaltet den jeweiligen
+    `editing` (`"nickname"`, `"bio"` oder `"colors"`, Task 4.5/4.6) schaltet den jeweiligen
     Bereich der Seite in den Bearbeiten-Modus, `edit_form` ist dessen
     (ggf. gebundenes, fehlerhaftes) Formular.
 
@@ -124,20 +127,62 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     if is_owner:
         context["editing"] = editing
         context["edit_form"] = edit_form
-        context["colors_form"] = ColorsForm(
-            initial={"colors": list(assignment.combination.code) if assignment else []},
-            profile=profile,
-        )
+        if editing == "colors":
+            context["test_results"] = history_with_combinations(profile, assignment)
+            context.update(color_field_context(set(edit_form["colors"].value() or [])))
     return context
 
 
+@dataclass(frozen=True)
+class FieldVertex:
+    """Eine Ecke des Fünfecks als Formularfeld (Task 4.6): die Geometrie aus
+    `apps.colors.pentagon` plus, ob die Farbe gerade angekreuzt ist."""
+
+    vertex: pentagon.Vertex
+    is_selected: bool
+
+
+def color_field_context(selected_codes):
+    """
+    Kontext für `social/_color_field.html`: dieselbe Geometrie wie das
+    Fünfeck in den Color Infos und in der Farbsuche (`pentagon.vertices()`,
+    `outline_points()`, `star_points()`, `view_box()`, D-27/D-66) — hier
+    ohne Linienbeschriftungen und ohne Links, die Ecken sind Kästchen.
+    """
+    vertices = pentagon.vertices(Color.objects.all())
+    return {
+        "field_vertices": [
+            FieldVertex(vertex=vertex, is_selected=vertex.code in selected_codes)
+            for vertex in vertices
+        ],
+        "field_outline_points": pentagon.outline_points(vertices),
+        "field_star_points": pentagon.star_points(vertices),
+        "field_view_box": pentagon.view_box(vertices),
+        "field_name_size": pentagon.NAME_SIZE,
+        "field_has_selection": bool(selected_codes),
+    }
+
+
 def edit_form_for(section, profile, data=None):
-    """Das Formular zu einem Bearbeiten-Bereich (Task 4.5): `"nickname"`
-    oder `"bio"`, ungebunden mit dem aktuellen Wert oder gebunden an `data`."""
+    """Das Formular zu einem Bearbeiten-Bereich (Task 4.5/4.6): `"nickname"`,
+    `"bio"` oder `"colors"`, ungebunden mit dem aktuellen Wert oder gebunden
+    an `data`."""
     if section == "nickname":
         if data is None:
             return NicknameForm(initial={"nickname": profile.nickname}, profile=profile)
         return NicknameForm(data, profile=profile)
-    if data is None:
-        return BioForm(initial={"bio": profile.bio}, profile=profile)
-    return BioForm(data, profile=profile)
+    if section == "bio":
+        if data is None:
+            return BioForm(initial={"bio": profile.bio}, profile=profile)
+        return BioForm(data, profile=profile)
+    if data is not None:
+        return ColorsForm(data, profile=profile)
+    assignment = profile.color_assignments.select_related("combination").first()
+    adopted = assignment.test_result_id if assignment else None
+    return ColorsForm(
+        initial={
+            "choice": str(adopted) if adopted else ColorsForm.MANUAL,
+            "colors": list(assignment.combination.code) if assignment else [],
+        },
+        profile=profile,
+    )

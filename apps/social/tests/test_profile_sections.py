@@ -292,21 +292,13 @@ def test_an_unknown_person_is_a_404(gated_client, alex, section):
 # Farben bleiben unberührt --------------------------------------------------------------------
 
 
-def test_the_colors_form_no_longer_carries_nickname_or_bio(gated_client, alex):
-    gated_client.force_login(alex.user)
-
-    html = gated_client.get("/u/alex/").content.decode()
-    form = re.search(r'<form method="post" action="/accounts/profile/">.*?</form>', html, re.S)
-
-    assert 'name="colors"' in form.group(0)
-    assert 'name="nickname"' not in form.group(0)
-    assert 'name="bio"' not in form.group(0)
-
-
 def test_saving_the_colors_leaves_nickname_and_bio_alone(gated_client, alex):
     gated_client.force_login(alex.user)
 
-    gated_client.post("/accounts/profile/", {"colors": ["W", "U"], "nickname": "x", "bio": "x"})
+    gated_client.post(
+        "/u/alex/edit/colors/",
+        {"choice": "manual", "colors": ["W", "U"], "nickname": "x", "bio": "x"},
+    )
 
     alex.refresh_from_db()
     assert alex.nickname == "alex"

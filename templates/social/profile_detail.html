@@ -35,28 +35,36 @@
     </section>
   {% endif %}
 
-  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail. {% endcomment %}
-  <h2>{% translate "Colors" %}</h2>
-  {% if combination %}
-    <p>
-      <a href="{% url 'colors:combination' code=combination.code|lower %}">
-        {{ combination.name }}
-      </a>
-    </p>
-    {% if test_scores %}
-      {% comment %} D-70: Punkteverteilung des Testergebnisses, aus dem diese
-         Farben übernommen wurden (nur bei source = SELF_TEST, sonst
-         ist test_scores None). Nur die Punkte, keine Historie (D-19). {% endcomment %}
-      <p class="profile-test-scores">
-        {% translate "Points from the test result:" %}
-        {% for code, points in test_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
-      </p>
+  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail. Für die eigene Person
+     mit Bearbeiten-Zugang (Task 4.6); feste id für den HTMX-Austausch wie bei Nickname
+     und Bio. {% endcomment %}
+  <section id="profile-colors" aria-labelledby="colors-heading">
+    <h2 id="colors-heading">{% translate "Colors" %}</h2>
+    {% if is_owner and editing == "colors" %}
+      {% include "social/_edit_colors.html" %}
+    {% else %}
+      {% if combination %}
+        <p>
+          <a href="{% url 'colors:combination' code=combination.code|lower %}">
+            {{ combination.name }}
+          </a>
+        </p>
+        {% if test_scores %}
+          {% comment %} D-70: Punkteverteilung des Testergebnisses, aus dem diese
+             Farben übernommen wurden (nur bei source = SELF_TEST, sonst
+             ist test_scores None). Nur die Punkte, keine Historie (D-19). {% endcomment %}
+          <p class="profile-test-scores">
+            {% translate "Points from the test result:" %}
+            {% for code, points in test_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          </p>
+        {% endif %}
+      {% else %}
+        <p>{% translate "No colors set yet." %}</p>
+      {% endif %}
+      {% if is_owner %}
+        <a class="profile-edit-link" href="{% url 'social:edit_colors' nickname=profile.nickname %}"
+           hx-get="{% url 'social:edit_colors' nickname=profile.nickname %}" hx-target="#profile-colors" hx-select="#profile-colors" hx-swap="outerHTML">{% translate "Edit colors" %}</a>
+      {% endif %}
     {% endif %}
-  {% else %}
-    <p>{% translate "No colors set yet." %}</p>
-  {% endif %}
-
-  {% if is_owner %}
-    {% include "social/_owner_colors_form.html" %}
-  {% endif %}
+  </section>
 {% endblock %}

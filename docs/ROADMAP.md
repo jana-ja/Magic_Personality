@@ -505,12 +505,14 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.6 · Farben bearbeiten: Testergebnis übernehmen oder am Fünfeck wählen
 **Abhängig von:** 4.5, 1.9 · **Anforderungen:** FR-P13, FR-P4, FR-P5, FR-P8, D-56, D-72
 **Fertig, wenn:**
-- [ ] Eigenes Formular mit zwei Wegen: ein Testergebnis aus der Historie wählen (Radio je Eintrag mit Datum, Punkten, Kombination) oder manuell 1 bis 5 Farben wählen.
-- [ ] Testergebnis wählen setzt `source = SELF_TEST` und die Testreferenz (wie `adopt_result`); manuelle Wahl setzt `SELF_MANUAL` und leert die Referenz **nur bei tatsächlicher Änderung** (D-72).
-- [ ] Manuelle Wahl am Fünfeck mit derselben Geometrie/Darstellung wie in `apps.colors` und der Suche (D-66). Ohne JavaScript bleiben fünf Kontrollkästchen, mit JavaScript schaltet das Fünfeck die Kästchen; eigenes Skript klein, kein Framework (ARCHITECTURE.md §4.3).
-- [ ] Ohne Farben speichern entfernt die Zuordnung (wie bisher).
-- [ ] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
-- [ ] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
+- [x] Eigenes Formular mit zwei Wegen: ein Testergebnis aus der Historie wählen (Radio je Eintrag mit Datum, Punkten, Kombination) oder manuell 1 bis 5 Farben wählen.
+- [x] Testergebnis wählen setzt `source = SELF_TEST` und die Testreferenz (wie `adopt_result`); manuelle Wahl setzt `SELF_MANUAL` und leert die Referenz **nur bei tatsächlicher Änderung** (D-72).
+- [x] Manuelle Wahl am Fünfeck mit derselben Geometrie/Darstellung wie in `apps.colors` und der Suche (D-66). Ohne JavaScript bleiben fünf Kontrollkästchen, mit JavaScript schaltet das Fünfeck die Kästchen; eigenes Skript klein, kein Framework (ARCHITECTURE.md §4.3).
+- [x] Ohne Farben speichern entfernt die Zuordnung (wie bisher).
+- [x] Neue Entscheidung ersetzt D-56 (Status *Ersetzt*), Begründung: die Bereiche sind jetzt getrennte Formulare, das ursprüngliche Gegenargument (mehrere Felder in einem POST) entfällt.
+- [x] Test: Testergebnis wählen setzt Referenz und Punkte erscheinen im fremden Profil; unveränderte manuelle Wahl lässt die Referenz stehen; Bio/Nickname-Speichern fasst die Farben nie an.
+
+> Umsetzung siehe D-74 (ersetzt D-56). Endpunkt `/u/<nickname>/edit/colors/` (`owner_only`), `ColorsForm` mit `choice` (Testergebnis-Primärschlüssel oder „manual") und `colors`; gemeinsame Übernahme-Funktion `apps/accounts/color_assignments.py:adopt_test_result` für Ergebnisseite, Historie und Formular. Fünfeck-Feld in `templates/social/_color_field.html` (Geometrie aus `apps.colors.pentagon`, Ecken als `role="checkbox"`), `static/js/profile_colors.js` 50 Zeilen. Im Browser mit JavaScript geprüft (Fünfeck statt Kästchen, Mausklick und Leertaste, beide Wege speichern, Kopf und Banner ziehen mit) und ohne (Klasse `js` entfernt: Kästchen sichtbar, Fünfeck versteckt). Speichern ist bewusst ein normales POST, weil sich der Kopf ändert.
 
 #### 4.7 · Pinnwand-Platzhalter und Sidebar
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P14, D-70, NFR-6

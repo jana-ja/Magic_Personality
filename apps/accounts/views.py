@@ -12,13 +12,13 @@ from django.conf import settings
 from django.contrib.auth import login, logout
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
-from django.views.decorators.http import require_http_methods, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
 from apps.quiz.models import TestResult
 
-from .forms import ColorsForm, RegistrationForm
+from .forms import RegistrationForm
 from .models import Profile
 
 
@@ -70,24 +70,17 @@ def delete_account(request):
 
 
 @login_required
-@require_http_methods(["GET", "POST"])
+@require_GET
 def profile(request):
     """
-    FR-P1/FR-P4: Speichern der Farben. Die Profilseite selbst ist seit Task
-    4.1 (FR-P9, D-73) `/u/<nickname>/` — GET auf diese alte Adresse leitet
-    dorthin weiter. POST speichert die Farbwahl (Nickname und Bio haben
-    seit Task 4.5 eigene Endpunkte, Task 4.6 ersetzt auch diesen) und
-    leitet zurück auf das Profil. `get_object_or_404` statt
+    Alte Adresse der Profilseite: seit Task 4.1 (FR-P9, D-73) ist sie
+    `/u/<nickname>/`, seit Task 4.6 gibt es hier auch kein Speichern mehr
+    (Farben: `/u/<nickname>/edit/colors/`). `get_object_or_404` statt
     `request.user.profile`: ein per `createsuperuser` angelegter Account
     hat kein Profil (Task 0.2/2.1, D-22) — das ergibt hier eine klare 404
     statt eines Serverfehlers.
     """
-    profile = get_object_or_404(Profile, user=request.user)
-    if request.method == "POST":
-        form = ColorsForm(request.POST, profile=profile)
-        if form.is_valid():
-            form.save()
-    return redirect(profile)
+    return redirect(get_object_or_404(Profile, user=request.user))
 
 
 @login_required

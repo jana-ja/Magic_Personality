@@ -1,7 +1,13 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n static %}
 
 {% block title %}{{ profile.nickname }}{% endblock %}
+
+{% block extra_head %}
+  {% comment %} Farbwahl als Fünfeck (Task 4.6): Ereignisse per Delegation, deshalb auf jeder
+     Profilseite geladen — auch das per HTMX nachgeladene Formular funktioniert. {% endcomment %}
+  <script src="{% static 'js/profile_colors.js' %}" defer></script>
+{% endblock %}
 
 {% block content %}
   {% comment %} Gemeinsames Gerüst aller Profil-Tabs (Task 4.3): Kopfbereich

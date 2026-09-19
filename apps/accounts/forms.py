@@ -10,6 +10,7 @@ from apps.colors.content import LOCALE
 from apps.colors.models import Color, ColorCombination
 from apps.colors.utils import canonical_code
 
+from .color_assignments import adopt_test_result
 from .models import ColorAssignment, Profile, User
 
 
@@ -137,11 +138,20 @@ class BioForm(forms.Form):
 
 class ColorsForm(forms.Form):
     """
-    Farben ändern (Task 2.4, FR-P4; seit Task 4.5 ohne Nickname und Bio).
-    Fünf Kontrollkästchen (W/U/B/R/G) — Task 4.6 ersetzt das Formular durch
-    die Wahl zwischen Testergebnis und Fünfeck.
+    Farben ändern (Task 4.6, FR-P4, FR-P5, FR-P13). Eine Auswahl aus
+    zwei Wegen: ein Testergebnis der eigenen Historie (`choice` = dessen
+    Primärschlüssel) oder die manuelle Wahl von 1 bis 5 Farben (`choice` =
+    `"manual"`). Fehlt `choice`, gilt `"manual"` — so bleibt das alte
+    Abschicken nur mit Farben gültig.
+
+    `colors` sind fünf Kontrollkästchen; das Fünfeck im Profil ist nur eine
+    Bedienhilfe darüber (templates/social/_color_field.html, Task 4.6) und
+    schickt dieselben Felder ab.
     """
 
+    MANUAL = "manual"
+
+    choice = forms.CharField(required=False)
     colors = forms.MultipleChoiceField(
         label=_("Colors"),
         required=False,
@@ -151,9 +161,27 @@ class ColorsForm(forms.Form):
 
     def __init__(self, *args, profile, **kwargs):
         self.profile = profile
+        self.test_result = None
         super().__init__(*args, **kwargs)
 
+    def clean_choice(self):
+        choice = self.cleaned_data["choice"].strip() or self.MANUAL
+        if choice == self.MANUAL:
+            return choice
+        # Nur Einträge der eigenen Historie: `profile.test_results` ist die
+        # Grenze, ein fremder Primärschlüssel ist hier schlicht ungültig.
+        if not choice.isdigit():
+            raise ValidationError(_("Choose one of your test results or pick the colors yourself."))
+        self.test_result = self.profile.test_results.filter(pk=int(choice)).first()
+        if self.test_result is None:
+            raise ValidationError(_("Choose one of your test results or pick the colors yourself."))
+        return choice
+
     def save(self):
+        if self.test_result is not None:
+            adopt_test_result(self.test_result)
+            return
+
         # Nur anfassen, was sich tatsächlich geändert hat (D-72): ein
         # unverändert abgeschicktes Formular darf die Testreferenz nicht
         # überschreiben (FR-P5).

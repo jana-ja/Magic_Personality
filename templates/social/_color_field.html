@@ -1,0 +1,35 @@
+{% load i18n l10n static %}
+{% comment %} Farbwahl als Formularfeld (Task 4.6, FR-P13, D-74): dieselbe Geometrie und dieselben
+   CSS-Klassen wie das Fünfeck in den Color Infos und in der Farbsuche (apps/colors/pentagon.py bleibt
+   die einzige Quelle für Koordinaten, D-27/D-66) — hier als Kästchen statt als Links.
+
+   Ohne JavaScript bleiben die fünf echten Kontrollkästchen (name="colors") sichtbar und das Fünfeck
+   ausgeblendet. Mit JavaScript (static/js/profile_colors.js setzt die Klasse "js") verschwinden die
+   Kästchen und das Fünfeck übernimmt: jede Ecke ist ein role="checkbox" mit Tastatur (Leertaste/Enter)
+   und schaltet das dahinterliegende echte Kästchen — abgeschickt werden immer dessen Werte. {% endcomment %}
+<div class="color-field__checkboxes">
+  {{ edit_form.colors }}
+</div>
+{% for error in edit_form.colors.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+
+{% localize off %}
+<svg class="pentagon color-field__pentagon" viewBox="{{ field_view_box }}" role="group" aria-label="{% translate 'Colors' %}">
+  <polygon class="pentagon__outline" points="{{ field_outline_points }}"/>
+  <polygon class="pentagon__star" points="{{ field_star_points }}"/>
+  {% for item in field_vertices %}
+    <g class="pentagon__vertex color-field__vertex{% if field_has_selection %}{% if item.is_selected %} pentagon__vertex--selected{% else %} pentagon__vertex--unselected{% endif %}{% endif %}"
+       data-color="{{ item.vertex.code }}" role="checkbox" tabindex="0"
+       aria-checked="{% if item.is_selected %}true{% else %}false{% endif %}"
+       aria-label="{{ item.vertex.name }}"
+       style="--halo: {{ item.vertex.halo }};">
+      <circle class="pentagon__halo" cx="{{ item.vertex.x }}" cy="{{ item.vertex.y }}" r="{{ item.vertex.symbol_size }}"/>
+      <image class="pentagon__symbol" href="{% static item.vertex.symbol %}"
+             x="{{ item.vertex.symbol_x }}" y="{{ item.vertex.symbol_y }}"
+             width="{{ item.vertex.symbol_size }}" height="{{ item.vertex.symbol_size }}"/>
+      <text class="pentagon__name" x="{{ item.vertex.label_x }}" y="{{ item.vertex.label_y }}"
+            font-size="{{ field_name_size }}" text-anchor="{{ item.vertex.text_anchor }}"
+            dominant-baseline="{{ item.vertex.baseline }}">{{ item.vertex.name }}</text>
+    </g>
+  {% endfor %}
+</svg>
+{% endlocalize %}

@@ -21,6 +21,12 @@ urlpatterns = [
         name="edit_nickname",
     ),
     path(
+        "u/<str:nickname>/edit/colors/",
+        views.edit_profile_section,
+        {"section": "colors"},
+        name="edit_colors",
+    ),
+    path(
         "u/<str:nickname>/edit/bio/",
         views.edit_profile_section,
         {"section": "bio"},

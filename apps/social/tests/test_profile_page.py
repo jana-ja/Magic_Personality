@@ -42,7 +42,7 @@ def test_own_profile_shows_the_edit_form_and_private_sections(gated_client, alex
 
     html = gated_client.get("/u/alex/").content.decode()
 
-    assert 'action="/accounts/profile/"' in html
+    assert 'href="/u/alex/edit/colors/"' in html
     assert 'href="/u/alex/edit/nickname/"' in html
     assert 'href="/u/alex/edit/bio/"' in html
     assert "Alex bio." in html
@@ -64,7 +64,7 @@ def test_own_profile_is_found_case_insensitively(gated_client, alex):
     response = gated_client.get("/u/ALEX/")
 
     assert response.status_code == 200
-    assert 'action="/accounts/profile/"' in response.content.decode()
+    assert 'href="/u/alex/edit/colors/"' in response.content.decode()
 
 
 # Fremde Person: nichts davon ------------------------------------------------
@@ -76,7 +76,7 @@ def test_foreign_profile_shows_no_edit_form_and_no_private_sections(gated_client
 
     html = gated_client.get("/u/jamie/").content.decode()
 
-    assert 'action="/accounts/profile/"' not in html
+    assert "/edit/" not in html
     assert "/history/" not in html
     assert "/settings/" not in html
     assert "Jamie bio." in html
@@ -102,13 +102,13 @@ def test_an_account_without_a_profile_gets_a_404_on_the_old_address(gated_client
     assert gated_client.get("/accounts/profile/").status_code == 404
 
 
-def test_saving_redirects_to_the_profile_page(gated_client, alex):
+def test_the_old_address_no_longer_saves_anything(gated_client, alex):
     gated_client.force_login(alex.user)
 
-    response = gated_client.post("/accounts/profile/", {"colors": []})
+    response = gated_client.post("/accounts/profile/", {"colors": ["W"]})
 
-    assert response.status_code == 302
-    assert response.url == "/u/alex/"
+    assert response.status_code == 405
+    assert not ColorAssignment.objects.filter(profile=alex).exists()
 
 
 def test_deleting_a_history_entry_returns_to_the_history_tab(gated_client, alex):
