@@ -995,6 +995,7 @@ button {
   display: flex;
   gap: var(--space-2);
   align-items: flex-start;
+  min-height: 2.75rem;
   margin-bottom: var(--space-1);
 }
 
@@ -1160,4 +1161,93 @@ button {
 
 .author-list > li {
   margin-bottom: var(--space-2);
+}
+
+/* Mobil und Bedienbarkeit des Profils (Task 4.9, FR-P16, NFR-3, NFR-5) ---
+   Trefferflächen mindestens 44 px hoch; die Tab-Leiste bricht um statt zu
+   scrollen; die Historie-Tabelle wird mobil zu gestapelten Zeilen, damit die
+   Seite bei 375 px nicht seitlich scrollt. */
+
+.profile-tabs a,
+.profile-edit-link,
+.profile-edit-form a,
+.profile-card > a,
+.author-card__name,
+.profile-head__action button,
+.profile-edit-form button,
+.friend-requests button,
+.test-history button,
+.profile-head__combination a,
+.profile-card__lead a,
+.profile-settings a,
+.test-history a,
+.tap-target {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+main input:not([type="checkbox"]):not([type="radio"]),
+main button {
+  min-height: 2.75rem;
+}
+
+.profile-tabs a {
+  padding-inline: var(--space-2);
+}
+
+.test-history button {
+  padding: 0 var(--space-2);
+}
+
+.author-card {
+  min-height: 2.75rem;
+}
+
+.friend-requests li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.friend-requests form {
+  margin: 0;
+}
+
+@media (max-width: 47.9375rem) {
+  .test-history,
+  .test-history tbody,
+  .test-history tr,
+  .test-history td {
+    display: block;
+    width: 100%;
+  }
+
+  .test-history thead {
+    /* Die Kopfzeile ersetzt mobil das data-label je Zelle, bleibt aber für
+       Screenreader lesbar. */
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+  }
+
+  .test-history tr {
+    padding: var(--space-2) 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .test-history td {
+    border-bottom: 0;
+    padding: var(--space-1) 0;
+    overflow-wrap: anywhere;
+  }
+
+  .test-history td[data-label]::before {
+    content: attr(data-label) ": ";
+    color: var(--color-muted);
+    font-weight: 600;
+  }
 }

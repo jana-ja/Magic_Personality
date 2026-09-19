@@ -4,7 +4,8 @@
 {% block tab_content %}
   {% comment %} Tab "Test history" (Task 4.4, FR-P6, FR-P7): nur die eigene Person
      erreicht diese Seite (apps/social/decorators.py:owner_only). {% endcomment %}
-  <h2>{% translate "Test history" %}</h2>
+  <section aria-labelledby="history-heading">
+  <h2 id="history-heading">{% translate "Test history" %}</h2>
   {% comment %} FR-P6: nur im eigenen Profil sichtbar, Datum, Punkte und
      Ergebnis je Eintrag. Fremde Historie hat keinen Pfad hierher — der View
      läuft erst nach owner_only, das Profil ist dort immer das eigene. {% endcomment %}
@@ -22,13 +23,13 @@
       <tbody>
         {% for result in test_results %}
           <tr>
-            <td>{{ result.taken_at|date:"Y-m-d H:i" }}</td>
-            <td>
+            <td data-label="{% translate 'Date' %}">{{ result.taken_at|date:"Y-m-d H:i" }}</td>
+            <td data-label="{% translate 'Result' %}">
               <a href="{% url 'colors:combination' code=result.result_colors|lower %}">
                 {{ result.combination.name }}
               </a>
             </td>
-            <td>
+            <td data-label="{% translate 'Points' %}">
               {% for code, points in result.ordered_scores %}{{ code }}: {{ points }}{% if not forloop.last %}, {% endif %}{% endfor %}
             </td>
             <td>
@@ -41,14 +42,14 @@
               {% else %}
                 <form method="post" action="{% url 'quiz:adopt_result' result.pk %}">
                   {% csrf_token %}
-                  <button type="submit">{% translate "Use for profile" %}</button>
+                  <button type="submit" aria-label="{% blocktranslate with date=result.taken_at|date:'Y-m-d' name=result.combination.name %}Use the {{ name }} result from {{ date }} for your profile{% endblocktranslate %}">{% translate "Use for profile" %}</button>
                 </form>
               {% endif %}
             </td>
             <td>
               <form method="post" action="{% url 'delete_test_result' result.pk %}">
                 {% csrf_token %}
-                <button type="submit">{% translate "Delete" %}</button>
+                <button type="submit" aria-label="{% blocktranslate with date=result.taken_at|date:'Y-m-d' name=result.combination.name %}Delete the {{ name }} result from {{ date }}{% endblocktranslate %}">{% translate "Delete" %}</button>
               </form>
             </td>
           </tr>
@@ -61,4 +62,5 @@
       <a href="{% url 'quiz:take_test' %}">{% translate "Take the test" %}</a>
     </p>
   {% endif %}
+  </section>
 {% endblock %}

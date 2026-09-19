@@ -18,8 +18,8 @@
     {% else %}
       <p>{% translate "No profiles found." %}</p>
     {% endif %}
-    <p><a href="{{ reset_url }}">{% translate "Reset selection" %}</a></p>
+    <p><a class="tap-target" href="{{ reset_url }}">{% translate "Reset selection" %}</a></p>
   {% endif %}
 
-  <p><a href="{% url 'social:search' %}">{% translate "Search by nickname instead" %}</a></p>
+  <p><a class="tap-target" href="{% url 'social:search' %}">{% translate "Search by nickname instead" %}</a></p>
 {% endblock %}

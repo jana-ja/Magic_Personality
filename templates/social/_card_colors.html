@@ -15,10 +15,10 @@
       {% if score_bars %}
         {% if is_owner %}<p class="profile-card__hint">{% translate "From your test result." %}</p>{% endif %}
         <p class="profile-card__label">{% translate "Points from the test result" %}</p>
-        <ul class="score-bars">
+        <ul class="score-bars" aria-label="{% translate 'Points per color' %}">
           {% for bar in score_bars %}
             <li class="score-bar" title="{{ bar.name }}">
-              <span class="score-bar__label">{{ bar.code }}</span>
+              <span class="score-bar__label">{{ bar.code }}</span><span class="visually-hidden">{{ bar.name }}</span>
               <span class="score-bar__track"><span class="score-bar__fill" style="--bar-width: {{ bar.percent }}%; --bar-color: {{ bar.color }};"></span></span>
               <span class="score-bar__value">{{ bar.points }}</span>
             </li>

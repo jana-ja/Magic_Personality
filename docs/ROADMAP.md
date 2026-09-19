@@ -540,11 +540,13 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.9 · Mobiles Layout und Barrierefreiheit
 **Abhängig von:** 4.7, 4.8 · **Anforderungen:** FR-P16, NFR-3, NFR-5, NFR-6
 **Fertig, wenn:**
-- [ ] Bei 375 px: Banner und Kopf gestapelt, Tabs umbrechen, Sidebar-Karten unter dem Hauptbereich, kein horizontales Scrollen, Trefferflächen ausreichend groß.
-- [ ] Tastatur: alle Tabs, Edit-Links und Freundschaftsaktionen erreichbar und sichtbar fokussiert; Bearbeiten-Bereiche setzen den Fokus sinnvoll.
-- [ ] Bereichsüberschriften und Landmarks für Screenreader (`aria-labelledby` an den Karten); Tabs als Navigation mit `aria-current`, nicht als ARIA-Tabs-Widget.
-- [ ] Nach HTMX-Austausch eines Bereichs wird die Änderung angesagt (Live-Region, wie Task 1.9).
-- [ ] Eigenes Skript für Fünfeck-Formularfeld und Bereichsaustausch bleibt klein und ohne Framework.
+- [x] Bei 375 px: Banner und Kopf gestapelt, Tabs umbrechen, Sidebar-Karten unter dem Hauptbereich, kein horizontales Scrollen, Trefferflächen ausreichend groß.
+- [x] Tastatur: alle Tabs, Edit-Links und Freundschaftsaktionen erreichbar und sichtbar fokussiert; Bearbeiten-Bereiche setzen den Fokus sinnvoll.
+- [x] Bereichsüberschriften und Landmarks für Screenreader (`aria-labelledby` an den Karten); Tabs als Navigation mit `aria-current`, nicht als ARIA-Tabs-Widget.
+- [x] Nach HTMX-Austausch eines Bereichs wird die Änderung angesagt (Live-Region, wie Task 1.9).
+- [x] Eigenes Skript für Fünfeck-Formularfeld und Bereichsaustausch bleibt klein und ohne Framework.
+
+> Umsetzung und Prüfung (im Browser bei 375 px, alle Profilseiten samt Bearbeiten-Ansichten und beide Suchen): kein horizontales Scrollen, keine Bedienelemente unter 44 px Höhe mehr — dafür bekamen Tabs, Bearbeiten-Links, Kombinations-Links, Autorenkarten, Einstellungs-Links, Schaltflächen und Eingabefelder `min-height: 2.75rem` (Hilfsklasse `.tap-target`). Die Testhistorie-Tabelle stapelt mobil zu Zeilen mit `data-label`. Tastatur: alle Tabs, Links, Schaltflächen und die Fünfeck-Ecken sind erreichbar und über `:focus-visible` sichtbar fokussiert; nach dem Öffnen eines Bereichs steht der Fokus im ersten Feld (`autofocus`), nach Speichern oder Abbrechen springt er auf den „Edit"-Link zurück (`static/js/profile_sections.js`, 32 Zeilen). Screenreader: Karten, Historie und Anfragen tragen `aria-labelledby`, die Sidebar ist ein beschriftetes `<aside>`, die Tabs eine beschriftete Navigation mit `aria-current` (kein ARIA-Tabs-Widget), Balken nennen die Farbe, Historie-Schaltflächen nennen das Ergebnis (`aria-label`). Die Live-Region `#profile-live-region` steht außerhalb der ausgetauschten Bereiche und sagt „Editing. The form is open.", „Saved." bzw. „Editing cancelled." an (im Browser mit `Saved.` und Fokus auf dem Edit-Link nachgewiesen). Eigenes JavaScript zusammen unter 320 Zeilen, ohne Framework (per Test abgesichert).
 
 #### 4.10 · Release-Durchsicht v1.2
 **Abhängig von:** 4.9 · **Anforderungen:** PRD §11 (v1.2)

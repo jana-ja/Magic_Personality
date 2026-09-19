@@ -1,7 +1,8 @@
 {% load i18n social_tags %}
   {% comment %} FR-S4: offene Anfragen in beide Richtungen, nur im eigenen Profil
      (Task 3.4-DoD, seit Task 4.3 im Tab "Friends"). {% endcomment %}
-  <h2>{% translate "Friend requests" %}</h2>
+  <section aria-labelledby="requests-heading">
+  <h2 id="requests-heading">{% translate "Friend requests" %}</h2>
   {% if friend_requests_received %}
     <h3>{% translate "Received" %}</h3>
     <ul class="friend-requests">
@@ -39,3 +40,4 @@
   {% if not friend_requests_received and not friend_requests_sent %}
     <p>{% translate "No open friend requests." %}</p>
   {% endif %}
+  </section>
