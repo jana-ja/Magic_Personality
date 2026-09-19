@@ -1,0 +1,32 @@
+{% load i18n %}
+{% comment %} FR-S4: Freundschaftsaktion zur angesehenen Person — je nach
+   Beziehung (relationship, apps/social/profile_page.py). Nur bei fremden
+   Profilen eingebunden; die POST-Endpunkte sind die aus Task 3.4. {% endcomment %}
+{% if relationship == "friends" %}
+  <p>{% translate "You are friends." %}</p>
+  <form method="post" action="{% url 'social:remove_friendship' pk=friendship.pk %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Remove friend" %}</button>
+  </form>
+{% elif relationship == "pending_sent" %}
+  <p>{% translate "Friend request sent." %}</p>
+  <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Cancel request" %}</button>
+  </form>
+{% elif relationship == "pending_received" %}
+  <p>{% blocktranslate with nickname=profile.nickname %}{{ nickname }} sent you a friend request.{% endblocktranslate %}</p>
+  <form method="post" action="{% url 'social:accept_friend_request' pk=friendship.pk %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Accept" %}</button>
+  </form>
+  <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Decline" %}</button>
+  </form>
+{% elif relationship == None %}
+  <form method="post" action="{% url 'social:send_friend_request' nickname=profile.nickname %}">
+    {% csrf_token %}
+    <button type="submit">{% translate "Send friend request" %}</button>
+  </form>
+{% endif %}

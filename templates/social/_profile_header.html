@@ -1,0 +1,43 @@
+{% load i18n %}
+{% comment %} Kopfbereich der Profilseite (Task 4.2, FR-P10, D-73). Banner aus
+   gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge — dieselben
+   `segments` wie beim Profilbild (apps/accounts/avatar.py), Farben nur über
+   die Custom Property je Streifen. Ohne Farben ein neutraler Balken.
+   Alle Texte stehen auf der Seitenfläche, nie auf den Bannerfarben: der
+   Kontrast hängt so nicht von der Farbwahl ab (NFR-6). Das Banner ist
+   Dekoration (aria-hidden); die Farben nennen Kombinationsname und Text. {% endcomment %}
+<header class="profile-head">
+  <div class="profile-banner" aria-hidden="true">
+    {% for segment in segments %}
+      <span class="profile-banner__stripe" style="--segment-color: {{ segment.hex }};"></span>
+    {% empty %}
+      <span class="profile-banner__stripe profile-banner__stripe--neutral"></span>
+    {% endfor %}
+  </div>
+
+  <div class="profile-head__body">
+    <div class="profile-head__avatar">
+      {% include "accounts/_avatar.html" %}
+    </div>
+
+    <div class="profile-head__id">
+      <h1 class="profile-head__name">{{ profile.nickname }}</h1>
+      {% if combination %}
+        <p class="profile-head__combination">
+          <a href="{% url 'colors:combination' code=combination.code|lower %}">{{ combination.name }}</a>
+        </p>
+      {% endif %}
+      {% if profile.bio %}
+        <p class="profile-head__bio">{{ profile.bio|truncatechars:140 }}</p>
+      {% endif %}
+    </div>
+
+    <div class="profile-head__action">
+      {% if is_owner %}
+        <span class="profile-head__you">{% translate "you" %}</span>
+      {% else %}
+        {% include "social/_friend_action.html" %}
+      {% endif %}
+    </div>
+  </div>
+</header>

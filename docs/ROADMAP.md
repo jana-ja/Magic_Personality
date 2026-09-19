@@ -457,11 +457,13 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.2 · Kopfbereich mit Farbbanner und Freundschaftsaktion
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P10, NFR-5, NFR-6, D-73
 **Fertig, wenn:**
-- [ ] Banner aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge (1 bis 5); ohne Farben neutral. Umsetzung wie das Profilbild (`border-radius`/Streifen, keine SVG-`clipPath`, D-57), Farben nur über CSS-Eigenschaft je Streifen.
-- [ ] Profilbild überlappt das Banner; Nickname, Kombinationsname (verlinkt auf `/colors/<code>/`) und Bio-Zeile stehen auf der Seitenfläche, nie auf den Bannerfarben (Kontrast unabhängig von der Farbwahl).
-- [ ] Die Freundschaftsaktion (Anfrage senden, zurückziehen, annehmen/ablehnen, Freund entfernen) sitzt im Kopf und nutzt unverändert die POST-Endpunkte aus Task 3.4.
-- [ ] Beim eigenen Profil steht statt der Aktion ein Hinweis „you".
-- [ ] Test: alle vier Beziehungszustände zeigen die richtige Aktion; ein Profil ohne Farben rendert das neutrale Banner.
+- [x] Banner aus gleichbreiten Streifen der Profilfarben in WUBRG-Reihenfolge (1 bis 5); ohne Farben neutral. Umsetzung wie das Profilbild (`border-radius`/Streifen, keine SVG-`clipPath`, D-57), Farben nur über CSS-Eigenschaft je Streifen.
+- [x] Profilbild überlappt das Banner; Nickname, Kombinationsname (verlinkt auf `/colors/<code>/`) und Bio-Zeile stehen auf der Seitenfläche, nie auf den Bannerfarben (Kontrast unabhängig von der Farbwahl).
+- [x] Die Freundschaftsaktion (Anfrage senden, zurückziehen, annehmen/ablehnen, Freund entfernen) sitzt im Kopf und nutzt unverändert die POST-Endpunkte aus Task 3.4.
+- [x] Beim eigenen Profil steht statt der Aktion ein Hinweis „you".
+- [x] Test: alle vier Beziehungszustände zeigen die richtige Aktion; ein Profil ohne Farben rendert das neutrale Banner.
+
+> Umsetzung: `templates/social/_profile_header.html` (Banner, Profilbild, Name, Kombination, Bio-Zeile auf 140 Zeichen gekürzt) und `_friend_action.html` (aus `profile_detail.html` in den Kopf verschoben). Das Banner sind `div`-Streifen mit `--segment-color`, dieselben `segments` wie beim Profilbild. Die Bereiche „Colors" und „Friends" weiter unten bleiben bis 4.7 bzw. 4.3 unverändert. Im Browser bei 1024 px und 375 px geprüft (kein horizontales Scrollen, Aktion umbricht unter den Namen).
 
 #### 4.3 · Tabs und Freunde-Tab
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P11, FR-S5, FR-S6, D-73
