@@ -492,13 +492,15 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.5 · Nickname und Bio einzeln bearbeiten
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P12, FR-P2, D-72, D-73
 **Fertig, wenn:**
-- [ ] Nickname und Bio haben je ein eigenes Formular und eigenen POST-Endpunkt; jeder speichert ausschließlich sein Feld.
-- [ ] Ohne JavaScript öffnet „Edit" eine eigene Seite mit nur diesem Formular; mit HTMX tauscht sich der Bereich an Ort und Stelle aus (D-24: Progressive Enhancement, der Zustand steht in der URL).
-- [ ] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
-- [ ] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
-- [ ] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
-- [ ] Bearbeiten-Adressen einer anderen Person (GET und POST) leiten auf deren Profil weiter und ändern nichts (Regel aus 4.4).
-- [ ] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben; ein POST auf die Bearbeiten-Adresse einer anderen Person verändert nichts.
+- [x] Nickname und Bio haben je ein eigenes Formular und eigenen POST-Endpunkt; jeder speichert ausschließlich sein Feld.
+- [x] Ohne JavaScript öffnet „Edit" eine eigene Seite mit nur diesem Formular; mit HTMX tauscht sich der Bereich an Ort und Stelle aus (D-24: Progressive Enhancement, der Zustand steht in der URL).
+- [x] Serverseitige Validierung; Nickname-Kollision wird verständlich gemeldet, Abbrechen verwirft ohne Änderung.
+- [x] Nach Nickname-Änderung führen Redirect und Links auf die neue URL.
+- [x] Der bisherige Sammel-`ProfileForm` verliert Nickname und Bio.
+- [x] Bearbeiten-Adressen einer anderen Person (GET und POST) leiten auf deren Profil weiter und ändern nichts (Regel aus 4.4).
+- [x] Test: Speichern der Bio ändert weder Nickname noch Farben; Speichern des Nicknames ändert weder Bio noch Farben; ein POST auf die Bearbeiten-Adresse einer anderen Person verändert nichts.
+
+> Umsetzung: Endpunkte `/u/<nickname>/edit/nickname/` und `/edit/bio/` (beide `owner_only`, GET und POST), Formulare `NicknameForm`, `BioForm` und — als Rest des früheren `ProfileForm` — `ColorsForm` in `apps/accounts/forms.py`. Die Bearbeiten-Adresse rendert dieselbe Profilseite mit **einem** Bereich im Bearbeiten-Modus (`editing`); mit HTMX holt sich der Link per `hx-select` genau diesen Bereich (`#profile-name`, `#profile-bio`) daraus, ohne JavaScript ist es die volle Seite. Bio-Speichern tauscht zusätzlich die Kurzfassung im Kopf mit (`hx-select-oob`, sonst bliebe sie veraltet). Der Nickname-Speichern ist bewusst ein normales POST, weil sich dabei Adresse und Kopf ändern. `/accounts/profile/` speichert nur noch die Farben, bis Task 4.6 sie ersetzt. Im Browser durchgespielt: Bio inline, vergebener Nickname (Fehler im Formular, nichts geändert), Umbenennen (Adresse, Kopfzeilen-Link und Tabs folgen).
 
 #### 4.6 · Farben bearbeiten: Testergebnis übernehmen oder am Fünfeck wählen
 **Abhängig von:** 4.5, 1.9 · **Anforderungen:** FR-P13, FR-P4, FR-P5, FR-P8, D-56, D-72

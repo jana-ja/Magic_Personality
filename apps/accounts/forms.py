@@ -90,23 +90,15 @@ class RegistrationForm(forms.Form):
         return user, profile
 
 
-class ProfileForm(forms.Form):
+class NicknameForm(forms.Form):
     """
-    Bearbeitung des eigenen Profils (Task 2.4, FR-P1, FR-P4). Farben
-    sind hier bewusst fünf einzelne Kontrollkästchen (W/U/B/R/G) statt
-    einer Fünfeck-Auswahl wie in `apps.colors`: dort steuert die
-    Selektion die URL und damit den angezeigten Content (D-24), hier
-    geht es nur darum, eine der 31 Kombinationen zu speichern — hierfür
-    ein zweites Fünfeck nachzubauen wäre unnötiger Aufwand.
+    Nickname ändern (Task 4.5, FR-P12, FR-P2). Eigenes Formular mit eigenem
+    Endpunkt: speichert ausschließlich den Nickname und fasst weder Bio noch
+    Farben an.
     """
 
-    nickname = forms.CharField(label=_("Nickname"), max_length=50)
-    bio = forms.CharField(label=_("Bio"), required=False, widget=forms.Textarea)
-    colors = forms.MultipleChoiceField(
-        label=_("Colors"),
-        required=False,
-        choices=Color.Code.choices,
-        widget=forms.CheckboxSelectMultiple,
+    nickname = forms.CharField(
+        label=_("Nickname"), max_length=50, widget=forms.TextInput(attrs={"autofocus": True})
     )
 
     def __init__(self, *args, profile, **kwargs):
@@ -122,15 +114,49 @@ class ProfileForm(forms.Form):
 
     def save(self):
         self.profile.nickname = self.cleaned_data["nickname"]
+        self.profile.full_clean()
+        self.profile.save(update_fields=["nickname"])
+
+
+class BioForm(forms.Form):
+    """Bio ändern (Task 4.5, FR-P12). Speichert ausschließlich die Bio."""
+
+    bio = forms.CharField(
+        label=_("Bio"), required=False, widget=forms.Textarea(attrs={"autofocus": True})
+    )
+
+    def __init__(self, *args, profile, **kwargs):
+        self.profile = profile
+        super().__init__(*args, **kwargs)
+
+    def save(self):
         self.profile.bio = self.cleaned_data["bio"]
         self.profile.full_clean()
-        self.profile.save()
+        self.profile.save(update_fields=["bio"])
 
-        # Nur anfassen, was sich tatsächlich geändert hat: Das Formular
-        # schickt immer alle Felder mit. Ohne diesen Vergleich setzte jedes
-        # Speichern (z. B. nur die Bio geändert) die Farben auf SELF_MANUAL
-        # und löschte die Testreferenz (FR-P5) — Punkte in fremden Profilen
-        # (D-70) verschwanden, ohne dass die Person die Farben angefasst hat.
+
+class ColorsForm(forms.Form):
+    """
+    Farben ändern (Task 2.4, FR-P4; seit Task 4.5 ohne Nickname und Bio).
+    Fünf Kontrollkästchen (W/U/B/R/G) — Task 4.6 ersetzt das Formular durch
+    die Wahl zwischen Testergebnis und Fünfeck.
+    """
+
+    colors = forms.MultipleChoiceField(
+        label=_("Colors"),
+        required=False,
+        choices=Color.Code.choices,
+        widget=forms.CheckboxSelectMultiple,
+    )
+
+    def __init__(self, *args, profile, **kwargs):
+        self.profile = profile
+        super().__init__(*args, **kwargs)
+
+    def save(self):
+        # Nur anfassen, was sich tatsächlich geändert hat (D-72): ein
+        # unverändert abgeschicktes Formular darf die Testreferenz nicht
+        # überschreiben (FR-P5).
         colors = canonical_code(self.cleaned_data["colors"])
         current = ColorAssignment.objects.filter(profile=self.profile).select_related("combination")
         current = current.first()

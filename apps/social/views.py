@@ -14,7 +14,7 @@ from django.db.models import Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
 from apps.accounts.models import Profile
 from apps.colors import pentagon, selection
@@ -100,6 +100,35 @@ def profile_settings(request, profile):
     für die eigene Person (`owner_only`)."""
     context = profile_page.profile_context(profile, profile, tab=profile_page.SETTINGS)
     return render(request, "social/profile_settings.html", context)
+
+
+@owner_only
+@require_http_methods(["GET", "POST"])
+def edit_profile_section(request, profile, section):
+    """
+    Nickname oder Bio einzeln bearbeiten (Task 4.5, FR-P12, D-73). Jeder
+    Bereich hat sein eigenes Formular und speichert nur sich selbst; die
+    Adresse ist nur für die eigene Person erreichbar (`owner_only`, jede
+    andere wird weitergeleitet, auch bei POST).
+
+    GET zeigt dieselbe Profilseite wie sonst, nur mit diesem einen Bereich
+    im Bearbeiten-Modus — ohne JavaScript ist das die "eigene Seite" mit
+    dem Formular, mit HTMX holt sich der Bereich per `hx-select` genau sein
+    Stück daraus und tauscht es an Ort und Stelle (D-24). Erfolgreiches
+    Speichern leitet auf das Profil weiter — bei geändertem Nickname auf
+    die neue Adresse; Fehler (z. B. vergebener Nickname) erscheinen im
+    Formular.
+    """
+    if request.method == "POST":
+        form = profile_page.edit_form_for(section, profile, request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect(profile)
+    else:
+        form = profile_page.edit_form_for(section, profile)
+
+    context = profile_page.profile_context(profile, profile, editing=section, edit_form=form)
+    return render(request, "social/profile_detail.html", context)
 
 
 @login_required

@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %} Nickname bearbeiten (Task 4.5, FR-P12): eigenes Formular, eigener Endpunkt. Bewusst
+   ein normales POST ohne HTMX — ein neuer Nickname ändert die Adresse der Seite und den Kopf,
+   das verlangt eine echte Navigation. Abbrechen verwirft ohne Änderung. {% endcomment %}
+<form method="post" action="{% url 'social:edit_nickname' nickname=profile.nickname %}" class="profile-edit-form">
+  {% csrf_token %}
+  <label for="{{ edit_form.nickname.id_for_label }}">{{ edit_form.nickname.label }}</label>
+  {{ edit_form.nickname }}
+  {% for error in edit_form.nickname.errors %}
+    <p class="form-errors" role="alert">{{ error }}</p>
+  {% endfor %}
+  <button type="submit">{% translate "Save nickname" %}</button>
+  <a href="{{ profile.get_absolute_url }}"
+     hx-get="{{ profile.get_absolute_url }}" hx-target="#profile-name" hx-select="#profile-name" hx-swap="outerHTML">{% translate "Cancel" %}</a>
+</form>

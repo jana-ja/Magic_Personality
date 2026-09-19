@@ -14,12 +14,25 @@
     </p>
   </section>
 
-  {% if is_owner %}
-    {% comment %} Noch das Sammelformular (Task 4.5/4.6 ersetzen es). {% endcomment %}
-    {% include "social/_owner_form.html" %}
-  {% elif profile.bio %}
-    <h2>{% translate "About" %}</h2>
-    <p class="profile-bio">{{ profile.bio }}</p>
+  {% comment %} Bio (Task 4.5): für die eigene Person mit Bearbeiten-Zugang, für alle anderen nur,
+     wenn es eine gibt. Feste id für den HTMX-Austausch wie beim Nickname im Kopf. {% endcomment %}
+  {% if is_owner or profile.bio %}
+    <section id="profile-bio" aria-labelledby="bio-heading">
+      <h2 id="bio-heading">{% translate "About" %}</h2>
+      {% if is_owner and editing == "bio" %}
+        {% include "social/_edit_bio.html" %}
+      {% else %}
+        {% if profile.bio %}
+          <p class="profile-bio">{{ profile.bio|linebreaksbr }}</p>
+        {% elif is_owner %}
+          <p>{% translate "No bio yet." %}</p>
+        {% endif %}
+        {% if is_owner %}
+          <a class="profile-edit-link" href="{% url 'social:edit_bio' nickname=profile.nickname %}"
+             hx-get="{% url 'social:edit_bio' nickname=profile.nickname %}" hx-target="#profile-bio" hx-select="#profile-bio" hx-swap="outerHTML">{% if profile.bio %}{% translate "Edit bio" %}{% else %}{% translate "Add a bio" %}{% endif %}</a>
+        {% endif %}
+      {% endif %}
+    </section>
   {% endif %}
 
   {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail. {% endcomment %}
@@ -41,5 +54,9 @@
     {% endif %}
   {% else %}
     <p>{% translate "No colors set yet." %}</p>
+  {% endif %}
+
+  {% if is_owner %}
+    {% include "social/_owner_colors_form.html" %}
   {% endif %}
 {% endblock %}

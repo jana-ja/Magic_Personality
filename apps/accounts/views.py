@@ -17,9 +17,8 @@ from django.views.decorators.http import require_http_methods, require_POST
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
 from apps.quiz.models import TestResult
-from apps.social import profile_page
 
-from .forms import ProfileForm, RegistrationForm
+from .forms import ColorsForm, RegistrationForm
 from .models import Profile
 
 
@@ -74,27 +73,21 @@ def delete_account(request):
 @require_http_methods(["GET", "POST"])
 def profile(request):
     """
-    FR-P1/FR-P4: Speichern des Profilformulars. Die Profilseite selbst
-    ist seit Task 4.1 (FR-P9, D-73) `/u/<nickname>/` — GET auf diese alte
-    Adresse leitet dorthin weiter. POST speichert (weiterhin alle Felder
-    gemeinsam, bis Task 4.5 die Bereiche einzeln bearbeitbar macht) und
-    leitet danach auf die — bei geändertem Nickname neue — Profil-URL.
-    Bei Formularfehlern wird dieselbe Profilseite mit den Fehlern
-    gerendert. `get_object_or_404` statt `request.user.profile`: ein per
-    `createsuperuser` angelegter Account hat kein Profil (Task 0.2/2.1,
-    D-22) — das ergibt hier eine klare 404 statt eines Serverfehlers.
+    FR-P1/FR-P4: Speichern der Farben. Die Profilseite selbst ist seit Task
+    4.1 (FR-P9, D-73) `/u/<nickname>/` — GET auf diese alte Adresse leitet
+    dorthin weiter. POST speichert die Farbwahl (Nickname und Bio haben
+    seit Task 4.5 eigene Endpunkte, Task 4.6 ersetzt auch diesen) und
+    leitet zurück auf das Profil. `get_object_or_404` statt
+    `request.user.profile`: ein per `createsuperuser` angelegter Account
+    hat kein Profil (Task 0.2/2.1, D-22) — das ergibt hier eine klare 404
+    statt eines Serverfehlers.
     """
     profile = get_object_or_404(Profile, user=request.user)
-    if request.method == "GET":
-        return redirect(profile)
-
-    form = ProfileForm(request.POST, profile=profile)
-    if form.is_valid():
-        form.save()
-        return redirect(profile)
-
-    context = profile_page.profile_context(profile, profile, form=form)
-    return render(request, "social/profile_detail.html", context)
+    if request.method == "POST":
+        form = ColorsForm(request.POST, profile=profile)
+        if form.is_valid():
+            form.save()
+    return redirect(profile)
 
 
 @login_required

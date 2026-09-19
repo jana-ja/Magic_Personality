@@ -10,7 +10,7 @@ Vorlage anzuzeigen, bis Task 4.5 die Bereiche einzeln bearbeitbar macht.
 """
 
 from apps.accounts import avatar
-from apps.accounts.forms import ProfileForm
+from apps.accounts.forms import BioForm, ColorsForm, NicknameForm
 from apps.colors.content import LOCALE
 from apps.colors.models import ColorCombination
 
@@ -67,7 +67,7 @@ HISTORY = "history"
 SETTINGS = "settings"
 
 
-def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
+def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit_form=None):
     """
     Kontext für die Profilseite und ihre Tabs (Task 4.1/4.3, FR-P9,
     FR-P11, D-73). Gemeinsam für jeden Tab: Kopfbereich (Farben,
@@ -79,9 +79,11 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
     Bearbeiten-Formular), `FRIENDS` (Freundesliste, bei der eigenen Person
     zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
     vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
-    die beiden rufen nur Views auf, die vorher `owner_only` passiert haben. `form`: ein bereits
-    gebundenes `ProfileForm` für die Anzeige nach einem fehlgeschlagenen
-    Speichern.
+    die beiden rufen nur Views auf, die vorher `owner_only` passiert haben.
+
+    `editing` (`"nickname"` oder `"bio"`, Task 4.5) schaltet den jeweiligen
+    Bereich der Seite in den Bearbeiten-Modus, `edit_form` ist dessen
+    (ggf. gebundenes, fehlerhaftes) Formular.
 
     Die Punkte des übernommenen Testergebnisses (D-70) zeigt die Seite
     allen, weder Datum noch die übrige Historie (D-19).
@@ -120,14 +122,22 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
         return context
 
     if is_owner:
-        if form is None:
-            form = ProfileForm(
-                initial={
-                    "nickname": profile.nickname,
-                    "bio": profile.bio,
-                    "colors": list(assignment.combination.code) if assignment else [],
-                },
-                profile=profile,
-            )
-        context["form"] = form
+        context["editing"] = editing
+        context["edit_form"] = edit_form
+        context["colors_form"] = ColorsForm(
+            initial={"colors": list(assignment.combination.code) if assignment else []},
+            profile=profile,
+        )
     return context
+
+
+def edit_form_for(section, profile, data=None):
+    """Das Formular zu einem Bearbeiten-Bereich (Task 4.5): `"nickname"`
+    oder `"bio"`, ungebunden mit dem aktuellen Wert oder gebunden an `data`."""
+    if section == "nickname":
+        if data is None:
+            return NicknameForm(initial={"nickname": profile.nickname}, profile=profile)
+        return NicknameForm(data, profile=profile)
+    if data is None:
+        return BioForm(initial={"bio": profile.bio}, profile=profile)
+    return BioForm(data, profile=profile)

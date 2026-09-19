@@ -43,7 +43,8 @@ def test_own_profile_shows_the_edit_form_and_private_sections(gated_client, alex
     html = gated_client.get("/u/alex/").content.decode()
 
     assert 'action="/accounts/profile/"' in html
-    assert 'value="alex"' in html
+    assert 'href="/u/alex/edit/nickname/"' in html
+    assert 'href="/u/alex/edit/bio/"' in html
     assert "Alex bio." in html
     assert 'href="/u/alex/history/"' in html
     assert 'href="/u/alex/settings/"' in html
@@ -104,36 +105,10 @@ def test_an_account_without_a_profile_gets_a_404_on_the_old_address(gated_client
 def test_saving_redirects_to_the_profile_page(gated_client, alex):
     gated_client.force_login(alex.user)
 
-    response = gated_client.post(
-        "/accounts/profile/", {"nickname": "alex", "bio": "Changed.", "colors": []}
-    )
+    response = gated_client.post("/accounts/profile/", {"colors": []})
 
     assert response.status_code == 302
     assert response.url == "/u/alex/"
-
-
-def test_a_changed_nickname_leads_to_the_new_address(gated_client, alex):
-    gated_client.force_login(alex.user)
-
-    response = gated_client.post(
-        "/accounts/profile/", {"nickname": "alexandra", "bio": "Alex bio.", "colors": []}
-    )
-
-    assert response.url == "/u/alexandra/"
-    assert gated_client.get(response.url).status_code == 200
-
-
-def test_form_errors_are_shown_on_the_profile_page(gated_client, alex, jamie):
-    gated_client.force_login(alex.user)
-
-    response = gated_client.post(
-        "/accounts/profile/", {"nickname": "JAMIE", "bio": "Alex bio.", "colors": []}
-    )
-
-    html = response.content.decode()
-    assert response.status_code == 200
-    assert "already taken" in html
-    assert 'action="/accounts/profile/"' in html
 
 
 def test_deleting_a_history_entry_returns_to_the_history_tab(gated_client, alex):
@@ -166,19 +141,6 @@ def test_the_header_link_points_to_the_profile_page(gated_client, alex):
 
 
 # Nickname taugt als Adressbestandteil ------------------------------------------
-
-
-@pytest.mark.parametrize("nickname", ["a/b", "..", "."])
-def test_nicknames_that_break_the_address_are_rejected(gated_client, alex, nickname):
-    gated_client.force_login(alex.user)
-
-    response = gated_client.post(
-        "/accounts/profile/", {"nickname": nickname, "bio": "", "colors": []}
-    )
-
-    assert response.status_code == 200
-    alex.refresh_from_db()
-    assert alex.nickname == "alex"
 
 
 def test_registration_rejects_a_nickname_with_a_slash(gated_client):

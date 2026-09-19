@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %} Farben bearbeiten — noch die fünf Kontrollkästchen (Task 2.4). Nickname und Bio
+   haben seit Task 4.5 eigene Formulare; Task 4.6 ersetzt dieses durch die Wahl
+   zwischen Testergebnis und Fünfeck. Speichern geht weiter über accounts:profile und
+   leitet auf /u/<nickname>/ zurück. {% endcomment %}
+<form method="post" action="{% url 'profile' %}">
+  {% csrf_token %}
+  <fieldset>
+    <legend>{% translate "Colors (choose 1 to 5, or none)" %}</legend>
+    {{ colors_form.colors }}
+  </fieldset>
+  <button type="submit">{% translate "Save colors" %}</button>
+</form>
