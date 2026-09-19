@@ -13,6 +13,7 @@ antwortet darauf serienmäßig mit 403.
 
 from django.core.exceptions import PermissionDenied, ValidationError
 from django.db import IntegrityError, transaction
+from django.db.models import prefetch_related_objects
 from django.utils.translation import gettext_lazy as _
 
 from .models import Friendship
@@ -97,16 +98,24 @@ def dissolve(friendship, acting_profile):
     friendship.delete()
 
 
+def prefetch_for_cards(profiles):
+    """Holt Zuordnung und Kombination für eine ganze Liste von Profilen in
+    zwei Abfragen statt je Autorenkarte eine (Task 4.8)."""
+    prefetch_related_objects(profiles, "color_assignments__combination")
+
+
 def pending_requests_received(profile):
     """Offene Anfragen an `profile` (FR-S4/Task 3.4-DoD: im eigenen
     Profil sichtbar) — andere haben sie gestellt, `profile` entscheidet."""
-    return (
+    requests = list(
         Friendship.objects.for_profile(profile)
         .filter(status=Friendship.Status.PENDING)
         .exclude(requested_by=profile)
         .select_related("profile_a", "profile_b", "requested_by")
         .order_by("created_at")
     )
+    prefetch_for_cards([friendship.requested_by for friendship in requests])
+    return requests
 
 
 def pending_requests_sent(profile):
@@ -127,6 +136,7 @@ def pending_requests_sent(profile):
     )
     for friendship in requests:
         friendship.other = friendship.other_profile(profile)
+    prefetch_for_cards([friendship.other for friendship in requests])
     return requests
 
 
@@ -145,4 +155,5 @@ def accepted_friends(profile):
     )
     friends = [friendship.other_profile(profile) for friendship in friendship_rows]
     friends.sort(key=lambda friend: friend.nickname.lower())
+    prefetch_for_cards(friends)
     return friends

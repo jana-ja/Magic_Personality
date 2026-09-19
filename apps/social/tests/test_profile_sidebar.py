@@ -243,10 +243,10 @@ def test_the_friends_card_shows_at_most_eight_friends(gated_client, alex, jamie)
 
     card = _friends_card(_get(gated_client, alex))
 
-    assert len(re.findall(r'<li><a href="/u/friend', card)) == 8
+    assert len(re.findall(r'class="author-card__name" href="/u/friend', card)) == 8
     assert ">11<" in card
     full = _get(gated_client, alex, "/u/jamie/friends/")
-    assert len(re.findall(r'<li><a href="/u/friend', full)) == 11
+    assert len(re.findall(r'class="author-card__name" href="/u/friend', full)) == 11
 
 
 def test_the_friends_in_the_card_stay_clickable_on_the_own_profile(gated_client, alex, jamie):

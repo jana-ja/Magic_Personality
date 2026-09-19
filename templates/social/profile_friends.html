@@ -1,5 +1,5 @@
 {% extends "social/profile_base.html" %}
-{% load i18n %}
+{% load i18n social_tags %}
 
 {% block tab_content %}
   {% comment %} Tab "Friends" (Task 4.3, FR-S5, FR-S6): die Freundesliste dieses
@@ -8,9 +8,9 @@
   <section aria-labelledby="friends-heading">
     <h2 id="friends-heading">{% translate "Friends" %}</h2>
     {% if friends %}
-      <ul class="friend-list">
+      <ul class="friend-list author-list">
         {% for friend in friends %}
-          <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
+          <li>{% author_card friend %}</li>
         {% endfor %}
       </ul>
     {% else %}

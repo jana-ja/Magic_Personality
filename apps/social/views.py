@@ -147,7 +147,11 @@ def search(request):
     query = request.GET.get("q", "").strip()
     results = []
     if query:
-        results = Profile.objects.filter(nickname__icontains=query).order_by("nickname")
+        results = (
+            Profile.objects.filter(nickname__icontains=query)
+            .order_by("nickname")
+            .prefetch_related("color_assignments__combination")
+        )
 
     context = {"query": query, "results": results}
     return render(request, "social/search.html", context)
@@ -220,7 +224,12 @@ def _profiles_with_all_colors(selected_colors):
     conditions = Q()
     for color in selected_colors:
         conditions &= Q(color_assignments__combination__code__contains=color)
-    return Profile.objects.filter(conditions).distinct().order_by("nickname")
+    return (
+        Profile.objects.filter(conditions)
+        .distinct()
+        .order_by("nickname")
+        .prefetch_related("color_assignments__combination")
+    )
 
 
 @login_required

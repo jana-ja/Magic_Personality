@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% load i18n %}
+{% load i18n social_tags %}
 
 {% block title %}{% translate "Search" %}{% endblock %}
 
@@ -19,11 +19,9 @@
 
   {% if query %}
     {% if results %}
-      <ul class="search-results">
+      <ul class="search-results author-list">
         {% for result in results %}
-          <li>
-            <a href="{% url 'social:profile_detail' nickname=result.nickname %}">{{ result.nickname }}</a>
-          </li>
+          <li>{% author_card result %}</li>
         {% endfor %}
       </ul>
     {% else %}

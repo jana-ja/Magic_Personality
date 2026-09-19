@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %} Autorenkarte (Task 4.8, FR-P15, D-73): Profilbild, Nickname und Kombination als Chip.
+   Aufruf über {% author_card profile size="small|medium" %} (apps/social/templatetags/social_tags.py).
+   Das Profilbild ist hier Dekoration (aria-hidden) — der Nickname daneben nennt die Person schon.
+   Die Kombination steht als Text im Chip, nicht nur als Farbe (NFR-6). Keine id-Attribute: die Karte
+   darf beliebig oft auf einer Seite stehen (D-57). {% endcomment %}
+<div class="author-card author-card--{{ size }}">
+  <span class="author-card__avatar" aria-hidden="true">{% include "accounts/_avatar.html" %}</span>
+  <span class="author-card__text">
+    <a class="author-card__name" href="{% url 'social:profile_detail' nickname=profile.nickname %}">{{ profile.nickname }}</a>
+    {% if combination %}<span class="author-card__chip">{{ combination.name }}</span>{% endif %}
+  </span>
+</div>

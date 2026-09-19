@@ -529,11 +529,13 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.8 · Autorenkarte als Komponente
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P15, D-57
 **Fertig, wenn:**
-- [ ] `templates/social/_author_card.html`: Profilbild (bestehender `_avatar.html`), Nickname als Link, Kombinationsname als Chip; Größenvarianten klein und mittel.
-- [ ] Freundesliste (Tab und Vorschau) und beide Suchen nutzen die Komponente statt eigener Listen-Markup.
-- [ ] Mehrere Karten auf einer Seite erzeugen kein doppeltes `id` (D-57).
-- [ ] Die Komponente ist so gebaut, dass Beiträge und Kommentare sie später ohne Änderung einbinden (nur Profil als Kontext, keine Sonderfälle).
-- [ ] Test: Karte rendert mit und ohne Farben; Suchergebnisse und Freundesliste zeigen sie.
+- [x] `templates/social/_author_card.html`: Profilbild (bestehender `_avatar.html`), Nickname als Link, Kombinationsname als Chip; Größenvarianten klein und mittel.
+- [x] Freundesliste (Tab und Vorschau) und beide Suchen nutzen die Komponente statt eigener Listen-Markup.
+- [x] Mehrere Karten auf einer Seite erzeugen kein doppeltes `id` (D-57).
+- [x] Die Komponente ist so gebaut, dass Beiträge und Kommentare sie später ohne Änderung einbinden (nur Profil als Kontext, keine Sonderfälle).
+- [x] Test: Karte rendert mit und ohne Farben; Suchergebnisse und Freundesliste zeigen sie.
+
+> Umsetzung: Inklusions-Tag `{% author_card profile size="small|medium" %}` (`apps/social/templatetags/social_tags.py`, Template `_author_card.html`) — braucht nur ein Profil, keine Sonderfälle je Einsatzort. Eingesetzt in der Freundesliste (medium), der Freundesvorschau der Sidebar und den offenen Anfragen (small) sowie in beiden Suchen (medium). Das Profilbild ist in der Karte Dekoration (`aria-hidden`), die Kombination steht als Text im Chip. Listen holen Zuordnung und Kombination per Prefetch (`friendships.prefetch_for_cards`), die fünf Farbwerte lädt das Tag einmal je Rendering: zusätzliche Karten kosten keine zusätzlichen Abfragen (per Test abgesichert). Dafür bekam `avatar.segments()` einen optionalen Parameter `hex_by_code`. Im Browser geprüft: Friends-Tab, Nickname- und Farbsuche, keine doppelten ids.
 
 #### 4.9 · Mobiles Layout und Barrierefreiheit
 **Abhängig von:** 4.7, 4.8 · **Anforderungen:** FR-P16, NFR-3, NFR-5, NFR-6
