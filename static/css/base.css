@@ -997,3 +997,108 @@ button {
   align-items: flex-start;
   margin-bottom: var(--space-1);
 }
+
+/* Profil-Layout: Hauptbereich und Sidebar (Task 4.7, FR-P14, FR-P16) -----
+   Die Sidebar steht im DOM hinter dem Hauptbereich und landet mobil damit
+   darunter (NFR-3); ab dem Breakpoint der übrigen Seiten daneben. */
+
+.profile-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--space-4);
+}
+
+@media (min-width: 48rem) {
+  .profile-layout {
+    grid-template-columns: minmax(0, 1fr) 20rem;
+  }
+}
+
+.profile-layout__side {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.profile-card {
+  padding: var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+  background: var(--color-surface);
+  overflow-wrap: anywhere;
+}
+
+.profile-card h2 {
+  margin-top: 0;
+  font-size: var(--font-size-lg);
+}
+
+.profile-card p {
+  margin: 0 0 var(--space-2);
+}
+
+.profile-card__empty,
+.profile-card__hint {
+  color: var(--color-muted);
+}
+
+.profile-card__label {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  margin-bottom: var(--space-1);
+}
+
+.profile-card__count {
+  color: var(--color-muted);
+  font-size: var(--font-size-base);
+  font-weight: 400;
+}
+
+/* Punkte je Farbe: Buchstabe und Zahl stehen dabei, der Balken ist nur
+   zusätzliche Anschauung (NFR-6). */
+.score-bars {
+  list-style: none;
+  margin: 0 0 var(--space-2);
+  padding: 0;
+}
+
+.score-bar {
+  display: grid;
+  grid-template-columns: 1.25rem minmax(0, 1fr) 2rem;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-1);
+}
+
+.score-bar__label {
+  font-weight: 600;
+}
+
+.score-bar__track {
+  height: 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.score-bar__fill {
+  display: block;
+  height: 100%;
+  width: var(--bar-width);
+  background: var(--bar-color);
+}
+
+.score-bar__value {
+  text-align: right;
+}
+
+/* Beim Bearbeiten der Farben braucht das Fünfeck mehr Platz (Trefferflächen,
+   NFR-5/NFR-3): die Sidebar wird dann breiter. :has() ist Zusatz — ohne
+   Unterstützung bleibt es bei der normalen Breite, das Formular funktioniert
+   trotzdem, auch beim Austausch per HTMX. */
+@media (min-width: 48rem) {
+  .profile-layout:has(.color-edit) {
+    grid-template-columns: minmax(0, 1fr) 28rem;
+  }
+}

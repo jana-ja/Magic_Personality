@@ -116,12 +116,14 @@ def test_the_friends_tab_lists_all_friends_of_that_profile(gated_client, alex, j
     assert 'href="/u/alex/"' in html
 
 
-def test_the_friends_list_moved_out_of_the_pinboard_tab(gated_client, alex, jamie, taylor):
+def test_the_pinboard_tab_shows_only_a_preview_of_the_friends(gated_client, alex, jamie, taylor):
+    """Die Sidebar zeigt höchstens acht (Task 4.7); die vollständige Liste steht im Tab Friends."""
     _befriend(jamie, taylor)
 
     html = _get(gated_client, alex, "/u/jamie/")
 
-    assert 'href="/u/taylor/"' not in html
+    assert 'href="/u/taylor/"' in html
+    assert 'href="/u/jamie/friends/"' in html
 
 
 def test_the_friends_tab_says_so_when_there_are_no_friends(gated_client, alex, jamie):

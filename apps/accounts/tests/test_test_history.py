@@ -6,6 +6,8 @@ Der wichtigste Fall steht wörtlich in der Definition of Done in
 docs/ROADMAP.md: fremde Historie ist über keinen Pfad erreichbar.
 """
 
+import re
+
 import pytest
 from django.utils import timezone
 
@@ -14,6 +16,17 @@ from apps.colors.models import ColorCombination
 from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
+
+
+def _bars(html):
+    """Punkte je Farbe aus den Balken der Sidebar (Buchstabe und Zahl, Task 4.7)."""
+    return dict(
+        (code, int(points))
+        for code, points in re.findall(
+            r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>', html, re.S
+        )
+    )
+
 
 PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
 PROFILE_PAGE = "/u/alex/history/"
@@ -221,7 +234,7 @@ def test_adopting_from_the_history_links_the_result_and_shows_its_scores_to_othe
 
     gated_client.force_login(other_user)
     html = gated_client.get("/u/alex/").content.decode()
-    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in html
+    assert _bars(html) == {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3}
 
 
 def test_the_currently_adopted_result_shows_a_note_instead_of_the_button(gated_client, user):

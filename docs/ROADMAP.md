@@ -517,12 +517,14 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.7 · Pinnwand-Platzhalter und Sidebar
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P14, D-70, NFR-6
 **Fertig, wenn:**
-- [ ] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
-- [ ] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
-- [ ] Hauptbereich ist der Tab **Pinnwand** mit einem „Coming soon"-Platzhalter (fremd und eigen; kurzer Satz, was dort einmal steht: Favoriten, eigene oder fremde Beiträge und Kommentare). Keine Knöpfe oder Links ohne Ziel.
-- [ ] Die Idee ist vermerkt: PRD §8.2 (Pinnwand), D-73 und der Abschnitt „Nicht in dieser Roadmap" halten fest, dass Pinnwand-Einträge auf Beiträge/Kommentare beliebiger Autorschaft verweisen.
-- [ ] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
-- [ ] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei; die Pinnwand zeigt den Platzhalter.
+- [x] Sidebar mit Karten: Bio, Farben (Kombinationsname verlinkt auf die Colors, bei übernommenem Testergebnis die Punkte je Farbe als Balken mit Buchstabe **und** Zahl, D-70) und Freundesvorschau (höchstens 8, Link auf den Freunde-Tab).
+- [x] Bei der eigenen Person tragen Bio und Farben je einen „Edit"-Link auf ihre Bearbeiten-Seite (4.5/4.6) und einen Hinweis, wenn die Farben aus dem Test stammen.
+- [x] Hauptbereich ist der Tab **Pinnwand** mit einem „Coming soon"-Platzhalter (fremd und eigen; kurzer Satz, was dort einmal steht: Favoriten, eigene oder fremde Beiträge und Kommentare). Keine Knöpfe oder Links ohne Ziel.
+- [x] Die Idee ist vermerkt: PRD §8.2 (Pinnwand), D-73 und der Abschnitt „Nicht in dieser Roadmap" halten fest, dass Pinnwand-Einträge auf Beiträge/Kommentare beliebiger Autorschaft verweisen.
+- [x] Fehlender Inhalt erzeugt leere Karten mit Hinweis, keinen Fehler (wie FR-C11).
+- [x] Test: alle Kartenzustände (mit/ohne Farben, mit/ohne Testverknüpfung, mit/ohne Freunde) rendern fehlerfrei; die Pinnwand zeigt den Platzhalter.
+
+> Umsetzung: `profile_detail.html` = Hauptbereich (Pinnwand-Platzhalter) plus `<aside>` mit den Karten `_card_bio.html`, `_card_colors.html` und `_card_friends.html`; die Sidebar steht im DOM hinter dem Hauptbereich und landet mobil darunter, sie gibt es nur im Pinboard-Tab. Die Punkte kommen als Balken mit Buchstabe **und** Zahl (`profile_page.score_bars`, Länge relativ zum höchsten Wert, Balkenfarbe wie der Halo der Ecke, weil Weiß als `Color.hex` kaum zu sehen wäre, D-42). Die Freundesvorschau zeigt höchstens acht Einträge (`FRIENDS_PREVIEW_LIMIT`) als einfache Liste, Task 4.8 ersetzt sie durch die Autorenkarte. Beim Bearbeiten der Farben wird die Sidebar per `:has()` breiter, damit das Fünfeck genug Trefferfläche hat (ohne `:has()` bleibt es funktionsfähig, nur schmaler). Im Browser bei 1024 und 375 px geprüft: eigenes und fremdes Profil, Bearbeiten in der Sidebar, kein horizontales Scrollen.
 
 #### 4.8 · Autorenkarte als Komponente
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P15, D-57

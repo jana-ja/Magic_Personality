@@ -14,6 +14,17 @@ from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
 
+
+def _bars(html):
+    """Punkte je Farbe aus den Balken der Sidebar (Buchstabe und Zahl, Task 4.7)."""
+    return dict(
+        (code, int(points))
+        for code, points in re.findall(
+            r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>', html, re.S
+        )
+    )
+
+
 URL = "/u/alex/edit/colors/"
 
 
@@ -217,7 +228,8 @@ def test_choosing_a_test_result_links_it_and_shows_its_points(gated_client, alex
     assert assignment.combination.code == "WU"
 
     gated_client.force_login(jamie.user)
-    assert "W: 9, U: 10, B: 6, R: 2, G: 3" in gated_client.get("/u/alex/").content.decode()
+    html = gated_client.get("/u/alex/").content.decode()
+    assert _bars(html) == {"W": 9, "U": 10, "B": 6, "R": 2, "G": 3}
 
 
 def test_the_chosen_result_wins_over_the_checkboxes(gated_client, alex):

@@ -64,6 +64,9 @@ def history_with_combinations(profile, assignment):
     return results
 
 
+#: So viele Freunde zeigt die Sidebar höchstens (Task 4.7); alle stehen im Tab „Friends".
+FRIENDS_PREVIEW_LIMIT = 8
+
 PINBOARD = "pinboard"
 FRIENDS = "friends"
 HISTORY = "history"
@@ -100,7 +103,6 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
         "is_owner": is_owner,
         "active_tab": tab,
         "combination": assignment.combination if assignment else None,
-        "test_scores": test_result.ordered_scores if test_result else None,
         **avatar.avatar_context(assignment),
     }
     received = []
@@ -124,6 +126,13 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     if tab == SETTINGS:
         return context
 
+    # Pinboard-Tab (Task 4.7): die Sidebar zeigt Kurzinfos — Punkte des
+    # übernommenen Testergebnisses (D-70) und eine Freundesvorschau.
+    context["score_bars"] = score_bars(test_result.ordered_scores) if test_result else None
+    friends = friendships.accepted_friends(profile)
+    context["friends_count"] = len(friends)
+    context["friends_preview"] = friends[:FRIENDS_PREVIEW_LIMIT]
+
     if is_owner:
         context["editing"] = editing
         context["edit_form"] = edit_form
@@ -131,6 +140,28 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
             context["test_results"] = history_with_combinations(profile, assignment)
             context.update(color_field_context(set(edit_form["colors"].value() or [])))
     return context
+
+
+def score_bars(ordered_scores):
+    """
+    Punkte je Farbe als Balken (Task 4.7, D-70, NFR-6): Buchstabe **und**
+    Zahl stehen dabei, der Balken ist nur zusätzliche Anschauung, die Farbe
+    kein alleiniger Unterschied. Länge relativ zum höchsten Wert der
+    Verteilung. Die Balkenfarbe ist die Halo-Farbe der Ecke (Weiß wäre als
+    `Color.hex` auf hellem Grund kaum zu sehen, D-42).
+    """
+    colors = {color.code: color for color in Color.objects.all()}
+    top = max((points for _code, points in ordered_scores), default=0) or 1
+    return [
+        {
+            "code": code,
+            "name": colors[code].name,
+            "points": points,
+            "percent": round(points / top * 100),
+            "color": pentagon.halo_color(code, colors[code].hex),
+        }
+        for code, points in ordered_scores
+    ]
 
 
 @dataclass(frozen=True)
