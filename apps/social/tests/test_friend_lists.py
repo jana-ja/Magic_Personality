@@ -69,7 +69,7 @@ def test_own_friends_list_is_visible_on_the_own_profile(gated_client, alex, jami
     _befriend(alex, jamie)
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/accounts/profile/")
+    response = gated_client.get("/u/alex/")
 
     html = response.content.decode()
     assert 'href="/u/jamie/"' in html
@@ -78,7 +78,7 @@ def test_own_friends_list_is_visible_on_the_own_profile(gated_client, alex, jami
 def test_own_profile_without_friends_shows_a_neutral_message(gated_client, alex):
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/accounts/profile/")
+    response = gated_client.get("/u/alex/")
 
     assert "No friends yet." in response.content.decode()
 
@@ -119,7 +119,7 @@ def test_the_graph_is_navigable_across_at_least_two_levels_without_a_dead_end(
     gated_client.force_login(alex.user)
 
     # Ebene 0: eigenes Profil -> jamie.
-    own_profile_html = gated_client.get("/accounts/profile/").content.decode()
+    own_profile_html = gated_client.get("/u/alex/").content.decode()
     assert 'href="/u/jamie/"' in own_profile_html
 
     # Ebene 1: jamies Profil -> alex (zurück) und taylor (weiter).

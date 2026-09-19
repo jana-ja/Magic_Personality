@@ -1,61 +1,4 @@
-{% extends "base.html" %}
 {% load i18n %}
-
-{% block title %}{% translate "My profile" %}{% endblock %}
-
-{% block content %}
-  <h1>{% translate "My profile" %}</h1>
-
-  {% include "accounts/_avatar.html" %}
-
-  <form method="post" action="{% url 'profile' %}">
-    {% csrf_token %}
-
-    {% if form.non_field_errors %}
-      <ul class="form-errors" role="alert">
-        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
-      </ul>
-    {% endif %}
-
-    <label for="{{ form.nickname.id_for_label }}">{{ form.nickname.label }}</label>
-    {{ form.nickname }}
-    {% for error in form.nickname.errors %}
-      <p class="form-errors" role="alert">{{ error }}</p>
-    {% endfor %}
-
-    <label for="{{ form.bio.id_for_label }}">{{ form.bio.label }}</label>
-    {{ form.bio }}
-    {% for error in form.bio.errors %}
-      <p class="form-errors" role="alert">{{ error }}</p>
-    {% endfor %}
-
-    <fieldset>
-      <legend>{% translate "Colors (choose 1 to 5, or none)" %}</legend>
-      {{ form.colors }}
-    </fieldset>
-    {% for error in form.colors.errors %}
-      <p class="form-errors" role="alert">{{ error }}</p>
-    {% endfor %}
-
-    <button type="submit">{% translate "Save" %}</button>
-  </form>
-
-  {% comment %} FR-S5: die eigene Freundesliste bestätigter
-     Freundschaften (Task 3.5-DoD: "Eigene Freundesliste im eigenen
-     Profil") — dieselbe Darstellung wie die Freundesliste eines
-     fremden Profils (templates/social/profile_detail.html), damit der
-     Graph über beide Stellen hinweg gleich aussieht. {% endcomment %}
-  <h2>{% translate "Friends" %}</h2>
-  {% if friends %}
-    <ul class="friend-list">
-      {% for friend in friends %}
-        <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>{% translate "No friends yet." %}</p>
-  {% endif %}
-
   {% comment %} FR-S4/Task 3.4-DoD: "Offene Anfragen sind im eigenen
      Profil sichtbar" — beide Richtungen (apps/accounts/views.py:profile).
      {% endcomment %}
@@ -160,4 +103,3 @@
   {% endif %}
 
   <p><a href="{% url 'delete_account' %}">{% translate "Delete account" %}</a></p>
-{% endblock %}

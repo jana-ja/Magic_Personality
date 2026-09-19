@@ -46,7 +46,7 @@
     {% endwith %}
     <nav class="site-header__auth" aria-label="{% translate 'Account' %}">
       {% if user.is_authenticated %}
-        <a href="{% url 'profile' %}">{{ user.profile.nickname }}</a>
+        {% if user.profile %}<a href="{{ user.profile.get_absolute_url }}">{{ user.profile.nickname }}</a>{% endif %}
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
           <button type="submit">{% translate "Log out" %}</button>

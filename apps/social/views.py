@@ -16,12 +16,11 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_POST
 
-from apps.accounts import avatar
 from apps.accounts.models import Profile
 from apps.colors import pentagon, selection
 from apps.colors.models import Color
 
-from . import friendships
+from . import friendships, profile_page
 from .models import Friendship
 
 
@@ -31,26 +30,6 @@ def _current_profile(request):
     angelegter Account ohne Profil eine klare 404 statt eines
     Serverfehlers auslöst."""
     return get_object_or_404(Profile, user=request.user)
-
-
-def _relationship_context(viewer_profile, other_profile):
-    """
-    FR-S4: der aktuelle Stand zwischen zwei Profilen, fürs Template in
-    `profile_detail`. `relationship` ist eine von `None` (keine
-    Beziehung), `"pending_sent"` (ich habe angefragt),
-    `"pending_received"` (die andere Person hat angefragt) oder
-    `"friends"`.
-    """
-    friendship = Friendship.objects.between(viewer_profile, other_profile)
-    if friendship is None:
-        return {"friendship": None, "relationship": None}
-    if friendship.status == Friendship.Status.ACCEPTED:
-        relationship = "friends"
-    elif friendship.requested_by_id == viewer_profile.pk:
-        relationship = "pending_sent"
-    else:
-        relationship = "pending_received"
-    return {"friendship": friendship, "relationship": relationship}
 
 
 @login_required
@@ -65,42 +44,22 @@ def profile_detail(request, nickname):
     sichtbar" — die Zugangssperre (D-09) gilt davor ohnehin für jede
     URL, das hier ist die zusätzliche Login-Pflicht aus FR-S1.
 
-    Seit Task 3.4 zusätzlich der Freundschaftsstatus zur angesehenen
-    Person (FR-S4) — nicht beim eigenen Profil, da käme nur "keine
-    Beziehung zu sich selbst" heraus. Seit Task 3.5 zusätzlich die
-    Freundesliste **dieses** Profils, unabhängig von der Beziehung zur
-    ansehenden Person (FR-S6: "von einem Profil aus ist dessen
-    Freundesliste einsehbar", keine Einschränkung auf gemeinsame
-    Freunde) — jeder Eintrag verlinkt wieder auf `profile_detail`,
-    damit sich der Graph über diese eine View beliebig weiterklicken
-    lässt (Task 3.5-DoD: "über mindestens zwei Ebenen durchklickbar,
-    ohne Sackgasse").
+    Seit Task 4.1 (FR-P9, D-73) ist das auch die Seite der eigenen
+    Person: derselbe View, `is_owner` im Kontext schaltet die
+    Bearbeiten-Zugänge und die privaten Bereiche ein
+    (`profile_page.profile_context`). Der frühere Redirect des eigenen
+    Profils auf `/accounts/profile/` entfällt — die Richtung ist jetzt
+    umgekehrt.
 
-    Das eigene Profil leitet auf `profile` weiter, statt sich selbst
-    wie ein fremdes Profil zu zeigen (samt "Anfrage senden"-Knopf, der
-    an der Selbstfreundschafts-Sperre aus `friendships.send_request`
-    ohnehin scheitern würde) — der Weg dorthin (Suche, Freundesliste,
-    eigener Profil-Link) soll nicht extra beachten müssen, wen er
-    gerade verlinkt.
+    Weiterhin je Profil: Freundschaftsstatus (FR-S4, Task 3.4),
+    Freundesliste **dieses** Profils unabhängig von der Beziehung zur
+    ansehenden Person (FR-S6, Task 3.5 — jeder Eintrag verlinkt wieder
+    hierher, der Graph lässt sich beliebig weiterklicken) und die
+    Punkte des übernommenen Testergebnisses (D-70).
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     viewer_profile = _current_profile(request)
-    if viewer_profile.pk == profile.pk:
-        return redirect("profile")
-
-    assignment = profile.color_assignments.select_related("combination", "test_result").first()
-    test_result = assignment.test_result if assignment else None
-    context = {
-        "profile": profile,
-        "combination": assignment.combination if assignment else None,
-        # D-70: nur die Punkte des Ergebnisses, aus dem die Profilfarben
-        # übernommen wurden (FR-P5) — weder Datum noch die übrige
-        # Historie, die bleibt privat (D-19).
-        "test_scores": test_result.ordered_scores if test_result else None,
-        "friends": friendships.accepted_friends(profile),
-        **avatar.avatar_context(assignment),
-        **_relationship_context(viewer_profile, profile),
-    }
+    context = profile_page.profile_context(profile, viewer_profile)
     return render(request, "social/profile_detail.html", context)
 
 

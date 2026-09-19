@@ -162,7 +162,7 @@ def adopt_result(request, pk):
             "test_result": test_result,
         },
     )
-    return redirect("profile")
+    return redirect(test_result.profile)
 
 
 @login_required

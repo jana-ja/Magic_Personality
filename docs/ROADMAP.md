@@ -444,13 +444,15 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.1 · Eine Profilseite für eigene und fremde Ansicht
 **Abhängig von:** 3.5 · **Anforderungen:** FR-P9, D-73
 **Fertig, wenn:**
-- [ ] `/u/<nickname>/` zeigt die eigene Person genauso wie fremde Profile; der bisherige Sonderfall-Redirect in `profile_detail` entfällt.
-- [ ] `/accounts/profile/` und alle Redirects darauf (Login, Speichern, Löschen) führen auf `/u/<eigener-nickname>/`; der Link im Kopfbereich ebenso.
-- [ ] Die Seite kennt den Betrachter (`is_owner`) und blendet Bearbeiten-Knöpfe, Anfragen und private Bereiche nur für die eigene Person ein.
-- [ ] Bestehende Funktionen bleiben erhalten (Bio, Farben mit Punkten, Freunde, Freundschaftsaktionen, Historie, Anfragen) — zunächst im heutigen Aussehen, noch ohne Redesign.
-- [ ] Test: eigenes Profil unter der neuen URL zeigt Bearbeiten-Zugänge, fremdes nicht; alte URL leitet weiter.
+- [x] `/u/<nickname>/` zeigt die eigene Person genauso wie fremde Profile; der bisherige Sonderfall-Redirect in `profile_detail` entfällt.
+- [x] `/accounts/profile/` und alle Redirects darauf (Login, Speichern, Löschen) führen auf `/u/<eigener-nickname>/`; der Link im Kopfbereich ebenso.
+- [x] Die Seite kennt den Betrachter (`is_owner`) und blendet Bearbeiten-Knöpfe, Anfragen und private Bereiche nur für die eigene Person ein.
+- [x] Bestehende Funktionen bleiben erhalten (Bio, Farben mit Punkten, Freunde, Freundschaftsaktionen, Historie, Anfragen) — zunächst im heutigen Aussehen, noch ohne Redesign.
+- [x] Test: eigenes Profil unter der neuen URL zeigt Bearbeiten-Zugänge, fremdes nicht; alte URL leitet weiter.
 
 > Ein Profil ohne Nickname-Änderung im Weg: Ändert jemand den Nickname, führen alle Weiterleitungen auf die neue URL. Ein `createsuperuser`-Account ohne Profil ergibt weiterhin eine klare 404.
+
+> Umsetzung: gemeinsamer Kontext in `apps/social/profile_page.py`, `Profile.get_absolute_url()` als einzige Quelle der Profil-Adresse. `/accounts/profile/` bleibt nur als Speichern-Endpunkt (POST) des Sammelformulars bis Task 4.5. Dabei ergänzt: Nicknames mit „/" oder nur aus Punkten werden abgewiesen, weil der Nickname jetzt in jeder Seite als Adresse im Kopfbereich steht und sonst ein Reverse-Fehler alle Seiten der Person zum Absturz brächte.
 
 #### 4.2 · Kopfbereich mit Farbbanner und Freundschaftsaktion
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P10, NFR-5, NFR-6, D-73

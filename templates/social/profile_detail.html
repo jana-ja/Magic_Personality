@@ -4,17 +4,23 @@
 {% block title %}{{ profile.nickname }}{% endblock %}
 
 {% block content %}
-  <h1>{{ profile.nickname }}</h1>
+  <h1>{{ profile.nickname }}{% if is_owner %} <small>({% translate "you" %})</small>{% endif %}</h1>
 
   {% include "accounts/_avatar.html" %}
 
-  {% if profile.bio %}
+  {% comment %} Eigenes und fremdes Profil sind dieselbe Seite (Task 4.1,
+     FR-P9, D-73) — is_owner (apps/social/profile_page.py) schaltet
+     Bearbeiten und alles Private ein. Die Bio zeigt sich der eigenen
+     Person im Formular, allen anderen hier. {% endcomment %}
+  {% if is_owner %}
+    {% include "social/_owner_form.html" %}
+  {% elif profile.bio %}
     <p class="profile-bio">{{ profile.bio }}</p>
   {% endif %}
 
   {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail —
      dieselbe Darstellung wie der Ergebnis-Link im eigenen Profil
-     (templates/accounts/profile.html). {% endcomment %}
+     (social/_owner_form.html). {% endcomment %}
   <h2>{% translate "Colors" %}</h2>
   {% if combination %}
     <p>
@@ -35,11 +41,10 @@
     <p>{% translate "No colors set yet." %}</p>
   {% endif %}
 
-  {% comment %} FR-S4: Freundschaftsstatus zur angesehenen Person. Das
-     eigene Profil landet nie hier — apps/social/views.py:profile_detail
-     leitet dafür auf "profile" weiter, bevor dieser Teil überhaupt
-     gerendert wird. {% endcomment %}
-  {% if relationship == "friends" %}
+  {% comment %} FR-S4: Freundschaftsstatus zur angesehenen Person — nur bei
+     fremden Profilen, "relationship" fehlt im Kontext der eigenen Person. {% endcomment %}
+  {% if is_owner %}
+  {% elif relationship == "friends" %}
     <p>{% translate "You are friends." %}</p>
     <form method="post" action="{% url 'social:remove_friendship' pk=friendship.pk %}">
       {% csrf_token %}
@@ -81,5 +86,9 @@
     </ul>
   {% else %}
     <p>{% translate "No friends yet." %}</p>
+  {% endif %}
+
+  {% if is_owner %}
+    {% include "social/_owner_extras.html" %}
   {% endif %}
 {% endblock %}

@@ -22,6 +22,17 @@ def _nickname_is_taken(nickname, *, exclude_profile=None):
     return conflicts.exists()
 
 
+def _validate_nickname_characters(nickname):
+    """
+    Der Nickname steht in der Adresse des Profils (`/u/<nickname>/`,
+    Task 4.1): ein "/" ließe sich dort nicht abbilden und würde jede Seite
+    mit dem Namen im Kopfbereich zum Absturz bringen; ein Name nur aus
+    Punkten ("." oder "..") würde vom Browser als Pfadangabe aufgelöst.
+    """
+    if "/" in nickname or set(nickname) == {"."}:
+        raise ValidationError(_("The nickname can't contain a slash or consist only of dots."))
+
+
 class RegistrationForm(forms.Form):
     """
     FR-U1/FR-U3: E-Mail, Passwort (Mindestlänge über
@@ -44,6 +55,7 @@ class RegistrationForm(forms.Form):
 
     def clean_nickname(self):
         nickname = self.cleaned_data["nickname"].strip()
+        _validate_nickname_characters(nickname)
         if _nickname_is_taken(nickname):
             raise ValidationError(_("This nickname is already taken."))
         return nickname
@@ -103,6 +115,7 @@ class ProfileForm(forms.Form):
 
     def clean_nickname(self):
         nickname = self.cleaned_data["nickname"].strip()
+        _validate_nickname_characters(nickname)
         if _nickname_is_taken(nickname, exclude_profile=self.profile):
             raise ValidationError(_("This nickname is already taken."))
         return nickname

@@ -10,7 +10,8 @@ from apps.quiz.models import TestResult
 
 pytestmark = pytest.mark.django_db
 
-PROFILE_URL = "/accounts/profile/"
+PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
+PROFILE_PAGE = "/u/alex/"
 
 
 @pytest.fixture
@@ -27,7 +28,7 @@ def _valid_data(**overrides):
 
 
 def test_profile_page_requires_login(gated_client):
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     assert response.status_code == 302
     assert response.url.startswith("/accounts/login/")
@@ -36,7 +37,7 @@ def test_profile_page_requires_login(gated_client):
 def test_profile_page_shows_current_values(gated_client, user):
     gated_client.force_login(user)
 
-    response = gated_client.get(PROFILE_URL)
+    response = gated_client.get(PROFILE_PAGE)
 
     assert response.status_code == 200
     html = response.content.decode()
