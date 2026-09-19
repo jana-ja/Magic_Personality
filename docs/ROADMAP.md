@@ -480,12 +480,14 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.4 · Private Tabs: Testhistorie und Einstellungen
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P6, FR-P7, FR-P11, FR-U8, D-19, D-73
 **Fertig, wenn:**
-- [ ] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
-- [ ] Beide URLs sind für Gäste hinter dem Login. Ruft eine **andere** Person sie auf (`/u/person_b/history/` als nicht person_b), **leitet die Seite auf `/u/person_b/` weiter** (302, der Ausgang hängt vom Betrachter ab) — kein 404 und kein 403. Existiert die Person nicht, bleibt es bei 404.
-- [ ] Die Tabs erscheinen nur für die eigene Person.
-- [ ] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar; die Weiterleitung enthält keinen Inhalt der privaten Seite (ausdrücklich für die neuen URLs).
+- [x] `/u/<eigener-nickname>/history/` zeigt die bisherige Testhistorie samt „Use for profile" und Löschen; `/u/<eigener-nickname>/settings/` bündelt Passwort ändern und Account löschen.
+- [x] Beide URLs sind für Gäste hinter dem Login. Ruft eine **andere** Person sie auf (`/u/person_b/history/` als nicht person_b), **leitet die Seite auf `/u/person_b/` weiter** (302, der Ausgang hängt vom Betrachter ab) — kein 404 und kein 403. Existiert die Person nicht, bleibt es bei 404.
+- [x] Die Tabs erscheinen nur für die eigene Person.
+- [x] Test: fremde Historie und fremde Einstellungen sind über keinen Pfad erreichbar; die Weiterleitung enthält keinen Inhalt der privaten Seite (ausdrücklich für die neuen URLs).
 
 > Weiterleiten statt 404: Die Adresse verrät nichts, was nicht ohnehin öffentlich wäre — das Profil ist für jede angemeldete Person sichtbar, und die privaten Tabs gibt es bei jedem Profil gleichermaßen. Dieselbe Regel gilt für die Bearbeiten-Adressen (4.5, 4.6) und ist als Hilfsfunktion/Decorator für alle „nur eigene Person"-Seiten gedacht, damit sie nicht je Seite neu entschieden wird.
+
+> Umsetzung: `apps/social/decorators.py:owner_only` trifft die Entscheidung (Gäste → Login, unbekannter Nickname → 404, andere Person → 302 auf `/u/<nickname>/` ohne Inhalt, auch bei POST) und reicht der View das Profil statt des Nicknames; Tasks 4.5 und 4.6 nutzen ihn für die Bearbeiten-Adressen. Die Einstellungen verlinken die bestehenden Seiten „Passwort ändern" (bisher nirgends in der Oberfläche verlinkt) und „Account löschen". Historie löschen führt zurück auf den History-Tab, Übernehmen auf das Profil (dort erscheinen die Punkte).
 
 #### 4.5 · Nickname und Bio einzeln bearbeiten
 **Abhängig von:** 4.1 · **Anforderungen:** FR-P12, FR-P2, D-72, D-73

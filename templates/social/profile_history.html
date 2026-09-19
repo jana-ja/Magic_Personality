@@ -1,9 +1,13 @@
+{% extends "social/profile_base.html" %}
 {% load i18n %}
+
+{% block tab_content %}
+  {% comment %} Tab "Test history" (Task 4.4, FR-P6, FR-P7): nur die eigene Person
+     erreicht diese Seite (apps/social/decorators.py:owner_only). {% endcomment %}
   <h2>{% translate "Test history" %}</h2>
   {% comment %} FR-P6: nur im eigenen Profil sichtbar, Datum, Punkte und
-     Ergebnis je Eintrag. Fremde Historie hat keinen Pfad hierher —
-     `profile` löst immer über request.user auf, nie über einen
-     Parameter (Task 2.12). {% endcomment %}
+     Ergebnis je Eintrag. Fremde Historie hat keinen Pfad hierher — der View
+     läuft erst nach owner_only, das Profil ist dort immer das eigene. {% endcomment %}
   {% if test_results %}
     <table class="test-history">
       <thead>
@@ -57,5 +61,4 @@
       <a href="{% url 'quiz:take_test' %}">{% translate "Take the test" %}</a>
     </p>
   {% endif %}
-
-  <p><a href="{% url 'delete_account' %}">{% translate "Delete account" %}</a></p>
+{% endblock %}

@@ -4,8 +4,8 @@
 {% block tab_content %}
   {% comment %} Tab "Pinboard" (Standardtab, Task 4.3). Der Platzhalter hält den Platz
      für die Favoriten frei (PRD §8.2, D-73); Bearbeiten, Farben und das Private der
-     eigenen Person stehen hier vorläufig weiter, bis Task 4.4 bis 4.7 sie in die
-     eigenen Tabs und die Sidebar verteilen. {% endcomment %}
+     eigenen Person stehen hier vorläufig weiter, bis Task 4.5 bis 4.7 sie in die
+     eigenen Bereiche und die Sidebar verteilen. {% endcomment %}
   <section class="profile-pinboard" aria-labelledby="pinboard-heading">
     <h2 id="pinboard-heading">{% translate "Pinboard" %}</h2>
     <p class="profile-pinboard__soon">
@@ -41,9 +41,5 @@
     {% endif %}
   {% else %}
     <p>{% translate "No colors set yet." %}</p>
-  {% endif %}
-
-  {% if is_owner %}
-    {% include "social/_owner_extras.html" %}
   {% endif %}
 {% endblock %}

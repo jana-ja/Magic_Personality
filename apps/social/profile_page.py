@@ -63,6 +63,8 @@ def history_with_combinations(profile, assignment):
 
 PINBOARD = "pinboard"
 FRIENDS = "friends"
+HISTORY = "history"
+SETTINGS = "settings"
 
 
 def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
@@ -73,9 +75,11 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
     die Zahl offener Anfragen am Tab „Friends".
 
     `is_owner` schaltet die Bearbeiten-Zugänge und alles Private ein.
-    `tab`: `PINBOARD` (Standard, mit dem Bearbeiten-Formular und dem
-    Privaten der eigenen Person) oder `FRIENDS` (Freundesliste, bei der
-    eigenen Person zusätzlich die offenen Anfragen). `form`: ein bereits
+    `tab`: `PINBOARD` (Standard, bei der eigenen Person mit dem
+    Bearbeiten-Formular), `FRIENDS` (Freundesliste, bei der eigenen Person
+    zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
+    vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
+    die beiden rufen nur Views auf, die vorher `owner_only` passiert haben. `form`: ein bereits
     gebundenes `ProfileForm` für die Anzeige nach einem fehlgeschlagenen
     Speichern.
 
@@ -108,6 +112,13 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
             context["friend_requests_sent"] = friendships.pending_requests_sent(profile)
         return context
 
+    if tab == HISTORY:
+        context["test_results"] = history_with_combinations(profile, assignment)
+        return context
+
+    if tab == SETTINGS:
+        return context
+
     if is_owner:
         if form is None:
             form = ProfileForm(
@@ -119,5 +130,4 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
                 profile=profile,
             )
         context["form"] = form
-        context["test_results"] = history_with_combinations(profile, assignment)
     return context

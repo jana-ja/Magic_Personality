@@ -21,6 +21,7 @@ from apps.colors import pentagon, selection
 from apps.colors.models import Color
 
 from . import friendships, profile_page
+from .decorators import owner_only
 from .models import Friendship
 
 
@@ -78,6 +79,27 @@ def profile_friends(request, nickname):
     viewer_profile = _current_profile(request)
     context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.FRIENDS)
     return render(request, "social/profile_friends.html", context)
+
+
+@owner_only
+@require_GET
+def profile_history(request, profile):
+    """
+    Tab „Test history" (Task 4.4, FR-P6, FR-P7, D-19): nur für die eigene
+    Person; jede andere Person wird von `owner_only` auf das öffentliche
+    Profil weitergeleitet, bevor dieser View läuft.
+    """
+    context = profile_page.profile_context(profile, profile, tab=profile_page.HISTORY)
+    return render(request, "social/profile_history.html", context)
+
+
+@owner_only
+@require_GET
+def profile_settings(request, profile):
+    """Tab „Settings" (Task 4.4): Passwort ändern und Account löschen, nur
+    für die eigene Person (`owner_only`)."""
+    context = profile_page.profile_context(profile, profile, tab=profile_page.SETTINGS)
+    return render(request, "social/profile_settings.html", context)
 
 
 @login_required

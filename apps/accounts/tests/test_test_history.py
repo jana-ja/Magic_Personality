@@ -16,7 +16,7 @@ from apps.quiz.models import TestResult
 pytestmark = pytest.mark.django_db
 
 PROFILE_URL = "/accounts/profile/"  # Speichern (POST); die Seite selbst ist PROFILE_PAGE
-PROFILE_PAGE = "/u/alex/"
+PROFILE_PAGE = "/u/alex/history/"
 
 
 @pytest.fixture

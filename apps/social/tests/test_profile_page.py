@@ -45,8 +45,8 @@ def test_own_profile_shows_the_edit_form_and_private_sections(gated_client, alex
     assert 'action="/accounts/profile/"' in html
     assert 'value="alex"' in html
     assert "Alex bio." in html
-    assert "Test history" in html
-    assert "Delete account" in html
+    assert 'href="/u/alex/history/"' in html
+    assert 'href="/u/alex/settings/"' in html
 
 
 def test_own_profile_offers_no_friend_action_against_oneself(gated_client, alex):
@@ -76,8 +76,8 @@ def test_foreign_profile_shows_no_edit_form_and_no_private_sections(gated_client
     html = gated_client.get("/u/jamie/").content.decode()
 
     assert 'action="/accounts/profile/"' not in html
-    assert "Test history" not in html
-    assert "Delete account" not in html
+    assert "/history/" not in html
+    assert "/settings/" not in html
     assert "Jamie bio." in html
     assert "Send friend request" in html
 
@@ -136,13 +136,13 @@ def test_form_errors_are_shown_on_the_profile_page(gated_client, alex, jamie):
     assert 'action="/accounts/profile/"' in html
 
 
-def test_deleting_a_history_entry_returns_to_the_profile_page(gated_client, alex):
+def test_deleting_a_history_entry_returns_to_the_history_tab(gated_client, alex):
     result = _result(alex)
     gated_client.force_login(alex.user)
 
     response = gated_client.post(f"/accounts/history/{result.pk}/delete/")
 
-    assert response.url == "/u/alex/"
+    assert response.url == "/u/alex/history/"
 
 
 def test_adopting_a_result_returns_to_the_profile_page(gated_client, alex):

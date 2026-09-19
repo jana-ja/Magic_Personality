@@ -109,4 +109,4 @@ def delete_test_result(request, pk):
     """
     test_result = get_object_or_404(TestResult, pk=pk, profile__user=request.user)
     test_result.delete()
-    return redirect(test_result.profile)
+    return redirect("social:profile_history", nickname=test_result.profile.nickname)
