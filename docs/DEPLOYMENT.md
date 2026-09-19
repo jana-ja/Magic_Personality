@@ -176,6 +176,17 @@ docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py sh
 
 Danach in `/admin/` mit den normalen Zugangsdaten anmelden. Weitere Admins lassen sich dort selbst über „Users" ernennen.
 
+**Ein drittes Mal geprobt** (2026-09-19, Task 4.10/Release-Durchsicht v1.2, gleicher Ablauf wie zuvor mit allen drei Compose-Dateien): Dump mit `scripts/backup.sh`, Einspielen in eine Wegwerf-Datenbank (Schritt 2), Zeilenzahlen von `accounts_profile`, `accounts_colorassignment`, `quiz_testresult`, `social_friendship` und `colors_colorcombination` gegen die Ursprungsdatenbank verglichen — identisch —, die drei Constraints von `social_friendship` vorhanden und ein Prüfsummen-Vergleich über Nickname und Bio aller Profile identisch. Wegwerf-Datenbank danach gelöscht.
+
+## Release-Hinweise v1.2 (Profil-Überarbeitung)
+
+Für das Deployment von v1.2 ist nichts Besonderes zu tun: **keine Migrationen** (`makemigrations --check` meldet nichts, der Schema-Stand ist der von v1.1), keine neuen Abhängigkeiten, `compose*.yaml`, `Dockerfile` und `Caddyfile` unverändert — der übliche Ablauf aus „Folge-Deployments" genügt. Zwei Dinge, die auffallen können:
+
+- **Adressen:** Die Profilseite ist jetzt `/u/<nickname>/` für die eigene Person wie für alle anderen. `/accounts/profile/` bleibt als Weiterleitung auf das eigene Profil erhalten (alte Lesezeichen funktionieren), speichert aber nichts mehr. Ändert jemand den Nickname, ändert sich die Adresse des Profils; alte Adressen führen dann zu 404.
+- **Statische Dateien:** In Produktion liefert WhiteNoise sie mit Inhalts-Hash im Namen aus (`CompressedManifestStaticFilesStorage`), zwischengespeicherte Browser-Kopien der alten Stylesheets und Skripte werden also nicht weiterverwendet.
+
+Vor dem Deployment lässt sich mit dem Backup-Ablauf oben ein Dump ziehen; nach dem Deployment reicht ein Blick auf `/healthz` und ein eigenes Profil. Die Bestandsdaten (Zuordnungen, Testverknüpfungen, Freundschaften) bleiben unangetastet — für v1.2 lokal nachgewiesen (Vorher-nachher-Vergleich, siehe `docs/ROADMAP.md`, Task 4.10).
+
 ## Fehlerbehebung
 
 **Seite lädt, Fünfeck und Navigation sind da, aber jede Auswahl zeigt leere Inhalte:** `seed_content` wurde vergessen (siehe "Erstes Deployment" oben) — die Migrationen legen nur leere Zeilen an, den eigentlichen Content bringt erst `docker compose -f compose.yaml -f compose.prod.yaml run --rm web python manage.py seed_content --locale en`. Gegenprobe: `docker compose -f compose.yaml -f compose.prod.yaml exec web python manage.py shell -c "from apps.colors.models import ColorCombination; print(ColorCombination.objects.filter(name='').count())"` — `0` heißt durchgängig befüllt, jede andere Zahl zeigt fehlenden Content.

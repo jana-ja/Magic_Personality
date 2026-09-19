@@ -551,12 +551,29 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.10 · Release-Durchsicht v1.2
 **Abhängig von:** 4.9 · **Anforderungen:** PRD §11 (v1.2)
 **Fertig, wenn:**
-- [ ] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
-- [ ] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private und Bearbeiten-Adressen leiten andere auf das öffentliche Profil weiter, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
-- [ ] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
-- [ ] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
-- [ ] Backup-Wiederherstellung erneut geprobt.
-- [ ] `DECISIONS.md` ist vollständig, D-56 als ersetzt markiert.
+- [x] Alle Abnahmekriterien aus PRD §11 (v1.2) durchgegangen und abgehakt.
+- [x] Zugriffsschutz erneut geprüft: Gate, Login-Pflicht, private und Bearbeiten-Adressen leiten andere auf das öffentliche Profil weiter, Historie nirgends fremd sichtbar (ausdrücklich für alle neuen URLs).
+- [x] Prüfung gegen `ARCHITECTURE.md`: keine unbeabsichtigten Abweichungen (JavaScript-Umfang, keine neuen Abhängigkeiten).
+- [x] Bestehende Nutzerdaten unverändert: Zuordnungen, Testreferenzen und Freundschaften eines Datenbank-Dumps vor und nach dem Deployment stichprobenartig verglichen.
+- [x] Backup-Wiederherstellung erneut geprobt.
+- [x] `DECISIONS.md` ist vollständig, D-56 als ersetzt markiert.
+
+> **Abnahmekriterien PRD §11 (v1.2):**
+> - „Eigenes und fremdes Profil sind dieselbe Seite; private Bereiche sind für andere auf keinem Pfad erreichbar, ihre Adressen leiten auf das öffentliche Profil weiter." — Task 4.1/4.4, `test_profile_page.py`, `test_private_tabs.py` und die Matrix in `test_access_control.py`.
+> - „Nickname, Bio und Farben lassen sich einzeln bearbeiten; das Speichern eines Bereichs verändert nie einen anderen, insbesondere nie die Testverknüpfung." — Task 4.5/4.6, `test_profile_sections.py`, `test_profile_colors.py`, `test_profile_edit.py` (D-72).
+> - „Farben sind aus einem Testergebnis oder manuell am Fünfeck wählbar, mit und ohne JavaScript." — Task 4.6, im Browser mit JavaScript (Fünfeck, Maus, Leertaste) und ohne (Klasse `js` entfernt: Kästchen) nachgewiesen.
+> - „Banner, Tabs und Sidebar funktionieren mit Tastatur und Screenreader und bei 375 px ohne horizontales Scrollen." — Task 4.2/4.3/4.7/4.9, im Browser über zehn Seiten bei 375 px gemessen (kein Überlauf, keine Bedienelemente unter 44 px), Struktur und Ansagetexte per `test_profile_accessibility.py`. Nicht abgedeckt: ein Durchlauf mit einem echten Screenreader (VoiceOver/NVDA).
+> - „Die Autorenkarte erscheint in Freundeslisten und Suchergebnissen." — Task 4.8, `test_author_card.py`.
+>
+> **Zugriffsschutz:** Neue Matrix `apps/social/tests/test_access_control.py` läuft über **alle** Adressmuster der Social-App: ohne Gate-Cookie überall Weiterleitung zum Gate, ohne Anmeldung überall zum Login (GET und POST), für Testhistorie, Einstellungen und alle drei Bearbeiten-Adressen leitet jede andere Person (GET und POST) leer auf das öffentliche Profil weiter, die eigene Person erreicht sie, ein unbekannter Nickname liefert 404. Ein Test lädt sämtliche Adressen eines fremden Profils (samt Suche und Listen) und weist nach, dass nicht übernommene Historieneinträge nirgends vorkommen; fremde Historieneinträge lassen sich weder löschen noch übernehmen. Ein neu hinzugefügtes Adressmuster ohne Zuordnung in der Matrix lässt einen Test fehlschlagen.
+>
+> **Gegen `ARCHITECTURE.md`:** keine Migrationen, keine neuen Abhängigkeiten, `compose*.yaml`/`Dockerfile`/`Caddyfile` unverändert (`git diff main` leer). Bewusste, dokumentierte Erweiterungen: rund 280 Zeilen eigenes JavaScript in fünf kleinen Skripten (davon 83 neu in v1.2, ohne Framework, jede Funktion auch ohne Skript nutzbar; jetzt in §4.3.1 festgehalten und per Test begrenzt), der Decorator `owner_only` (neue Zeile in §7) und die Projektstruktur (§5). Das Fünfeck-Formularfeld weicht von D-56 ab und ist als D-74 dokumentiert.
+>
+> **Bestandsdaten:** Ohne Migrationen bleibt das Schema unverändert. Zusätzlich ein Vorher-nachher-Vergleich: Datensatz mit übernommenem Testergebnis, manueller Farbwahl, gelöschter Referenz, Profil ohne Farben, angenommenen und offenen Freundschaften; alle Tabellen (`accounts_profile`, `accounts_colorassignment`, `quiz_testresult`, `social_friendship`, `accounts_user` ohne `last_login`) vor und nach **196 Anfragen** (jede Adresse jedes Profils aus Sicht jedes Testkontos, dazu unveränderte Bio-, Nickname- und Farben-Formulare) — Zeile für Zeile identisch, kein einziger Fehlerstatus.
+>
+> **Backup-Wiederherstellung:** erneut geprobt (siehe `docs/DEPLOYMENT.md`), Zeilenzahlen, Constraints und Inhaltsprüfsumme identisch.
+>
+> **`DECISIONS.md`:** 74 Einträge (D-01 bis D-74), lückenlos, keiner „Offen"; D-56 als ersetzt durch D-74 markiert, D-73 um den Namen des Decorators präzisiert.
 
 **Meilenstein v1.2 abgeschlossen** — das Profil ist bereit für Blogbeiträge und Kommentare.
 
