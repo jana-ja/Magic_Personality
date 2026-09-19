@@ -270,7 +270,7 @@ def test_pending_requests_are_visible_on_the_recipients_own_profile(gated_client
     friendships.send_request(alex, jamie)
     gated_client.force_login(jamie.user)
 
-    response = gated_client.get("/u/jamie/")
+    response = gated_client.get("/u/jamie/friends/")
 
     html = response.content.decode()
     assert 'href="/u/alex/"' in html
@@ -280,7 +280,7 @@ def test_pending_requests_are_visible_on_the_senders_own_profile(gated_client, a
     friendships.send_request(alex, jamie)
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/alex/")
+    response = gated_client.get("/u/alex/friends/")
 
     html = response.content.decode()
     assert 'href="/u/jamie/"' in html
@@ -291,7 +291,7 @@ def test_accepted_friendship_is_not_listed_as_an_open_request(gated_client, alex
     friendships.accept_request(friendship, jamie)
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/alex/")
+    response = gated_client.get("/u/alex/friends/")
 
     html = response.content.decode()
     assert "No open friend requests." in html

@@ -1,0 +1,43 @@
+{% load i18n %}
+  {% comment %} FR-S4: offene Anfragen in beide Richtungen, nur im eigenen Profil
+     (Task 3.4-DoD, seit Task 4.3 im Tab "Friends"). {% endcomment %}
+  <h2>{% translate "Friend requests" %}</h2>
+  {% if friend_requests_received %}
+    <h3>{% translate "Received" %}</h3>
+    <ul class="friend-requests">
+      {% for friendship in friend_requests_received %}
+        <li>
+          <a href="{% url 'social:profile_detail' nickname=friendship.requested_by.nickname %}">
+            {{ friendship.requested_by.nickname }}
+          </a>
+          <form method="post" action="{% url 'social:accept_friend_request' pk=friendship.pk %}">
+            {% csrf_token %}
+            <button type="submit">{% translate "Accept" %}</button>
+          </form>
+          <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
+            {% csrf_token %}
+            <button type="submit">{% translate "Decline" %}</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if friend_requests_sent %}
+    <h3>{% translate "Sent" %}</h3>
+    <ul class="friend-requests">
+      {% for friendship in friend_requests_sent %}
+        <li>
+          <a href="{% url 'social:profile_detail' nickname=friendship.other.nickname %}">{{ friendship.other.nickname }}</a>
+          <form method="post" action="{% url 'social:decline_friend_request' pk=friendship.pk %}">
+            {% csrf_token %}
+            <button type="submit">{% translate "Cancel request" %}</button>
+          </form>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {% if not friend_requests_received and not friend_requests_sent %}
+    <p>{% translate "No open friend requests." %}</p>
+  {% endif %}

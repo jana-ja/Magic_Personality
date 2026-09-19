@@ -468,12 +468,14 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 #### 4.3 · Tabs und Freunde-Tab
 **Abhängig von:** 4.2 · **Anforderungen:** FR-P11, FR-S5, FR-S6, D-73
 **Fertig, wenn:**
-- [ ] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/` = Pinnwand als Standardtab, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
-- [ ] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
-- [ ] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
-- [ ] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
-- [ ] Die Tab-Leiste enthält von Anfang an **Pinnwand** (Standard) und **Friends**; die Pinnwand zeigt bis zu ihrer Umsetzung einen „Coming soon"-Platzhalter (Task 4.7).
-- [ ] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
+- [x] Tabs sind echte Links auf eigene URLs (`/u/<nickname>/` = Pinnwand als Standardtab, `/u/<nickname>/friends/`), aktiver Tab mit `aria-current="page"` und nicht nur farblich markiert; kein JavaScript nötig.
+- [x] Der Freunde-Tab zeigt die vollständige Freundesliste, bei der eigenen Person zusätzlich offene Anfragen (empfangen und gesendet) samt Annehmen/Ablehnen/Zurückziehen; ein Hinweis am Tab zeigt die Zahl neuer Anfragen.
+- [x] Die Freundesliste bleibt über beliebig viele Ebenen durchklickbar (Task 3.5-DoD gilt weiter).
+- [x] Bisherige Anfragen-Box im Profil entfällt zugunsten des Tabs.
+- [x] Die Tab-Leiste enthält von Anfang an **Pinnwand** (Standard) und **Friends**; die Pinnwand zeigt bis zu ihrer Umsetzung einen „Coming soon"-Platzhalter (Task 4.7).
+- [x] Test: fremde offene Anfragen tauchen nirgends in einem fremden Profil auf.
+
+> Umsetzung: `profile_base.html` (Kopf + Tab-Leiste) als Grundgerüst, `profile_detail.html` = Tab Pinboard, `profile_friends.html` = Tab Friends unter `/u/<nickname>/friends/`. Der Kontext ist nach Tab geteilt (`profile_page.profile_context(tab=…)`). Bis 4.7 stehen auf dem Pinboard-Tab vorläufig noch Formular, Farben und das Private der eigenen Person unter dem Coming-soon-Platzhalter. Anfragen annehmen/ablehnen leitet weiterhin auf das Profil der anderen Person, nicht zurück auf den Friends-Tab. Im Browser bei 1024 und 375 px geprüft.
 
 #### 4.4 · Private Tabs: Testhistorie und Einstellungen
 **Abhängig von:** 4.3 · **Anforderungen:** FR-P6, FR-P7, FR-P11, FR-U8, D-19, D-73

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{{ profile.nickname }}{% endblock %}
+
+{% block content %}
+  {% comment %} Gemeinsames Gerüst aller Profil-Tabs (Task 4.3): Kopfbereich
+     (Task 4.2) und Tab-Leiste; der Inhalt des Tabs kommt aus tab_content. {% endcomment %}
+  {% include "social/_profile_header.html" %}
+  {% include "social/_profile_tabs.html" %}
+
+  {% block tab_content %}{% endblock %}
+{% endblock %}

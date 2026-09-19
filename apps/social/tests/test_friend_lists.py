@@ -69,7 +69,7 @@ def test_own_friends_list_is_visible_on_the_own_profile(gated_client, alex, jami
     _befriend(alex, jamie)
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/alex/")
+    response = gated_client.get("/u/alex/friends/")
 
     html = response.content.decode()
     assert 'href="/u/jamie/"' in html
@@ -78,7 +78,7 @@ def test_own_friends_list_is_visible_on_the_own_profile(gated_client, alex, jami
 def test_own_profile_without_friends_shows_a_neutral_message(gated_client, alex):
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/alex/")
+    response = gated_client.get("/u/alex/friends/")
 
     assert "No friends yet." in response.content.decode()
 
@@ -90,7 +90,7 @@ def test_foreign_profiles_friend_list_is_visible(gated_client, alex, jamie, tayl
     _befriend(jamie, taylor)
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/jamie/")
+    response = gated_client.get("/u/jamie/friends/")
 
     html = response.content.decode()
     assert 'href="/u/taylor/"' in html
@@ -99,7 +99,7 @@ def test_foreign_profiles_friend_list_is_visible(gated_client, alex, jamie, tayl
 def test_foreign_profile_without_friends_shows_a_neutral_message(gated_client, alex, jamie):
     gated_client.force_login(alex.user)
 
-    response = gated_client.get("/u/jamie/")
+    response = gated_client.get("/u/jamie/friends/")
 
     assert "No friends yet." in response.content.decode()
 
@@ -119,17 +119,17 @@ def test_the_graph_is_navigable_across_at_least_two_levels_without_a_dead_end(
     gated_client.force_login(alex.user)
 
     # Ebene 0: eigenes Profil -> jamie.
-    own_profile_html = gated_client.get("/u/alex/").content.decode()
+    own_profile_html = gated_client.get("/u/alex/friends/").content.decode()
     assert 'href="/u/jamie/"' in own_profile_html
 
     # Ebene 1: jamies Profil -> alex (zurück) und taylor (weiter).
-    jamie_html = gated_client.get("/u/jamie/").content.decode()
+    jamie_html = gated_client.get("/u/jamie/friends/").content.decode()
     assert 'href="/u/alex/"' in jamie_html
     assert 'href="/u/taylor/"' in jamie_html
 
     # Ebene 2: taylors Profil -> jamie (zurück) — keine Sackgasse, die
     # Seite bietet immer eine (ggf. leere) Freundesliste an.
-    taylor_html = gated_client.get("/u/taylor/").content.decode()
+    taylor_html = gated_client.get("/u/taylor/friends/").content.decode()
     assert 'href="/u/jamie/"' in taylor_html
     assert "Friends" in taylor_html
 
@@ -137,7 +137,7 @@ def test_the_graph_is_navigable_across_at_least_two_levels_without_a_dead_end(
 def test_login_is_required_to_see_a_friend_list(gated_client, alex, jamie, taylor):
     _befriend(jamie, taylor)
 
-    response = gated_client.get("/u/jamie/")
+    response = gated_client.get("/u/jamie/friends/")
 
     assert response.status_code == 302
     assert "/accounts/login/" in response.url

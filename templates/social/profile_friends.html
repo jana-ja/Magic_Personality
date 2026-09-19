@@ -1,0 +1,24 @@
+{% extends "social/profile_base.html" %}
+{% load i18n %}
+
+{% block tab_content %}
+  {% comment %} Tab "Friends" (Task 4.3, FR-S5, FR-S6): die Freundesliste dieses
+     Profils, unabhängig von der Beziehung der ansehenden Person dazu — jeder
+     Eintrag führt auf ein Profil, der Graph lässt sich beliebig weiterklicken. {% endcomment %}
+  <section aria-labelledby="friends-heading">
+    <h2 id="friends-heading">{% translate "Friends" %}</h2>
+    {% if friends %}
+      <ul class="friend-list">
+        {% for friend in friends %}
+          <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>{% translate "No friends yet." %}</p>
+    {% endif %}
+  </section>
+
+  {% if is_owner %}
+    {% include "social/_friend_requests.html" %}
+  {% endif %}
+{% endblock %}

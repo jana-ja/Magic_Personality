@@ -61,15 +61,23 @@ def history_with_combinations(profile, assignment):
     return results
 
 
-def profile_context(profile, viewer_profile, *, form=None):
-    """
-    Kontext für `social/profile_detail.html`. `is_owner` schaltet die
-    Bearbeiten-Zugänge und alles Private ein (Formular, offene
-    Anfragen, Testhistorie, Account löschen) — sonst der
-    Freundschaftsstatus zur angesehenen Person (FR-S4).
+PINBOARD = "pinboard"
+FRIENDS = "friends"
 
-    `form`: ein bereits gebundenes `ProfileForm` (mit Fehlern) für die
-    Anzeige nach einem fehlgeschlagenen Speichern.
+
+def profile_context(profile, viewer_profile, *, tab=PINBOARD, form=None):
+    """
+    Kontext für die Profilseite und ihre Tabs (Task 4.1/4.3, FR-P9,
+    FR-P11, D-73). Gemeinsam für jeden Tab: Kopfbereich (Farben,
+    Freundschaftsaktion), Tab-Leiste und — nur für die eigene Person —
+    die Zahl offener Anfragen am Tab „Friends".
+
+    `is_owner` schaltet die Bearbeiten-Zugänge und alles Private ein.
+    `tab`: `PINBOARD` (Standard, mit dem Bearbeiten-Formular und dem
+    Privaten der eigenen Person) oder `FRIENDS` (Freundesliste, bei der
+    eigenen Person zusätzlich die offenen Anfragen). `form`: ein bereits
+    gebundenes `ProfileForm` für die Anzeige nach einem fehlgeschlagenen
+    Speichern.
 
     Die Punkte des übernommenen Testergebnisses (D-70) zeigt die Seite
     allen, weder Datum noch die übrige Historie (D-19).
@@ -81,31 +89,35 @@ def profile_context(profile, viewer_profile, *, form=None):
     context = {
         "profile": profile,
         "is_owner": is_owner,
+        "active_tab": tab,
         "combination": assignment.combination if assignment else None,
         "test_scores": test_result.ordered_scores if test_result else None,
-        "friends": friendships.accepted_friends(profile),
         **avatar.avatar_context(assignment),
     }
-    if not is_owner:
+    received = []
+    if is_owner:
+        received = list(friendships.pending_requests_received(profile))
+        context["friend_request_count"] = len(received)
+    else:
         context.update(relationship_context(viewer_profile, profile))
+
+    if tab == FRIENDS:
+        context["friends"] = friendships.accepted_friends(profile)
+        if is_owner:
+            context["friend_requests_received"] = received
+            context["friend_requests_sent"] = friendships.pending_requests_sent(profile)
         return context
 
-    if form is None:
-        form = ProfileForm(
-            initial={
-                "nickname": profile.nickname,
-                "bio": profile.bio,
-                "colors": list(assignment.combination.code) if assignment else [],
-            },
-            profile=profile,
-        )
-    context.update(
-        {
-            "form": form,
-            "test_results": history_with_combinations(profile, assignment),
-            # FR-S4: offene Anfragen in beide Richtungen.
-            "friend_requests_received": friendships.pending_requests_received(profile),
-            "friend_requests_sent": friendships.pending_requests_sent(profile),
-        }
-    )
+    if is_owner:
+        if form is None:
+            form = ProfileForm(
+                initial={
+                    "nickname": profile.nickname,
+                    "bio": profile.bio,
+                    "colors": list(assignment.combination.code) if assignment else [],
+                },
+                profile=profile,
+            )
+        context["form"] = form
+        context["test_results"] = history_with_combinations(profile, assignment)
     return context

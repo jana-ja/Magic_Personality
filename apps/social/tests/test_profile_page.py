@@ -47,7 +47,6 @@ def test_own_profile_shows_the_edit_form_and_private_sections(gated_client, alex
     assert "Alex bio." in html
     assert "Test history" in html
     assert "Delete account" in html
-    assert "Friend requests" in html
 
 
 def test_own_profile_offers_no_friend_action_against_oneself(gated_client, alex):
@@ -79,7 +78,6 @@ def test_foreign_profile_shows_no_edit_form_and_no_private_sections(gated_client
     assert 'action="/accounts/profile/"' not in html
     assert "Test history" not in html
     assert "Delete account" not in html
-    assert "Friend requests" not in html
     assert "Jamie bio." in html
     assert "Send friend request" in html
 

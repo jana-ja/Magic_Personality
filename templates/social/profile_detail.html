@@ -1,23 +1,28 @@
-{% extends "base.html" %}
+{% extends "social/profile_base.html" %}
 {% load i18n %}
 
-{% block title %}{{ profile.nickname }}{% endblock %}
-
-{% block content %}
-  {% comment %} Eigenes und fremdes Profil sind dieselbe Seite (Task 4.1,
-     FR-P9, D-73) — is_owner (apps/social/profile_page.py) schaltet
-     Bearbeiten und alles Private ein. Kopfbereich (Task 4.2): Banner,
-     Profilbild, Name, Kombination, Bio-Zeile und Freundschaftsaktion. {% endcomment %}
-  {% include "social/_profile_header.html" %}
+{% block tab_content %}
+  {% comment %} Tab "Pinboard" (Standardtab, Task 4.3). Der Platzhalter hält den Platz
+     für die Favoriten frei (PRD §8.2, D-73); Bearbeiten, Farben und das Private der
+     eigenen Person stehen hier vorläufig weiter, bis Task 4.4 bis 4.7 sie in die
+     eigenen Tabs und die Sidebar verteilen. {% endcomment %}
+  <section class="profile-pinboard" aria-labelledby="pinboard-heading">
+    <h2 id="pinboard-heading">{% translate "Pinboard" %}</h2>
+    <p class="profile-pinboard__soon">
+      <strong>{% translate "Coming soon" %}</strong><br>
+      {% translate "Soon you'll be able to pin your favorites here — your own or other people's posts and comments." %}
+    </p>
+  </section>
 
   {% if is_owner %}
     {% comment %} Noch das Sammelformular (Task 4.5/4.6 ersetzen es). {% endcomment %}
     {% include "social/_owner_form.html" %}
+  {% elif profile.bio %}
+    <h2>{% translate "About" %}</h2>
+    <p class="profile-bio">{{ profile.bio }}</p>
   {% endif %}
 
-  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail —
-     dieselbe Darstellung wie der Ergebnis-Link im eigenen Profil
-     (social/_owner_form.html). {% endcomment %}
+  {% comment %} FR-S1: nur Farben, nicht Testhistorie, nicht E-Mail. {% endcomment %}
   <h2>{% translate "Colors" %}</h2>
   {% if combination %}
     <p>
@@ -36,21 +41,6 @@
     {% endif %}
   {% else %}
     <p>{% translate "No colors set yet." %}</p>
-  {% endif %}
-
-  {% comment %} FR-S6: die Freundesliste **dieses** Profils, unabhängig
-     von der Beziehung der ansehenden Person dazu — jeder Eintrag führt
-     wieder auf dieselbe View, der Graph lässt sich beliebig
-     weiterklicken (Task 3.5-DoD). {% endcomment %}
-  <h2>{% translate "Friends" %}</h2>
-  {% if friends %}
-    <ul class="friend-list">
-      {% for friend in friends %}
-        <li><a href="{% url 'social:profile_detail' nickname=friend.nickname %}">{{ friend.nickname }}</a></li>
-      {% endfor %}
-    </ul>
-  {% else %}
-    <p>{% translate "No friends yet." %}</p>
   {% endif %}
 
   {% if is_owner %}

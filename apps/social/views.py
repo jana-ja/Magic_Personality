@@ -51,16 +51,33 @@ def profile_detail(request, nickname):
     Profils auf `/accounts/profile/` entfällt — die Richtung ist jetzt
     umgekehrt.
 
-    Weiterhin je Profil: Freundschaftsstatus (FR-S4, Task 3.4),
-    Freundesliste **dieses** Profils unabhängig von der Beziehung zur
-    ansehenden Person (FR-S6, Task 3.5 — jeder Eintrag verlinkt wieder
-    hierher, der Graph lässt sich beliebig weiterklicken) und die
-    Punkte des übernommenen Testergebnisses (D-70).
+    Seit Task 4.3 (FR-P11) ist das der Tab „Pinboard" (Standardtab);
+    die Freundesliste steht im Tab „Friends" (`profile_friends`).
+    Weiterhin je Profil: Freundschaftsstatus (FR-S4, Task 3.4) im Kopf
+    und die Punkte des übernommenen Testergebnisses (D-70).
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     viewer_profile = _current_profile(request)
     context = profile_page.profile_context(profile, viewer_profile)
     return render(request, "social/profile_detail.html", context)
+
+
+@login_required
+@require_GET
+def profile_friends(request, nickname):
+    """
+    Tab „Friends" (Task 4.3, FR-P11, FR-S5, FR-S6): die Freundesliste
+    **dieses** Profils, unabhängig von der Beziehung der ansehenden Person
+    dazu (FR-S6: keine Einschränkung auf gemeinsame Freunde) — jeder
+    Eintrag verlinkt wieder auf ein Profil, der Graph lässt sich beliebig
+    weiterklicken (Task 3.5-DoD). Die eigene Person sieht hier zusätzlich
+    ihre offenen Anfragen (FR-S4); bei fremden Profilen erscheinen die
+    offenen Anfragen dieser Person nirgends.
+    """
+    profile = get_object_or_404(Profile, nickname__iexact=nickname)
+    viewer_profile = _current_profile(request)
+    context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.FRIENDS)
+    return render(request, "social/profile_friends.html", context)
 
 
 @login_required

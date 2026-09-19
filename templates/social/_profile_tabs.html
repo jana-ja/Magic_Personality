@@ -1,0 +1,12 @@
+{% load i18n %}
+{% comment %} Tab-Leiste des Profils (Task 4.3, FR-P11, D-73): echte Links auf
+   eigene Adressen, kein ARIA-Tabs-Widget und kein JavaScript. Der aktive Tab
+   trägt aria-current="page" und wird zusätzlich über Unterstrich/Fettdruck
+   abgesetzt, nicht nur über Farbe (NFR-6). Die Zahl offener Anfragen (nur
+   für die eigene Person) steht als Ziffer am Tab und für Screenreader
+   ausgeschrieben. Tabs für Beiträge und Kommentare gibt es erst mit den
+   Inhalten; Testhistorie und Einstellungen folgen mit Task 4.4. {% endcomment %}
+<nav class="profile-tabs" aria-label="{% translate 'Profile sections' %}">
+  <a href="{% url 'social:profile_detail' nickname=profile.nickname %}"{% if active_tab == "pinboard" %} aria-current="page"{% endif %}>{% translate "Pinboard" %}</a>
+  <a href="{% url 'social:profile_friends' nickname=profile.nickname %}"{% if active_tab == "friends" %} aria-current="page"{% endif %}>{% translate "Friends" %}{% if friend_request_count %} <span class="profile-tabs__count" aria-hidden="true">{{ friend_request_count }}</span><span class="visually-hidden">{% blocktranslate count counter=friend_request_count %}, {{ counter }} open request{% plural %}, {{ counter }} open requests{% endblocktranslate %}</span>{% endif %}</a>
+</nav>
