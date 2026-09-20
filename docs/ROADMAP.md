@@ -605,12 +605,14 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.1 · App-Gerüst und Beitragsmodell
 **Abhängig von:** — · **Anforderungen:** FR-B1, FR-B2, FR-B8, FR-B9, D-78
 **Fertig, wenn:**
-- [ ] `apps/posts` angelegt und registriert, ARCHITECTURE §5 stimmt.
-- [ ] `Post` mit Autorin/Autor (`Profile`), Titel (≤ 120), Text (≤ 10 000), `colors` (kanonischer Code oder leer, `apps.colors.utils.canonical_code`), `visibility` (nur `public`), `created_at`, `edited_at`, `comment_seq`; Migration; Titel nicht leer als Constraint.
-- [ ] Ungültige Farbcodes (unbekannter Buchstabe, Doppelung, nicht kanonisch) werden abgelehnt.
-- [ ] `Post.objects.visible_to(profile)` ist die einzige Lesestelle; der Manager ist dokumentiert als der Weg, `Post.objects.all()` wird nirgends außerhalb von Tests benutzt.
-- [ ] Django-Admin (D-71: der Test verlangt alle Modelle registriert): Liste mit Autorin/Autor, Titel, Farben, Datum; Löschen möglich.
-- [ ] Test: Modell, Constraints, `visible_to` liefert öffentliche Beiträge; Löschen des Profils entfernt seine Beiträge.
+- [x] `apps/posts` angelegt und registriert, ARCHITECTURE §5 stimmt.
+- [x] `Post` mit Autorin/Autor (`Profile`), Titel (≤ 120), Text (≤ 10 000), `colors` (kanonischer Code oder leer, `apps.colors.utils.canonical_code`), `visibility` (nur `public`), `created_at`, `edited_at`, `comment_seq`; Migration; Titel nicht leer als Constraint.
+- [x] Ungültige Farbcodes (unbekannter Buchstabe, Doppelung, nicht kanonisch) werden abgelehnt.
+- [x] `Post.objects.visible_to(profile)` ist die einzige Lesestelle; der Manager ist dokumentiert als der Weg, `Post.objects.all()` wird nirgends außerhalb von Tests benutzt.
+- [x] Django-Admin (D-71: der Test verlangt alle Modelle registriert): Liste mit Autorin/Autor, Titel, Farben, Datum; Löschen möglich.
+- [x] Test: Modell, Constraints, `visible_to` liefert öffentliche Beiträge; Löschen des Profils entfernt seine Beiträge.
+
+> Umsetzung: `apps/posts/{models,admin}.py`, Migration `0001_post`. Die Farbregel steht dreifach: `RegexValidator` (Formulare, `full_clean`) und ein DB-Constraint mit demselben Muster `^W?U?B?R?G?$` (genau die kanonischen Codes, leer erlaubt) — ein `GW` fände im Grid nie seine Kombination. Auch die Textlänge (≤ 10 000, per `Length` im Constraint) und ein nichtleerer Titel sind in der Datenbank festgehalten. `Post.Visibility` kennt nur `public`, den Wert `friends` gibt es erst mit dem Feature; `visible_to(None)` liefert für Gäste nichts. Der Admin ist nur lesbar plus löschen (D-71, D-81). Zwei Indizes für die späteren Abfragen (Grid je Kombination, Profil-Tab). Die Rate-Limit-Grenzen (30 Beiträge, 60 Kommentare, 20 Meldungen je Stunde) kommen mit 5.3, 6.2 und 5.7.
 
 #### 5.2 · Markdown-Rendering
 **Abhängig von:** 5.1 · **Anforderungen:** FR-B3, D-80, R-7

@@ -45,6 +45,7 @@ INSTALLED_APPS = [
     "apps.accounts",
     "apps.quiz",
     "apps.social",
+    "apps.posts",
 ]
 
 MIDDLEWARE = [

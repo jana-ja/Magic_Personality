@@ -24,7 +24,7 @@ def _registered_models():
     return [
         model
         for model in admin.site._registry
-        if model._meta.app_label in {"accounts", "colors", "quiz", "social", "core"}
+        if model._meta.app_label in {"accounts", "colors", "quiz", "social", "posts", "core"}
     ]
 
 
@@ -44,7 +44,7 @@ def test_all_project_models_are_registered():
 
     project_models = {
         model
-        for label in ("accounts", "colors", "quiz", "social", "core")
+        for label in ("accounts", "colors", "quiz", "social", "posts", "core")
         for model in apps.get_app_config(label).get_models()
     }
 
