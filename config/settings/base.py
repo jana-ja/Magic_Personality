@@ -236,6 +236,12 @@ GATE_RATE_LIMIT_WINDOW_SECONDS = 600
 REGISTRATION_RATE_LIMIT_MAX_ATTEMPTS = 10
 REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600
 
+# Feedback zum Test (Task 4.11, FR-T18) — eigener Zähler (FeedbackAttempt).
+# Großzügig genug für einen Tippfehler und einen zweiten Versuch, aber weit
+# unter dem, was ein Skript pro Stunde schicken würde.
+FEEDBACK_RATE_LIMIT_MAX_ATTEMPTS = 5
+FEEDBACK_RATE_LIMIT_WINDOW_SECONDS = 3600
+
 # Der Schwellenwert T der Auswertungsregel (FR-T11) ist seit D-65 keine
 # Einstellung mehr, sondern steht je Fragebogen-Version in der Seed-Datei
 # (`Questionnaire.result_threshold`).

@@ -63,6 +63,9 @@ Fehlerbehebungen und kleine Ergänzungen nach v1.0 (Such-Link in der Navigation,
 ### v1.2 — Profil-Überarbeitung
 Ein Profil für eigene und fremde Ansicht, Kopfbereich mit Farbbanner, Tabs, Sidebar mit Kurzinfos, einzeln bearbeitbare Bereiche und eine wiederverwendbare Autorenkarte. Bereitet Blogbeiträge und Kommentare zu Farben vor (§8.2), die später den meisten Platz auf der Seite bekommen.
 
+### v1.2.1 — Feedback zum Test
+Ein kleines Formular, mit dem Testende Rückmeldung zum Personality Test geben: direkt auf der Ergebnisseite und dauerhaft über einen Link im Footer (für alle, die den Test schon vorher gemacht haben). Anonym, in der Datenbank gespeichert. Übt nebenbei, wie Nutzereingaben abgesichert werden, bevor Blogbeiträge und Kommentare sie für andere sichtbar machen.
+
 ---
 
 ## 5. Funktionale Anforderungen
@@ -161,6 +164,11 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 - **FR-T15** *Nicht eingeloggt:* Das Ergebnis wird lokal im Browser (`localStorage`) zwischengespeichert und zur Registrierung eingeladen.
 - **FR-T16** Meldet sich ein Gast anschließend an oder registriert sich, wird ein zwischengespeichertes Ergebnis wie unter FR-T14 behandelt (Historie + Angebot zur Übernahme) und der lokale Zwischenspeicher geleert.
 - **FR-T17** Der Test kann beliebig oft wiederholt werden. Jeder Durchlauf erzeugt einen eigenen Historieneintrag.
+
+**Feedback (v1.2.1)**
+- **FR-T18** Testende können Feedback zum Test geben: eine optionale **Bewertung von 1 bis 5** („Passt das Ergebnis zu dir?") und einen optionalen **Freitext** (höchstens 2000 Zeichen); mindestens eines von beiden ist nötig. Das Formular steht auf der Ergebnisseite und unter `/feedback/`, erreichbar über den Footer jeder Seite.
+- **FR-T19** Feedback ist **anonym**: mit oder ohne Login abgebbar, ohne Verweis auf Account, Profil oder IP-Adresse. Gespeichert werden Bewertung, Text, Zeitpunkt und — wenn direkt nach einem Test abgegeben — die Fragebogen-Version. Feedback überlebt die Account-Löschung (FR-U8), weil es nicht zugeordnet ist.
+- **FR-T20** Absendungen sind je IP-Adresse begrenzt (5 pro Stunde). Feedback ist nur für die Projektinhaberin im Django-Admin sichtbar, niemals für andere Nutzende.
 
 ### 5.4 Accounts (v0.2)
 
@@ -364,3 +372,9 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 - Farben sind aus einem Testergebnis der Historie oder manuell am Fünfeck wählbar, mit und ohne JavaScript.
 - Banner, Tabs und Sidebar funktionieren mit Tastatur und Screenreader und bei 375 px ohne horizontales Scrollen.
 - Die Autorenkarte erscheint in Freundeslisten und Suchergebnissen.
+
+**v1.2.1**
+- Feedback lässt sich auf der Ergebnisseite ohne Seitenwechsel und über `/feedback/` (Footer-Link) abgeben, mit und ohne Login, mit und ohne JavaScript.
+- Leere Absendungen, Bewertungen außerhalb 1 bis 5 und zu lange Texte werden abgelehnt; die Grenzen sind auch in der Datenbank festgehalten.
+- Gespeichertes Feedback enthält nichts, was auf eine Person zeigt; die Datenschutzseite sagt das.
+- Mehr als 5 Absendungen je IP-Adresse und Stunde werden abgelehnt, die Meldung ist auch bei HTMX sichtbar.

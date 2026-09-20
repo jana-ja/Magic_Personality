@@ -1,7 +1,12 @@
-"""Formular zum Ausfüllen des Fragebogens (Task 2.8, FR-T2, FR-T7 bis FR-T9, D-65)."""
+"""
+Formulare der Quiz-App: Fragebogen (Task 2.8, FR-T2, FR-T7 bis FR-T9, D-65)
+und Feedback (Task 4.11, FR-T18).
+"""
 
 from django import forms
 from django.utils.translation import gettext_lazy as _
+
+from .models import Feedback, Questionnaire
 
 
 class AnswerChoiceField(forms.ModelChoiceField):
@@ -68,3 +73,58 @@ class TakeTestForm(forms.Form):
             for question in self.questions
             for rank, points in enumerate(self.choice_points)
         ]
+
+
+class FeedbackForm(forms.Form):
+    """
+    Feedback zum Test (Task 4.11, FR-T18, D-75): eine optionale Bewertung
+    von 1 bis 5 und ein optionaler Freitext — mindestens eines von beiden.
+
+    `questionnaire_version` kommt als verstecktes Feld von der
+    Ergebnisseite. Es ist Nutzereingabe wie alles andere: eine Nummer,
+    die keine veröffentlichte Version ist, wird zu „keine Angabe" statt
+    zu einem Fehler — wer es fälscht, verfälscht nur sein eigenes
+    Feedback, und ein Fehler zu einem unsichtbaren Feld hülfe niemandem.
+    """
+
+    RATING_CHOICES = [(str(value), str(value)) for value in range(1, 6)]
+
+    rating = forms.TypedChoiceField(
+        label=_("How well does your result fit you?"),
+        choices=RATING_CHOICES,
+        coerce=int,
+        empty_value=None,
+        required=False,
+        widget=forms.RadioSelect,
+    )
+    message = forms.CharField(
+        label=_("Anything else you would like to tell us?"),
+        max_length=Feedback.MAX_MESSAGE_LENGTH,
+        required=False,
+        widget=forms.Textarea(attrs={"rows": 5}),
+    )
+    questionnaire_version = forms.IntegerField(
+        min_value=1, required=False, widget=forms.HiddenInput
+    )
+
+    def clean_message(self):
+        return self.cleaned_data["message"].strip()
+
+    def clean_questionnaire_version(self):
+        version = self.cleaned_data["questionnaire_version"]
+        if version is None:
+            return None
+        published = Questionnaire.objects.filter(version=version, published_at__isnull=False)
+        return version if published.exists() else None
+
+    def clean(self):
+        cleaned_data = super().clean()
+        # Fehlt ein Feld schon wegen eines eigenen Fehlers (z. B. zu langer
+        # Text), gibt es dazu bereits eine Meldung — nicht noch eine zweite.
+        if not self.errors and not cleaned_data.get("rating") and not cleaned_data.get("message"):
+            raise forms.ValidationError(_("Please choose a rating or write a message."))
+        return cleaned_data
+
+    def save(self):
+        """Nur nach erfolgreichem `is_valid()` aufrufen."""
+        return Feedback.objects.create(**self.cleaned_data)

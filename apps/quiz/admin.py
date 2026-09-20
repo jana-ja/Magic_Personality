@@ -6,13 +6,13 @@ ist unveränderlich (FR-T6) und kommt ausschließlich über
 `seed_questionnaire` in die Datenbank (D-28). Änderbar bleibt an
 `Questionnaire` selbst nur, was auch nach der Veröffentlichung
 änderbar sein soll — insbesondere der Schwellenwert `T` (R-4).
-Testergebnisse sind Nutzerdaten und ebenfalls nur lesbar (löschen
-bleibt möglich).
+Testergebnisse und Feedback sind Nutzerdaten und ebenfalls nur lesbar
+(löschen bleibt möglich).
 """
 
 from django.contrib import admin
 
-from .models import AnswerOption, Question, Questionnaire, TestResult
+from .models import AnswerOption, Feedback, Question, Questionnaire, TestResult
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -51,3 +51,14 @@ class TestResultAdmin(ReadOnlyAdmin):
     list_display = ["profile", "questionnaire_version", "result_colors", "scores", "taken_at"]
     list_filter = ["questionnaire_version"]
     search_fields = ["profile__nickname"]
+
+
+@admin.register(Feedback)
+class FeedbackAdmin(ReadOnlyAdmin):
+    list_display = ["created_at", "rating", "questionnaire_version", "short_message"]
+    list_filter = ["questionnaire_version", "rating"]
+    search_fields = ["message"]
+
+    @admin.display(description="message")
+    def short_message(self, obj):
+        return obj.message[:80]

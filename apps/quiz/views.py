@@ -1,7 +1,7 @@
 """
 Views der Quiz-App: Test durchführen (Task 2.8, FR-T7 bis FR-T9),
 Ergebnis anzeigen und übernehmen (Task 2.10, FR-T13/FR-T14), Ergebnis
-ohne Anmeldung (Task 2.11, FR-T15/FR-T16).
+ohne Anmeldung (Task 2.11, FR-T15/FR-T16), Feedback (Task 4.11, FR-T18).
 """
 
 from django.conf import settings
@@ -9,15 +9,18 @@ from django.contrib.auth.decorators import login_required
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
-from django.views.decorators.http import require_POST
+from django.utils.translation import gettext as _
+from django.views.decorators.http import require_http_methods, require_POST
 
 from apps.accounts.color_assignments import adopt_test_result
 from apps.accounts.models import Profile
 from apps.colors.content import LOCALE
+from apps.core.models import FeedbackAttempt
+from apps.core.rate_limit import client_ip, is_rate_limited, record_attempt
 
 from . import anonymous_result
 from .evaluation import evaluate_combination
-from .forms import TakeTestForm
+from .forms import FeedbackForm, TakeTestForm
 from .models import Questionnaire, TestResult
 from .scoring import tally
 
@@ -91,6 +94,9 @@ def take_test(request):
                 "scores": scores,
                 "test_result": test_result,
                 "anonymous_token": token,
+                "feedback_form": FeedbackForm(
+                    initial={"questionnaire_version": questionnaire.version}
+                ),
             }
             return render(request, "quiz/result.html", context)
     else:
@@ -189,3 +195,52 @@ def claim_anonymous_result(request):
         "anonymous_token": None,
     }
     return render(request, "quiz/result.html", context)
+
+
+@require_http_methods(["GET", "POST"])
+def feedback(request):
+    """
+    Feedback zum Test (Task 4.11, FR-T18, D-75). Bewusst kein
+    `@login_required` und kein Verweis auf den Account: auch wer den
+    Test ohne Login gemacht hat, soll Feedback geben können (D-18),
+    und anonym bleibt es ehrlicher.
+
+    Zwei Wege zum selben Ergebnis: mit HTMX (Ergebnisseite) tauscht der
+    Server nur den Formularbereich aus, denn die Ergebnisseite ist die
+    Antwort auf ein POST und lässt sich nicht neu laden; ohne JavaScript
+    ist es ein normales POST mit Weiterleitung auf die Dankeseite.
+
+    Das Rate Limit steht hier statt im Decorator `rate_limit()`: dessen
+    Klartext-429 würde HTMX nicht austauschen, die Person sähe nach dem
+    Absenden schlicht nichts. Gezählt wird wie dort jede Absendung,
+    auch die abgelehnte, damit das Zeitfenster weiterläuft.
+    """
+    is_htmx = request.headers.get("HX-Request") == "true"
+    form = FeedbackForm(request.POST or None)
+    status = 200
+
+    if request.method == "POST":
+        ip = client_ip(request)
+        limited = is_rate_limited(
+            FeedbackAttempt,
+            ip,
+            max_attempts=settings.FEEDBACK_RATE_LIMIT_MAX_ATTEMPTS,
+            window_seconds=settings.FEEDBACK_RATE_LIMIT_WINDOW_SECONDS,
+        )
+        record_attempt(FeedbackAttempt, ip)
+        if limited:
+            form.add_error(None, _("Too many attempts. Please try again later."))
+            # HTMX tauscht 4xx-Antworten nicht aus (siehe oben).
+            status = 200 if is_htmx else 429
+        elif form.is_valid():
+            form.save()
+            if is_htmx:
+                return render(request, "quiz/_feedback_body.html", {"sent": True})
+            return redirect("quiz:feedback_thanks")
+
+    template = "quiz/_feedback_body.html" if is_htmx else "quiz/feedback.html"
+    return render(request, template, {"form": form}, status=status)
+
+
+def feedback_thanks(request):
+    return render(request, "quiz/feedback.html", {"sent": True})

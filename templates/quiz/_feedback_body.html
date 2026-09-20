@@ -1,0 +1,44 @@
+{% load i18n %}
+{% comment %} Task 4.11, FR-T18: Inhalt des Feedback-Bereichs — entweder das Formular
+   oder der Dank. Steht in `#feedback-body` (eine Live-Region); die View
+   antwortet auf ein HTMX-POST nur mit diesem Baustein, ohne JavaScript
+   mit der ganzen Seite. {% endcomment %}
+{% if sent %}
+  <p class="feedback-thanks">{% translate "Thank you! Your feedback has been sent." %}</p>
+{% else %}
+  <form method="post" action="{% url 'quiz:feedback' %}" class="feedback-form"
+        hx-post="{% url 'quiz:feedback' %}" hx-target="#feedback-body" hx-swap="innerHTML">
+    {% csrf_token %}
+    {{ form.questionnaire_version }}
+
+    {% if form.non_field_errors %}
+      <ul class="form-errors" role="alert">
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <fieldset class="feedback-rating" aria-describedby="feedback-rating-hint">
+      <legend>{{ form.rating.label }} <span class="feedback-optional">{% translate "(optional)" %}</span></legend>
+      <p id="feedback-rating-hint" class="feedback-hint">{% translate "1 means it does not fit at all, 5 means it fits very well." %}</p>
+      <div class="feedback-rating__scale">
+        {% for radio in form.rating %}
+          <label class="feedback-rating__choice tap-target">
+            {{ radio.tag }}
+            <span>{{ radio.choice_label }}</span>
+          </label>
+        {% endfor %}
+      </div>
+      {% for error in form.rating.errors %}
+        <p class="form-errors" role="alert">{{ error }}</p>
+      {% endfor %}
+    </fieldset>
+
+    <label for="{{ form.message.id_for_label }}">{{ form.message.label }} <span class="feedback-optional">{% translate "(optional)" %}</span></label>
+    {{ form.message }}
+    {% for error in form.message.errors %}
+      <p class="form-errors" role="alert">{{ error }}</p>
+    {% endfor %}
+
+    <button type="submit">{% translate "Send feedback" %}</button>
+  </form>
+{% endif %}
