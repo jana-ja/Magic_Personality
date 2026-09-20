@@ -72,6 +72,31 @@ def test_result_page_embeds_the_form_with_the_questionnaire_version(
     assert f'hx-post="{FEEDBACK_URL}"' in html
 
 
+def test_the_result_page_after_claiming_a_saved_result_also_has_the_working_form(
+    gated_client, published_questionnaire
+):
+    """Regression: `claim_anonymous_result` rendert dieselbe Ergebnisseite, gab dem
+    Feedback-Bereich aber kein Formular mit — es erschien nur der Rahmen ohne
+    Felder und ohne Beschriftungen."""
+    from apps.accounts.models import Profile, User
+    from apps.quiz import anonymous_result
+
+    user = User.objects.create_user(email="alex@example.com", password="a-long-enough-password")
+    Profile.objects.create(user=user, nickname="alex")
+    token = anonymous_result.sign(
+        questionnaire_version=published_questionnaire.version,
+        scores={"W": 3, "U": 1, "B": 1, "R": 1, "G": 1},
+    )
+    gated_client.force_login(user)
+
+    html = gated_client.post("/quiz/results/claim/", {"token": token}).content.decode()
+
+    assert 'name="rating"' in html
+    assert 'name="message"' in html
+    assert f'name="questionnaire_version" value="{published_questionnaire.version}"' in html
+    assert "How well does your result fit you?" in html
+
+
 # Speichern -----------------------------------------------------------------
 
 
