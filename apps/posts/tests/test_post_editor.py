@@ -391,35 +391,6 @@ def test_only_get_and_post_are_allowed(member, post):
     assert member.put(NEW_URL).status_code == 405
 
 
-# Beitragsseite (vorläufig, Task 5.4 baut sie aus) ------------------------------------------
-
-
-def test_the_detail_page_shows_title_author_and_rendered_text(member, author):
-    post = Post.objects.create(author=author, title="A title", body="**bold** and <b>x</b>")
-
-    html = member.get(_urls(post)["detail"]).content.decode()
-
-    assert "A title" in html
-    assert "alex" in html
-    assert "<strong>bold</strong>" in html
-    assert "<b>x</b>" not in html
-
-
-def test_edit_and_delete_are_offered_to_the_author_only(member, make_profile, post):
-    author_html = member.get(_urls(post)["detail"]).content.decode()
-    member.force_login(make_profile("robin").user)
-    other_html = member.get(_urls(post)["detail"]).content.decode()
-
-    assert _urls(post)["edit"] in author_html
-    assert _urls(post)["delete"] in author_html
-    assert _urls(post)["edit"] not in other_html
-    assert _urls(post)["delete"] not in other_html
-
-
-def test_an_unknown_post_is_404(member):
-    assert member.get("/posts/999999/").status_code == 404
-
-
 # Sichtbarkeit: alles läuft durch visible_to ---------------------------------------------
 
 

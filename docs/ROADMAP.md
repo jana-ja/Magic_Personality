@@ -641,10 +641,12 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.4 · Beitragsseite
 **Abhängig von:** 5.3, 4.8 · **Anforderungen:** FR-B5, FR-B8
 **Fertig, wenn:**
-- [ ] `/posts/<id>/` (Login-Pflicht, Gate wie überall): Autorenkarte, Farbkombination als Link auf die Color Infos (oder „General"), Datum und „edited", gerenderter Text; für die Autorin bzw. den Autor „Edit" und „Delete".
-- [ ] Unbekannte ID und Beiträge, die `visible_to` ausschließt: 404.
-- [ ] Mobil ohne horizontales Scrollen; `<title>` nennt den Beitragstitel.
-- [ ] Test: Gast → Login, Zugriff, 404, Farb- und Allgemein-Anzeige.
+- [x] `/posts/<id>/` (Login-Pflicht, Gate wie überall): Autorenkarte, Farbkombination als Link auf die Color Infos (oder „General"), Datum und „edited", gerenderter Text; für die Autorin bzw. den Autor „Edit" und „Delete".
+- [x] Unbekannte ID und Beiträge, die `visible_to` ausschließt: 404.
+- [x] Mobil ohne horizontales Scrollen; `<title>` nennt den Beitragstitel.
+- [x] Test: Gast → Login, Zugriff, 404, Farb- und Allgemein-Anzeige.
+
+> Umsetzung: `templates/posts/post_detail.html`, `apps/posts/combinations.py` (`combination_labels`: eine Abfrage für alle Codes einer Seite, damit Liste und Grid in 5.5/5.6 sie mitbenutzen; hat eine Kombination noch keinen Namen, stehen die Farbnamen da, „White · Green", FR-C11). Die Autorenkarte ist die Komponente aus 4.8 (`{% author_card post.author size="medium" %}`, mit Prefetch der Zuordnung); die Farbverknüpfung steht als Text („General" oder Kombinationsname), nicht nur als Farbe (NFR-6). Der Titel ist das einzige `<h1>`, Überschriften im Text beginnen bei `<h2>`. Datum als `<time>`, „edited" nur bei gesetztem `edited_at`. Im Browser bei 727 und 375 px geprüft: kein horizontales Scrollen, der Codeblock scrollt in sich, sehr lange Wörter brechen um, „Edit"/„Delete" 44 px hoch. Kommentare kommen mit v1.4 unter den Text.
 
 #### 5.5 · Profil-Tab „Posts"
 **Abhängig von:** 5.4, 4.3 · **Anforderungen:** FR-B6

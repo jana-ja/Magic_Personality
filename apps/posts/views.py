@@ -1,6 +1,6 @@
 """
 Views der Posts-App: Beitrag schreiben, bearbeiten, löschen (Task 5.3,
-FR-B1 bis FR-B4, FR-B11). Die Beitragsseite selbst (Task 5.4) und die Listen
+FR-B1 bis FR-B4, FR-B11) und die Beitragsseite (Task 5.4, FR-B5). Die Listen
 (Task 5.5, 5.6) kommen mit den eigenen Tasks.
 
 Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
@@ -16,7 +16,7 @@ from django.views.decorators.http import require_http_methods
 from apps.colors import selection
 from apps.colors.field import color_field_context
 
-from . import limits
+from . import combinations, limits
 from .decorators import author_only, current_profile
 from .forms import PostForm
 from .markdown import render_markdown
@@ -129,14 +129,27 @@ def delete_post(request, post, profile):
 @require_http_methods(["GET"])
 def post_detail(request, pk):
     """
-    Beitragsseite. Hier nur das Nötigste, damit Speichern und Bearbeiten ein
-    Ziel haben; Autorenkarte, Farbkombination als Link, Datum und Feinschliff
-    bringt Task 5.4 (FR-B5).
+    FR-B5: die Seite eines Beitrags — Autorenkarte, Farbkombination (Link auf
+    die Color Infos, oder „General"), Datum, „edited" und der gerenderte
+    Text; die Autorin bzw. der Autor sieht „Edit" und „Delete". Unbekannte
+    und nicht sichtbare Beiträge sind 404 (`visible_to`). Kommentare kommen
+    mit v1.4.
     """
     profile = current_profile(request)
-    post = get_object_or_404(Post.objects.visible_to(profile).select_related("author"), pk=pk)
+    post = get_object_or_404(
+        Post.objects.visible_to(profile)
+        .select_related("author")
+        .prefetch_related("author__color_assignments__combination"),
+        pk=pk,
+    )
+    combination = None
+    if post.colors:
+        combination = {
+            "label": combinations.combination_labels([post.colors])[post.colors],
+            "url": combinations.combination_url(post.colors),
+        }
     return render(
         request,
         "posts/post_detail.html",
-        {"post": post, "is_author": post.author_id == profile.pk},
+        {"post": post, "combination": combination, "is_author": post.author_id == profile.pk},
     )
