@@ -1,12 +1,11 @@
 name: CI
 
-# Jeder Push wird geprüft (Task 0.6). pull_request zusätzlich, damit
-# der Status schon vor dem Merge sichtbar ist — für einen Branch mit
-# offenem PR laufen beide Events auf denselben Commits; concurrency
-# unten bricht den überholten Lauf ab, statt doppelt zu rechnen.
+# Läuft nur bei einem Push auf main (D-76, ersetzt den Auslöser aus
+# Task 0.6/D-31): Feature-Branches und Pull Requests lösen nichts aus,
+# geprüft und als Image veröffentlicht wird erst, was auf main landet.
+# Lokal davor laufen lassen: ruff check ., ruff format --check ., pytest.
 on:
   push:
-  pull_request:
     branches: [main]
 
 concurrency:
@@ -83,6 +82,8 @@ jobs:
     needs: test
     # Nur hier eskaliert: das Bauen/Veröffentlichen eines Images
     # braucht packages:write, der test-Job kommt mit contents:read aus.
+    # Läuft nur nach grünem test-Job (needs) — ein roter Stand auf main
+    # veröffentlicht kein Image.
     permissions:
       contents: read
       packages: write
@@ -93,7 +94,6 @@ jobs:
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to GitHub Container Registry
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
@@ -109,11 +109,11 @@ jobs:
             type=raw,value=latest,enable={{is_default_branch}}
             type=sha,format=long
 
-      - name: Build image (nur auf main auch veröffentlichen)
+      - name: Build and push image
         uses: docker/build-push-action@v6
         with:
           context: .
-          push: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+          push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
