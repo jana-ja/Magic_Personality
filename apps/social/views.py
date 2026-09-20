@@ -19,6 +19,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from apps.accounts.models import Profile
 from apps.colors import pentagon, selection
 from apps.colors.models import Color
+from apps.posts import listing
 
 from . import friendships, profile_page
 from .decorators import owner_only
@@ -79,6 +80,22 @@ def profile_friends(request, nickname):
     viewer_profile = _current_profile(request)
     context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.FRIENDS)
     return render(request, "social/profile_friends.html", context)
+
+
+@login_required
+@require_GET
+def profile_posts(request, nickname):
+    """
+    Tab „Posts" (Task 5.5, FR-B6): die Beiträge **dieses** Profils, neueste
+    zuerst, zehn je Seite. Jede angemeldete Person sieht sie, soweit
+    `Post.objects.visible_to()` es erlaubt (FR-B8, FR-B9); die eigene Person
+    bekommt zusätzlich „Write a post".
+    """
+    profile = get_object_or_404(Profile, nickname__iexact=nickname)
+    viewer_profile = _current_profile(request)
+    context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.POSTS)
+    context.update(listing.author_posts_page(viewer_profile, profile, request.GET.get("page")))
+    return render(request, "social/profile_posts.html", context)
 
 
 @owner_only

@@ -30,7 +30,7 @@ OWNER_ONLY = [
 ]
 
 #: Adressen eines Profils, die jede angemeldete Person sehen darf.
-PUBLIC_FOR_MEMBERS = ["profile_detail", "profile_friends"]
+PUBLIC_FOR_MEMBERS = ["profile_detail", "profile_friends", "profile_posts"]
 
 #: POST-Endpunkte für Freundschaften (Task 3.4).
 ACTIONS = [

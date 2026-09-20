@@ -1,0 +1,32 @@
+{% extends "social/profile_base.html" %}
+{% load i18n %}
+
+{% block tab_content %}
+  {% comment %} Tab "Posts" (Task 5.5, FR-B6): die Beiträge dieses Profils untereinander, neueste
+     zuerst. Jede Karte ist ein einziger Link (Titel, über die ganze Karte gespannt), damit Tastatur und
+     Screenreader je Beitrag genau ein Ziel finden. {% endcomment %}
+  <section aria-labelledby="posts-heading">
+    <div class="posts-head">
+      <h2 id="posts-heading">{% translate "Posts" %}</h2>
+      {% if is_owner %}
+        <a class="posts-head__write tap-target" href="{% url 'posts:new' %}">{% translate "Write a post" %}</a>
+      {% endif %}
+    </div>
+
+    {% if post_cards %}
+      <ul class="post-list">
+        {% for card in post_cards %}
+          <li>{% include "posts/_post_card.html" with post=card.post label=card.label %}</li>
+        {% endfor %}
+      </ul>
+      {% include "posts/_pagination.html" with page=posts_page %}
+    {% elif is_owner %}
+      <p>
+        {% translate "You haven't written anything yet." %}
+        <a href="{% url 'posts:new' %}">{% translate "Write your first post" %}</a>
+      </p>
+    {% else %}
+      <p>{% blocktranslate with name=profile.nickname %}{{ name }} hasn't written any posts yet.{% endblocktranslate %}</p>
+    {% endif %}
+  </section>
+{% endblock %}

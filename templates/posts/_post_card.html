@@ -1,0 +1,16 @@
+{% load i18n posts_tags %}
+{% comment %} Beitragskarte (Task 5.5, FR-B6; auch fürs Grid der Color Infos, Task 5.6). Erwartet
+   `post` und `label` (Kombinationsname oder leer bei einem allgemeinen Beitrag). Die ganze Karte
+   ist **ein** Link: der Titel, per ::after über die Karte gespannt — deshalb steht in der Karte kein
+   weiterer Link, die Kombination ist nur Text. Der Auszug ist Klartext (apps/posts/markdown.py). {% endcomment %}
+<article class="post-card">
+  <h3 class="post-card__title">
+    <a class="post-card__link" href="{% url 'posts:detail' pk=post.pk %}">{{ post.title }}</a>
+  </h3>
+  <p class="post-card__meta">
+    <span class="post__combination{% if not label %} post__combination--general{% endif %}">{% if label %}{{ label }}{% else %}{% translate "General" %}{% endif %}</span>
+    <span aria-hidden="true">·</span>
+    <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"Y-m-d" }}</time>
+  </p>
+  <p class="post-card__excerpt">{{ post.body|excerpt }}</p>
+</article>

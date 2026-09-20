@@ -360,11 +360,11 @@ def test_get_only_asks_for_confirmation(member, post):
     assert Post.objects.filter(pk=post.pk).exists()
 
 
-def test_post_deletes_and_leaves_for_the_profile(member, author, post):
+def test_post_deletes_and_leaves_for_the_posts_tab(member, author, post):
     response = member.post(_urls(post)["delete"])
 
     assert response.status_code == 302
-    assert response.url == author.get_absolute_url()
+    assert response.url == "/u/alex/posts/"
     assert not Post.objects.filter(pk=post.pk).exists()
 
 

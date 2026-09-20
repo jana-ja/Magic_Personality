@@ -68,6 +68,7 @@ FRIENDS_PREVIEW_LIMIT = 8
 
 PINBOARD = "pinboard"
 FRIENDS = "friends"
+POSTS = "posts"
 HISTORY = "history"
 SETTINGS = "settings"
 
@@ -81,8 +82,8 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
 
     `is_owner` schaltet die Bearbeiten-Zugänge und alles Private ein.
     `tab`: `PINBOARD` (Standard, bei der eigenen Person mit dem
-    Bearbeiten-Formular), `FRIENDS` (Freundesliste, bei der eigenen Person
-    zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
+    Bearbeiten-Formular), `POSTS` (Beiträge, Task 5.5), `FRIENDS` (Freundesliste,
+    bei der eigenen Person zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
     vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
     die beiden rufen nur Views auf, die vorher `owner_only` passiert haben.
 
@@ -116,6 +117,10 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
         if is_owner:
             context["friend_requests_received"] = received
             context["friend_requests_sent"] = friendships.pending_requests_sent(profile)
+        return context
+
+    if tab == POSTS:
+        # Die Beiträge selbst legt der View dazu (`apps.posts.listing`, Task 5.5).
         return context
 
     if tab == HISTORY:

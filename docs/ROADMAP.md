@@ -651,11 +651,13 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.5 · Profil-Tab „Posts"
 **Abhängig von:** 5.4, 4.3 · **Anforderungen:** FR-B6
 **Fertig, wenn:**
-- [ ] Tab „Posts" in der Leiste (für alle Profile), Adresse `/u/<nickname>/posts/`; Reihenfolge Pinboard, Posts, Friends, Test history, Settings.
-- [ ] Liste untereinander, neueste zuerst, 10 je Seite mit Seitenlinks: Titel, Farbkombination, Datum, Auszug; die ganze Karte ist **ein** Link (kein Link in einem Link).
-- [ ] Eigene Person: „Write a post"; leerer Zustand mit Hinweis statt Fehler (fremd wie eigen).
-- [ ] Keine N+1-Abfragen (Kombinationsnamen einmal je Seite).
-- [ ] Test: Reihenfolge, Seitenwechsel, fremdes und eigenes Profil, leer.
+- [x] Tab „Posts" in der Leiste (für alle Profile), Adresse `/u/<nickname>/posts/`; Reihenfolge Pinboard, Posts, Friends, Test history, Settings.
+- [x] Liste untereinander, neueste zuerst, 10 je Seite mit Seitenlinks: Titel, Farbkombination, Datum, Auszug; die ganze Karte ist **ein** Link (kein Link in einem Link).
+- [x] Eigene Person: „Write a post"; leerer Zustand mit Hinweis statt Fehler (fremd wie eigen).
+- [x] Keine N+1-Abfragen (Kombinationsnamen einmal je Seite).
+- [x] Test: Reihenfolge, Seitenwechsel, fremdes und eigenes Profil, leer.
+
+> Umsetzung: `profile_posts` in `apps/social/views.py` (Adresse `/u/<nickname>/posts/`), Seitenlogik in `apps/posts/listing.py` (`author_posts_page`, `cards_for` — beides bereitet Task 5.6 mit vor), Templates `social/profile_posts.html`, `posts/_post_card.html` und `posts/_pagination.html` (allgemein, für die Kommentar-Liste in 6.4 wiederverwendbar). Die Karte ist ein einziger Link: der Titel, per `::after` über die ganze Karte gespannt (`.post-card__link`); die Kombination steht darin nur als Text. Der Auszug ist Klartext und per CSS auf vier Zeilen begrenzt. Eine Seite kostet drei Abfragen für die Beiträge (Zählung, Seite, Kombinationsnamen), unabhängig von der Zahl der Beiträge. Seitennummern unter 1 oder ungültig ergeben Seite 1 (Djangos `get_page` schickte `0` auf die letzte Seite), zu große die letzte. Löschen eines Beitrags leitet jetzt auf diesen Tab. Die Zugriffsmatrix der Social-App (`test_access_control.py`) kennt die neue Adresse. Im Browser geprüft: Klick auf den Auszug öffnet den Beitrag; bei 375 px kein horizontales Scrollen, ein Link je Karte, Seitenlinks 44 px hoch.
 
 #### 5.6 · Color Infos: Grid mit Beiträgen
 **Abhängig von:** 5.4, 1.8 · **Anforderungen:** FR-B7, FR-B8, D-78

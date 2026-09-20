@@ -120,8 +120,7 @@ def delete_post(request, post, profile):
     """
     if request.method == "POST":
         post.delete()
-        # Task 5.5 leitet stattdessen auf den Tab „Posts" des Profils.
-        return redirect(profile)
+        return redirect("social:profile_posts", nickname=profile.nickname)
     return render(request, "posts/post_confirm_delete.html", {"post": post})
 
 
