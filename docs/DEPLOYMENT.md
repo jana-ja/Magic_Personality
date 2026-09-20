@@ -12,11 +12,12 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
 ## Einmalige Einrichtung
 
 1. Verzeichnis auf dem Server anlegen, z. B. `/opt/magic_personality`.
-2. Genau vier Dateien aus dem Repository dorthin bringen — kein vollständiger Checkout nötig, das *Image* kommt fertig gebaut aus der Registry, ein `Dockerfile` oder Quellcode braucht der Server nie:
+2. Genau sechs Dateien aus dem Repository dorthin bringen — kein vollständiger Checkout nötig, das *Image* kommt fertig gebaut aus der Registry, ein `Dockerfile` oder Quellcode braucht der Server nie:
    - `compose.yaml`
    - `compose.prod.yaml`
    - `Caddyfile`
    - `scripts/backup.sh` (Task 2.14, siehe "Backups" unten)
+   - `scripts/deploy.sh` und `scripts/deploy_full.sh` (siehe "Deploy-Skripte" unten)
 
    **Nicht** `compose.override.yaml` — die ist nur für lokale Entwicklung gedacht (D-50) und würde Host-Ports öffnen, die in Produktion bewusst geschlossen bleiben.
 
@@ -24,8 +25,7 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
 
    ```bash
    git clone --filter=blob:none --sparse https://github.com/jana-ja/Magic_Personality.git .
-   git sparse-checkout set --no-cone /compose.yaml /compose.prod.yaml /Caddyfile /scripts/backup.sh
-   chmod +x scripts/backup.sh
+   git sparse-checkout set --no-cone /compose.yaml /compose.prod.yaml /Caddyfile /scripts/backup.sh /scripts/deploy.sh /scripts/deploy_full.sh
    ```
 
    Alternative ohne Git, für einzelne, seltene Aktualisierungen: die Rohdatei direkt von GitHub laden (`https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/<datei>`), z. B. `curl -O https://raw.githubusercontent.com/jana-ja/Magic_Personality/main/Caddyfile`.
@@ -83,7 +83,7 @@ curl -I https://<domain>/                                        # 302 auf /gate
 
 ## Folge-Deployments
 
-Bei jedem neuen Stand auf `main` (CI baut und veröffentlicht automatisch, D-31):
+Bei jedem neuen Stand auf `main` (CI baut und veröffentlicht automatisch, D-31/D-76) — als Einzelbefehle hier, gebündelt als `scripts/deploy_full.sh` bzw. `scripts/deploy.sh` (siehe „Deploy-Skripte"):
 
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml pull
@@ -100,11 +100,40 @@ Dieselben Zeilen wie beim ersten Deployment — `up -d` erneuert nur Container, 
 
 **Rollback auf einen älteren Stand:** `IMAGE_TAG=<sha-tag>` in der Server-`.env` setzen (die von CI veröffentlichten Tags stehen im Build-Job in GitHub Actions bzw. unter den Package-Versionen auf GitHub), dann dieselben Schritte — `compose.prod.yaml` liest `IMAGE_TAG` selbst, keine Datei muss dafür bearbeitet werden. Zurück auf den neuesten Stand: `IMAGE_TAG` wieder aus der `.env` entfernen (Default ist `latest`).
 
+## Deploy-Skripte
+
+Die Befehle aus „Folge-Deployments" gibt es als zwei Skripte (D-77), damit ein Deployment ein einzelner Aufruf ist:
+
+| Skript | Schritte | Wann |
+|---|---|---|
+| `scripts/deploy.sh` | `pull`, `up -d`, `ps` | Stand ohne Migration und ohne neue Seed-Dateien (reine Code-, Template- oder CSS-Änderung) |
+| `scripts/deploy_full.sh` | `pull`, `migrate`, `seed_content`, `seed_questionnaire` (v1, v2), `up -d`, `ps` | Stand mit neuer Migration oder geänderten Seeds — im Zweifel dieses |
+
+Beide brechen beim ersten Fehler ab (`set -e`): Schlägt `migrate` fehl, läuft der alte Stand unverändert weiter. Sie finden das Compose-Verzeichnis selbst und lassen sich von überall aufrufen; `ps` am Ende zeigt, ob alles `healthy` ist. Kommt eine neue Fragebogen-Version dazu, in `deploy_full.sh` eine `seed_questionnaire`-Zeile ergänzen.
+
+Aufruf im Verzeichnis auf dem Server:
+
+```bash
+./scripts/deploy.sh
+./scripts/deploy_full.sh
+```
+
+**Die Skripte liegen im Repository und werden nicht von Git ignoriert.** Sie enthalten keine Geheimnisse, nur Befehle; Passwörter und Schlüssel stehen in der `.env`, und die bleibt ignoriert. Auf den Server kommen sie wie `backup.sh` über den Sparse Checkout; bei einem bestehenden Checkout einmalig:
+
+```bash
+git sparse-checkout add /scripts/deploy.sh /scripts/deploy_full.sh
+git pull
+```
+
+Ausführbar sind sie, weil Git das Ausführungsrecht mitspeichert; fehlt es nach dem Checkout, hilft `chmod +x scripts/*.sh`.
+
+**Ändern sich `compose*.yaml`, `Caddyfile` oder die Skripte selbst,** zuerst `git pull`, dann das Skript. Das Skript zieht bewusst nicht selbst per Git: Bash liest ein laufendes Skript zeilenweise nach, ein Austausch der Datei mitten im Lauf kann dazu führen, dass das Skript mit einem gemischten Stand weiterläuft.
+
 ## CI/CD — warum kein automatischer Deploy
 
 `.github/workflows/ci.yml` baut und veröffentlicht bei jedem Push auf `main` automatisch ein neues Image (D-31) — das ist **Continuous Delivery**: ein deploybares Artefakt entsteht ohne Zutun. Der letzte Schritt, dieses Artefakt tatsächlich auf dem Server laufen zu lassen (**Continuous Deployment**), bleibt hier bewusst ein manueller Aufruf der Befehle oben, kein Auto-Trigger.
 
-Der Grund ist nicht Bequemlichkeit, sondern D-29: Migrations müssen *vor* dem Neustart von `web` laufen, als eigener, beobachtbarer Schritt. Ein rein image-beobachtender Auto-Updater (das verbreitetste Muster dafür heißt "Watchtower" — ein Container, der neue Digests erkennt und automatisch neu startet) kennt diesen Zwischenschritt nicht: Er würde `web` einfach mit dem neuen Image neu starten, sobald es in der Registry auftaucht — bei einer Migration, die neue Spalten oder Tabellen braucht, liefe die neue Codeversion dann gegen ein noch altes Schema. Für 3–10 Nutzende ist der manuelle Trigger (oder später ein eigenes kleines Deploy-Skript, das die Zeilen einfach nacheinander ausführt) kein nennenswerter Mehraufwand — ein "richtiges" CD mit automatischem Trigger würde stattdessen entweder den Migrationsschritt mit eingebaut bekommen (ein Skript, das CI selbst per SSH auf dem Server ausführt) oder bräuchte eine Möglichkeit, "Image da, aber noch nicht anwenden" von "jetzt anwenden" zu trennen — beides zusätzliche Komplexität, die diese Größenordnung (noch) nicht rechtfertigt.
+Der Grund ist nicht Bequemlichkeit, sondern D-29: Migrations müssen *vor* dem Neustart von `web` laufen, als eigener, beobachtbarer Schritt. Ein rein image-beobachtender Auto-Updater (das verbreitetste Muster dafür heißt "Watchtower" — ein Container, der neue Digests erkennt und automatisch neu startet) kennt diesen Zwischenschritt nicht: Er würde `web` einfach mit dem neuen Image neu starten, sobald es in der Registry auftaucht — bei einer Migration, die neue Spalten oder Tabellen braucht, liefe die neue Codeversion dann gegen ein noch altes Schema. Für 3–10 Nutzende ist der manuelle Trigger (oder — wie jetzt — ein kleines Deploy-Skript, das die Zeilen einfach nacheinander ausführt, siehe „Deploy-Skripte") kein nennenswerter Mehraufwand — ein "richtiges" CD mit automatischem Trigger würde stattdessen entweder den Migrationsschritt mit eingebaut bekommen (ein Skript, das CI selbst per SSH auf dem Server ausführt) oder bräuchte eine Möglichkeit, "Image da, aber noch nicht anwenden" von "jetzt anwenden" zu trennen — beides zusätzliche Komplexität, die diese Größenordnung (noch) nicht rechtfertigt.
 
 ## Nach den ersten Tagen: HSTS anheben
 
