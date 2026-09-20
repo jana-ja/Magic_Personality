@@ -61,6 +61,8 @@ Drei Container: `web`, `db`, `caddy`. Kein Redis, kein separater Worker, kein No
 | Container | Docker + Compose | |
 | CI | GitHub Actions | |
 
+Ab v1.3 kommt eine einzige Abhängigkeit für Beiträge hinzu: `markdown-it-py` zum Rendern von Markdown (D-80). Eine weitere Bibliothek zum Bereinigen von HTML ist nicht nötig, weil kein HTML aus Nutzereingaben entsteht.
+
 **Kein Node.js, kein Bundler, kein npm.** Das ist der größte Einzelgewinn dieser Wahl: der Container enthält eine Laufzeit, das Deployment einen Build-Schritt.
 
 ---
@@ -130,7 +132,8 @@ magic_personality/
 │   ├── colors/          # Color, ColorCombination, Trait, CombinationTrait, Perspective
 │   ├── accounts/        # User, Profile, ColorAssignment, Auth-Views, Avatar
 │   ├── quiz/            # Questionnaire, Question, AnswerOption, TestResult, Auswertung
-│   └── social/          # Friendship, Suche, Profilseite (Tabs, Bearbeiten), Autorenkarte
+│   ├── social/          # Friendship, Suche, Profilseite (Tabs, Bearbeiten), Autorenkarte
+│   └── posts/           # Post, Comment, Pin, Report, PostSeen, Markdown (ab v1.3, D-78)
 ├── locale/              # Übersetzungskataloge (NFR-4)
 ├── static/              # CSS, htmx.min.js, eigenes JS, Mana-Symbole
 ├── templates/
@@ -175,6 +178,7 @@ Reine Berechnung aus `wheel_position` (FR-C9), als Eigenschaft am Modell, nicht 
 - `Profile.user` ist `OneToOneField(null=True)` — bereitet fremd angelegte Profile vor (§8.1 PRD).
 - `Friendship` mit Constraint auf die geordnete Paarung, damit dieselbe Freundschaft nicht doppelt entstehen kann.
 - Nickname-Eindeutigkeit über einen funktionalen Unique-Index auf `Lower("nickname")` (FR-P2).
+- `Post` und `Comment` verweisen auf `Profile` (wie `Friendship`); die Farbverknüpfung eines Beitrags ist ein kanonischer Code, kein Fremdschlüssel (D-78). Kommentarnummern vergibt die Datenbank atomar über den Zähler `Post.comment_seq` (D-79).
 
 ---
 
@@ -190,7 +194,9 @@ Reine Berechnung aus `wheel_position` (FR-C9), als Eigenschaft am Modell, nicht 
 | Invite-Gate (FR-A1) | Eigene Middleware, prüft ein signiertes Cookie. Freigelistet: Gate-View, Healthcheck, statische Dateien. **Alles** andere ist gesperrt, auch API-Pfade |
 | Kein Passwort-Reset (FR-U7) | Djangos Reset-URLs werden nicht eingebunden. Zurücksetzen per Management-Command auf dem Server |
 | Private Profil-Adressen (FR-P9, D-73) | Decorator `owner_only` (`apps/social/decorators.py`): Gäste zum Login, unbekannter Nickname 404, jede **andere** Person 302 auf das öffentliche Profil der Adresse — ohne Inhalt, auch bei POST. Gilt für Testhistorie, Einstellungen und alle Bearbeiten-Adressen |
-| Account-Löschung (FR-U8) | View mit Bestätigung; `on_delete=CASCADE` auf Profile, TestResult, ColorAssignment, Friendship |
+| Account-Löschung (FR-U8) | View mit Bestätigung; `on_delete=CASCADE` auf Profile, TestResult, ColorAssignment, Friendship; ab v1.3 zusätzlich Post, Report, Pin, ab v1.4 werden Kommentare unter fremden Beiträgen vorher zu Hüllen (FR-B19) |
+| Beiträge und Kommentare (FR-B8, FR-B9, D-78) | `login_required` auf jedem View. Jeder lesende Zugriff über `Post.objects.visible_to(profile)` — nie `Post.objects` direkt in Views, Templates oder Tags. Schreiben, Bearbeiten und Löschen nur für die Autorin bzw. den Autor (andere: 302 auf die Beitragsseite, ohne Änderung). Grenzen je Person aus den eigenen Zeilen (`created_at` der letzten Stunde), keine zusätzliche Tabelle |
+| Ausgabe von Nutzertext (R-7, D-80) | Markdown über `apps/posts/markdown.py` ohne HTML, Bilder und Tabellen; Kommentare als Klartext mit `linebreaks` und `urlize`. Nirgends `safe` auf Nutzereingaben außer dem Ergebnis von `render_markdown()` |
 | `noindex` (FR-A4) | Header über Middleware plus `robots.txt` |
 
 ---
