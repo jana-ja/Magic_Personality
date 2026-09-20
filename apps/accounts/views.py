@@ -58,7 +58,10 @@ def delete_account(request):
     löscht tatsächlich. `on_delete=CASCADE` (Task 2.1/2.6, D-22) erledigt
     den Rest: Profil, Farbzuordnung und Testhistorie hängen an `Profile`
     bzw. `User` und verschwinden mit ihm, ohne dass diese View sie
-    einzeln anfassen muss.
+    einzeln anfassen muss. Ebenso Beiträge, Meldungen der Person und alle
+    Meldungen zu ihren Beiträgen (Task 5.8, FR-B12, D-78, D-81). Beim Ergänzen
+    von Kommentaren in v1.4 kommt hier ein Schritt vor `user.delete()` dazu
+    (Task 6.3: Kommentare unter fremden Beiträgen werden zu Hüllen).
     """
     if request.method == "POST":
         user = request.user

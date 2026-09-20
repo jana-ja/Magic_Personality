@@ -6,7 +6,10 @@
 {% block content %}
   <h1>{% translate "Delete your account" %}</h1>
   <p>
-    {% translate "This permanently deletes your account, including your profile, your color assignment, and your test history. This cannot be undone." %}
+    {% translate "This permanently deletes your account, including your profile, your color assignment, your test history, your posts, and the reports you sent. This cannot be undone." %}
+  </p>
+  <p>
+    {% translate "Your posts disappear for everyone, together with everything attached to them." %}
   </p>
 
   <form method="post" action="{% url 'delete_account' %}">

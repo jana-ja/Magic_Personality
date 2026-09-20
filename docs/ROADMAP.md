@@ -687,10 +687,12 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.8 · Account-Löschung und Datenschutz
 **Abhängig von:** 5.7, 2.14 · **Anforderungen:** FR-B12, D-78
 **Fertig, wenn:**
-- [ ] Account-Löschung entfernt Beiträge und Meldungen der Person; Beiträge anderer bleiben unberührt.
-- [ ] Bestätigungsseite der Account-Löschung nennt Beiträge.
-- [ ] Datenschutzseite ergänzt: Beiträge (sichtbar für alle Angemeldeten, mit Autorenname), Meldungen (Melder nur für die Projektinhaberin sichtbar), Löschwege, Backups.
-- [ ] Test: Löschung mit Beiträgen und Meldungen; Datenschutzseite nennt beides.
+- [x] Account-Löschung entfernt Beiträge und Meldungen der Person; Beiträge anderer bleiben unberührt.
+- [x] Bestätigungsseite der Account-Löschung nennt Beiträge.
+- [x] Datenschutzseite ergänzt: Beiträge (sichtbar für alle Angemeldeten, mit Autorenname), Meldungen (Melder nur für die Projektinhaberin sichtbar), Löschwege, Backups.
+- [x] Test: Löschung mit Beiträgen und Meldungen; Datenschutzseite nennt beides.
+
+> Umsetzung: Die Kaskade stand seit 5.1/5.7 (`Post.author` und `Report.reporter` verweisen mit `CASCADE` auf `Profile`, `Report.post` auf `Post`); neu ist der Nachweis über den echten Weg (`test_account_deletion.py`): Beiträge der Person, ihre gesendeten Meldungen **und** alle Meldungen zu ihren Beiträgen sind weg, Beiträge und Profile anderer bleiben, Grid, Tab und Beitragsseite zeigen nichts mehr von ihr. Ein Test hält fest, dass jeder Verweis der Posts-App auf ein Profil kaskadiert — kommt in v1.4 die Ausnahme dazu (Kommentare werden zu Hüllen, D-79), muss sie dort bewusst begründet werden. Bestätigungsseite: „… your posts, and the reports you sent" und „Your posts disappear for everyone, together with everything attached to them." Datenschutzseite: unter „What is stored" Beiträge (sichtbar für alle Angemeldeten, mit Nickname, im Profil und in den Color Infos) und Meldungen (nur für die Projektinhaberin sichtbar, nichts geschieht automatisch), unter „How long" und „How to delete" die Löschwege (eigene Beiträge bearbeiten/löschen, Löschen eines Beitrags nimmt seine Meldungen mit, Account-Löschung nimmt alles mit); die Aussagen zu Backups (14 Tage) gelten unverändert. Kommentare und Pins kommen mit 6.3 und 7.3 in dieselben Texte.
 
 #### 5.9 · Release-Durchsicht v1.3
 **Abhängig von:** 5.8 · **Anforderungen:** PRD §11 (v1.3)
