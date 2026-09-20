@@ -1,0 +1,11 @@
+{% load i18n posts_tags %}
+{% comment %} Vorschau (Task 5.3, D-80): derselbe Renderer wie die Beitragsseite. {% endcomment %}
+<section class="post-preview" aria-labelledby="post-preview-heading">
+  <h2 id="post-preview-heading">{% translate "Preview" %}</h2>
+  {% if preview.title %}<p class="post-preview__title">{{ preview.title }}</p>{% endif %}
+  {% if preview.html %}
+    <div class="post-body">{{ preview.html }}</div>
+  {% else %}
+    <p>{% translate "Nothing to preview yet." %}</p>
+  {% endif %}
+</section>

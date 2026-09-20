@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n posts_tags %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+  {% comment %} Vorläufige Beitragsseite (Task 5.3); Task 5.4 ergänzt Autorenkarte, Farbkombination
+     als Link, Datum und „edited". {% endcomment %}
+  <article class="post">
+    <h1>{{ post.title }}</h1>
+    <p class="post__meta">{{ post.author.nickname }}</p>
+    <div class="post-body">{{ post.body|markdown }}</div>
+
+    {% if is_author %}
+      <p class="post__actions">
+        <a href="{% url 'posts:edit' pk=post.pk %}">{% translate "Edit" %}</a>
+        <a href="{% url 'posts:delete' pk=post.pk %}">{% translate "Delete" %}</a>
+      </p>
+    {% endif %}
+  </article>
+{% endblock %}

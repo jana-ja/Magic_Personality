@@ -145,7 +145,7 @@ class ColorsForm(forms.Form):
     Abschicken nur mit Farben gültig.
 
     `colors` sind fünf Kontrollkästchen; das Fünfeck im Profil ist nur eine
-    Bedienhilfe darüber (templates/social/_color_field.html, Task 4.6) und
+    Bedienhilfe darüber (templates/colors/_color_field.html, Task 4.6) und
     schickt dieselben Felder ab.
     """
 

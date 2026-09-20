@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load i18n static %}
+
+{% block title %}{% if post %}{% translate "Edit post" %}{% else %}{% translate "Write a post" %}{% endif %}{% endblock %}
+
+{% block extra_head %}
+  {% comment %} Farbwahl als Fünfeck (Task 4.6/5.3): dasselbe kleine Skript wie im Profil, ohne es
+     bleiben die fünf Kontrollkästchen sichtbar und das Formular funktioniert unverändert. {% endcomment %}
+  <script src="{% static 'js/profile_colors.js' %}" defer></script>
+{% endblock %}
+
+{% block content %}
+  <h1>{% if post %}{% translate "Edit post" %}{% else %}{% translate "Write a post" %}{% endif %}</h1>
+
+  {% comment %} Task 5.3, FR-B1 bis FR-B4: ein normales POST; „Preview" ist ein zweiter Absende-Knopf
+     (action=preview), den HTMX auf den Vorschau-Bereich umlenkt — ohne JavaScript lädt die Seite mit
+     der Vorschau neu, und nichts wird gespeichert. {% endcomment %}
+  <form method="post" class="post-form"
+        action="{% if post %}{% url 'posts:edit' pk=post.pk %}{% else %}{% url 'posts:new' %}{% endif %}">
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <ul class="form-errors" role="alert">
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    <label for="{{ form.title.id_for_label }}">{{ form.title.label }}</label>
+    {{ form.title }}
+    {% for error in form.title.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+
+    <label for="{{ form.body.id_for_label }}">{{ form.body.label }}</label>
+    <p class="post-form__hint" id="post-body-hint">
+      {% translate "You can format the text with Markdown: **bold**, *italic*, lists, quotes, code and links. HTML and images are not supported." %}
+    </p>
+    {{ form.body }}
+    {% for error in form.body.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+
+    <fieldset class="post-form__colors">
+      <legend>{% translate "Colors" %} <span class="post-form__optional">{% translate "(optional)" %}</span></legend>
+      <p class="post-form__hint">{% translate "Pick the color combination this post is about, or none for a general post." %}</p>
+      {% include "colors/_color_field.html" with edit_form=form %}
+    </fieldset>
+
+    <div class="post-form__actions">
+      <button type="submit">{% if post %}{% translate "Save changes" %}{% else %}{% translate "Publish" %}{% endif %}</button>
+      <button type="submit" name="action" value="preview" class="post-form__secondary"
+              hx-post="{% if post %}{% url 'posts:edit' pk=post.pk %}{% else %}{% url 'posts:new' %}{% endif %}"
+              hx-target="#post-preview" hx-swap="innerHTML">{% translate "Preview" %}</button>
+      <a href="{% if post %}{% url 'posts:detail' pk=post.pk %}{% else %}{% url 'colors:index' %}{% endif %}">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+
+  {% comment %} Live-Region: der ersetzte Inhalt wird angesagt, das Element selbst bleibt stehen. {% endcomment %}
+  <div id="post-preview" aria-live="polite">
+    {% if preview %}{% include "posts/_preview.html" %}{% endif %}
+  </div>
+{% endblock %}

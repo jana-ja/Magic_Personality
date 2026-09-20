@@ -243,6 +243,12 @@ REGISTRATION_RATE_LIMIT_WINDOW_SECONDS = 600
 FEEDBACK_RATE_LIMIT_MAX_ATTEMPTS = 5
 FEEDBACK_RATE_LIMIT_WINDOW_SECONDS = 3600
 
+# Beiträge (Task 5.3, FR-B11, D-78): je Person, aus deren eigenen Zeilen
+# gezählt (apps/posts/limits.py) — Schreibende sind angemeldet, eine IP-Tabelle
+# wie oben wäre der falsche Schlüssel.
+POST_RATE_LIMIT_MAX_POSTS = 30
+POST_RATE_LIMIT_WINDOW_SECONDS = 3600
+
 # Der Schwellenwert T der Auswertungsregel (FR-T11) ist seit D-65 keine
 # Einstellung mehr, sondern steht je Fragebogen-Version in der Seed-Datei
 # (`Questionnaire.result_threshold`).
