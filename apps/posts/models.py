@@ -1,5 +1,6 @@
 """
-Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78).
+Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78) und Meldungen (Task 5.7,
+FR-B10, D-81).
 
 `Post.author` verweist auf `accounts.Profile`, nicht auf `accounts.User`
 (D-78) — wie `Friendship` (D-22): die Autorenkarte braucht nur das
@@ -101,3 +102,41 @@ class Post(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class Report(models.Model):
+    """
+    Meldung eines Beitrags (Task 5.7, FR-B10, D-81). Sichtbar nur für die
+    Projektinhaberin im Django-Admin; es gibt kein automatisches Ausblenden.
+
+    Einmal je Person und Beitrag (Unique-Constraint). Die Meldung verschwindet
+    mit dem gemeldeten Beitrag und mit dem Account der meldenden Person
+    (Kaskade, D-81). Ab v1.4 kommt `comment` als Alternative zu `post` dazu
+    (Task 6.5).
+    """
+
+    MAX_REASON_LENGTH = 500
+
+    reporter = models.ForeignKey(
+        "accounts.Profile", on_delete=models.CASCADE, related_name="reports"
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reports")
+    reason = models.CharField(max_length=MAX_REASON_LENGTH, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    # Gesetzt, sobald die Projektinhaberin die Meldung im Admin als bearbeitet markiert.
+    handled_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["reporter", "post"], name="report_once_per_person_and_post"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.reporter} → {self.post}"
+
+    @property
+    def is_open(self):
+        return self.handled_at is None

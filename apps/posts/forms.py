@@ -1,4 +1,5 @@
-"""Formular zum Schreiben und Bearbeiten eines Beitrags (Task 5.3, FR-B1 bis FR-B4)."""
+"""Formulare der Posts-App: Beitrag schreiben und bearbeiten (Task 5.3, FR-B1 bis FR-B4) und
+Melden (Task 5.7, FR-B10)."""
 
 from django import forms
 from django.utils import timezone
@@ -7,7 +8,7 @@ from django.utils.translation import gettext_lazy as _
 from apps.colors.models import Color
 from apps.colors.utils import canonical_code
 
-from .models import BODY_MAX_LENGTH, TITLE_MAX_LENGTH, Post
+from .models import BODY_MAX_LENGTH, TITLE_MAX_LENGTH, Post, Report
 
 
 class PostForm(forms.Form):
@@ -82,3 +83,18 @@ class PostForm(forms.Form):
             self.post.edited_at = timezone.now()
             self.post.save(update_fields=[*changed, "edited_at"])
         return self.post
+
+
+class ReportForm(forms.Form):
+    """Der optionale Grund einer Meldung (FR-B10): höchstens 500 Zeichen."""
+
+    reason = forms.CharField(
+        label=_("Why are you reporting this? (optional)"),
+        required=False,
+        max_length=Report.MAX_REASON_LENGTH,
+        widget=forms.Textarea(attrs={"rows": 3}),
+    )
+
+    def clean_reason(self):
+        # Browser schicken CRLF; gespeichert wird LF, gezählt nach dem Normalisieren.
+        return self.cleaned_data["reason"].replace("\r\n", "\n").replace("\r", "\n")

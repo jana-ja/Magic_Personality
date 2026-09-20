@@ -1,0 +1,27 @@
+{% load i18n %}
+{% comment %} Inhalt des Bereichs #report (Task 5.7, FR-B10): das Formular, der Dank oder der Hinweis, dass
+   schon gemeldet wurde. Die View liefert bei HTMX nur diesen Baustein, sonst die ganze Seite. {% endcomment %}
+{% if sent %}
+  <p class="report-note">{% translate "Thank you, we will look at it." %}</p>
+{% elif already %}
+  <p class="report-note">{% translate "You have already reported this post." %}</p>
+{% else %}
+  <form method="post" class="report-form" action="{% url 'posts:report' pk=post.pk %}"
+        hx-post="{% url 'posts:report' pk=post.pk %}" hx-target="#report" hx-swap="innerHTML">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <ul class="form-errors" role="alert">
+        {% for error in form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+    <label for="{{ form.reason.id_for_label }}">{{ form.reason.label }}</label>
+    <p class="post-form__hint">{% translate "Only the site owner sees your report. Nothing happens automatically." %}</p>
+    {{ form.reason }}
+    {% for error in form.reason.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+    <div class="post-form__actions">
+      <button type="submit">{% translate "Send report" %}</button>
+      <a href="{% url 'posts:detail' pk=post.pk %}"
+         hx-get="{% url 'posts:detail' pk=post.pk %}" hx-target="#report" hx-select="#report" hx-swap="outerHTML">{% translate "Cancel" %}</a>
+    </div>
+  </form>
+{% endif %}

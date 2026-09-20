@@ -676,11 +676,13 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.7 · Melden
 **Abhängig von:** 5.4 · **Anforderungen:** FR-B10, FR-B11, D-81
 **Fertig, wenn:**
-- [ ] `Report(reporter, post, reason, created_at, handled_at)`; einmal je Person und Beitrag (Unique-Constraint); Grund optional ≤ 500.
-- [ ] „Report" auf der Beitragsseite (nicht beim eigenen Beitrag): kleines Formular, HTMX-Bestätigung „Thank you, we will look at it", ohne JavaScript eine eigene Seite. Grenze 20 Meldungen je Person und Stunde.
-- [ ] Admin: Meldungen mit Link auf den Beitrag, Melder, Grund, Zeit; Filter offen/bearbeitet; Aktion „Als bearbeitet markieren". Löschen des Beitrags über das Admin entfernt die Meldung mit.
-- [ ] PRD §2.2 und D-81 stimmen mit dem Verhalten überein.
-- [ ] Test: doppelte Meldung, eigener Beitrag nicht meldbar, Grenze, Admin-Liste lädt, Meldung verschwindet mit dem Beitrag.
+- [x] `Report(reporter, post, reason, created_at, handled_at)`; einmal je Person und Beitrag (Unique-Constraint); Grund optional ≤ 500.
+- [x] „Report" auf der Beitragsseite (nicht beim eigenen Beitrag): kleines Formular, HTMX-Bestätigung „Thank you, we will look at it", ohne JavaScript eine eigene Seite. Grenze 20 Meldungen je Person und Stunde.
+- [x] Admin: Meldungen mit Link auf den Beitrag, Melder, Grund, Zeit; Filter offen/bearbeitet; Aktion „Als bearbeitet markieren". Löschen des Beitrags über das Admin entfernt die Meldung mit.
+- [x] PRD §2.2 und D-81 stimmen mit dem Verhalten überein.
+- [x] Test: doppelte Meldung, eigener Beitrag nicht meldbar, Grenze, Admin-Liste lädt, Meldung verschwindet mit dem Beitrag.
+
+> Umsetzung: `Report` in `apps/posts/models.py` (Migration `0002_report`; `post` ist vorerst Pflicht, 6.5 macht es zusammen mit `comment` zur Alternative), `ReportForm`, `report_post` und `report_thanks` in `apps/posts/views.py` (`/posts/<id>/report/` und `…/report/thanks/`), Bausteine `posts/_report_body.html` und `report_form.html`, Bereich `#report` auf der Beitragsseite (Live-Region). Mit HTMX öffnet der Link „Report" das Formular an Ort und Stelle und ersetzt es nach dem Senden durch „Thank you, we will look at it."; ohne JavaScript sind es die eigene Seite und eine Dankeseite (Weiterleitung, wie beim Feedback, D-75). Der eigene Beitrag lässt sich nicht melden (302 auf die Beitragsseite, ohne etwas anzulegen); wer schon gemeldet hat, sieht statt des Formulars einen Hinweis, und zwei gleichzeitige Absendungen fängt der Unique-Constraint ab. Grenze `REPORT_RATE_LIMIT_MAX_REPORTS = 20` je Stunde aus den eigenen Zeilen, die Meldung ist auch bei HTMX sichtbar. Admin (`ReportAdmin`, nur lesbar plus löschen): Beitrag als Link auf die öffentliche Seite, Melder, Grund, Status, Filter „Open/Handled", Aktionen „als bearbeitet markieren" und „wieder öffnen". **Löschen** gibt es bewusst nur bei den Beiträgen („Posts"): Das Löschen eines Beitrags nimmt seine Meldungen mit, ein Test bestätigt es auch für den Weg über die Admin-Aktion. Datenschutzseite und Account-Löschung ziehen mit 5.8 nach. Im Browser geprüft: Link öffnet das Formular im selben Dokument, Absenden ersetzt es durch den Dank, die Meldung steht in der Datenbank.
 
 #### 5.8 · Account-Löschung und Datenschutz
 **Abhängig von:** 5.7, 2.14 · **Anforderungen:** FR-B12, D-78

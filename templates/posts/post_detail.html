@@ -38,5 +38,18 @@
         <a class="tap-target" href="{% url 'posts:delete' pk=post.pk %}">{% translate "Delete" %}</a>
       </footer>
     {% endif %}
+
+    {% comment %} Melden (Task 5.7, FR-B10): nur bei fremden Beiträgen. Mit HTMX öffnet der Link das Formular
+       an Ort und Stelle, ohne JavaScript führt er auf die eigene Seite. Der Bereich ist eine Live-Region. {% endcomment %}
+    {% if not is_author %}
+      <div id="report" class="post__report" aria-live="polite">
+        {% if already_reported %}
+          <p class="report-note">{% translate "You have reported this post." %}</p>
+        {% else %}
+          <a class="tap-target" href="{% url 'posts:report' pk=post.pk %}"
+             hx-get="{% url 'posts:report' pk=post.pk %}" hx-target="#report" hx-swap="innerHTML">{% translate "Report" %}</a>
+        {% endif %}
+      </div>
+    {% endif %}
   </article>
 {% endblock %}

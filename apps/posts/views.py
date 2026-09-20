@@ -9,6 +9,7 @@ Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
@@ -18,9 +19,9 @@ from apps.colors.field import color_field_context
 
 from . import combinations, limits
 from .decorators import author_only, current_profile
-from .forms import PostForm
+from .forms import PostForm, ReportForm
 from .markdown import render_markdown
-from .models import Post
+from .models import Post, Report
 
 
 def _prefilled_colors(request):
@@ -147,8 +148,83 @@ def post_detail(request, pk):
             "label": combinations.combination_labels([post.colors])[post.colors],
             "url": combinations.combination_url(post.colors),
         }
+    is_author = post.author_id == profile.pk
     return render(
         request,
         "posts/post_detail.html",
-        {"post": post, "combination": combination, "is_author": post.author_id == profile.pk},
+        {
+            "post": post,
+            "combination": combination,
+            "is_author": is_author,
+            # Nur fremde Beiträge lassen sich melden (FR-B10).
+            "already_reported": not is_author
+            and Report.objects.filter(reporter=profile, post=post).exists(),
+        },
     )
+
+
+def _report_response(request, post, **context):
+    """Vollständige Seite, oder nur der Baustein bei HTMX (`#report` auf der Beitragsseite)."""
+    template = "posts/_report_body.html" if _is_htmx(request) else "posts/report_form.html"
+    status = context.pop("status", 200)
+    return render(request, template, {"post": post, **context}, status=status)
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def report_post(request, pk):
+    """
+    FR-B10, D-81: einen fremden Beitrag melden, einmal je Person, mit
+    optionalem Grund. Der eigene Beitrag lässt sich nicht melden (302 zurück
+    auf die Beitragsseite, ohne etwas anzulegen). Die Meldung sieht nur die
+    Projektinhaberin im Admin.
+
+    Wie beim Feedback (D-75): mit HTMX kommt nur der Baustein für den Bereich
+    `#report` zurück, ohne JavaScript eine eigene Seite und nach dem Senden
+    eine Weiterleitung auf die Dankeseite. Die Grenze (FR-B11) steht hier statt
+    im Decorator, damit ihre Meldung auch bei HTMX (das 4xx nicht austauscht)
+    sichtbar ist.
+    """
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
+    if post.author_id == profile.pk:
+        return redirect("posts:detail", pk=post.pk)
+    if Report.objects.filter(reporter=profile, post=post).exists():
+        return _report_response(request, post, already=True)
+
+    status = 200
+    if request.method == "POST":
+        form = ReportForm(request.POST)
+        if limits.is_limited(
+            profile.reports.all(),
+            max_count=settings.REPORT_RATE_LIMIT_MAX_REPORTS,
+            window_seconds=settings.REPORT_RATE_LIMIT_WINDOW_SECONDS,
+        ):
+            form.add_error(None, _("You are reporting too fast. Please try again later."))
+            status = 200 if _is_htmx(request) else 429
+        elif form.is_valid():
+            try:
+                with transaction.atomic():
+                    Report.objects.create(
+                        reporter=profile, post=post, reason=form.cleaned_data["reason"]
+                    )
+            except IntegrityError:
+                # Zwei Absendungen gleichzeitig: die zweite ist schon gemeldet.
+                return _report_response(request, post, already=True)
+            if _is_htmx(request):
+                return _report_response(request, post, sent=True)
+            return redirect("posts:report_thanks", pk=post.pk)
+    else:
+        form = ReportForm()
+    return _report_response(request, post, form=form, status=status)
+
+
+@login_required
+@require_http_methods(["GET"])
+def report_thanks(request, pk):
+    """Dankeseite nach dem Melden ohne JavaScript; ohne eigene Meldung zurück zum Formular."""
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
+    if not Report.objects.filter(reporter=profile, post=post).exists():
+        return redirect("posts:report", pk=post.pk)
+    return _report_response(request, post, sent=True)
