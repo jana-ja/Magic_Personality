@@ -662,12 +662,16 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.6 · Color Infos: Grid mit Beiträgen
 **Abhängig von:** 5.4, 1.8 · **Anforderungen:** FR-B7, FR-B8, D-78
 **Fertig, wenn:**
-- [ ] Unterhalb der Eigenschaften (innerhalb `#colors-panel`, damit der HTMX-Austausch es mitnimmt): Beiträge mit **exakt** der gewählten Kombination, neueste zuerst, höchstens 6; ohne Auswahl kein Grid. Der Code ist kanonisch, die Reihenfolge der Auswahl spielt keine Rolle.
-- [ ] Karte: Titel, kleine Autorenkarte, Auszug (Klartext ≈ 200 Zeichen, zusätzlich per CSS auf wenige Zeilen begrenzt), Datum; die ganze Karte ist ein Link. CSS-Grid mit automatischer Spaltenzahl, mobil eine Spalte (NFR-3).
-- [ ] „Show all posts" führt auf `/colors/<code>/posts/` (Seiteneinteilung, 12 je Seite); „Write a post about this" öffnet den Editor mit vorbelegten Farben.
-- [ ] Leerer Zustand: kurzer Hinweis mit Link zum Schreiben. Gäste sehen nur „Log in to read and write posts", keinen Beitrag und keine Zahl.
-- [ ] Ansage der Änderung über die bestehende Live-Region unverändert, keine neuen Fokusfallen; Karten für Tastatur und Screenreader ein Link je Karte.
-- [ ] Test: exakter Treffer (Beitrag zu WG erscheint nicht bei W und nicht bei WGU), kanonischer Code, Höchstzahl, leerer Zustand, Gast, HTMX-Fragment enthält das Grid, Abfragen bleiben konstant.
+- [x] Unterhalb der Eigenschaften (innerhalb `#colors-panel`, damit der HTMX-Austausch es mitnimmt): Beiträge mit **exakt** der gewählten Kombination, neueste zuerst, höchstens 6; ohne Auswahl kein Grid. Der Code ist kanonisch, die Reihenfolge der Auswahl spielt keine Rolle.
+- [x] Karte: Titel, kleine Autorenkarte, Auszug (Klartext ≈ 200 Zeichen, zusätzlich per CSS auf wenige Zeilen begrenzt), Datum; die ganze Karte ist ein Link. CSS-Grid mit automatischer Spaltenzahl, mobil eine Spalte (NFR-3).
+- [x] „Show all posts" führt auf `/colors/<code>/posts/` (Seiteneinteilung, 12 je Seite); „Write a post about this" öffnet den Editor mit vorbelegten Farben.
+- [x] Leerer Zustand: kurzer Hinweis mit Link zum Schreiben. Gäste sehen nur „Log in to read and write posts", keinen Beitrag und keine Zahl.
+- [x] Ansage der Änderung über die bestehende Live-Region unverändert, keine neuen Fokusfallen; jede Karte führt über **einen** Link (den Titel, über die ganze Karte gespannt) auf den Beitrag, dazu als einziges zweites Ziel der Nickname der Autorenkarte.
+- [x] Test: exakter Treffer (Beitrag zu WG erscheint nicht bei W und nicht bei WGU), kanonischer Code, Höchstzahl, leerer Zustand, Gast, HTMX-Fragment enthält das Grid, Abfragen bleiben konstant.
+
+> Umsetzung: `_posts_context` und `combination_posts` in `apps/colors/views.py` (`colors` liest aus `posts`, D-78), Auswahl in `apps/posts/listing.py` (`combination_grid`: höchstens 6, dazu ob es mehr gibt; `combination_posts_page`: 12 je Seite), Templates `colors/_posts_grid.html` (im `#colors-panel`, hinter den Eigenschaften), `colors/combination_posts.html` und die wiederverwendete Karte `posts/_post_card.html` mit den Schaltern `show_author` und `hide_combination`. Adresse der Liste: `/colors/<code>/posts/` (ungültiger Code 404, falsche Reihenfolge 301 wie bei den Color Infos). Ein Account ohne Profil bekommt das Grid nicht (statt eines Fehlers), Gäste nur den Hinweis mit Login-Link.
+>
+> **Abweichung vom Plan:** Eine Karte hat zwei Ziele statt einem — den Beitrag (Titel, über die ganze Karte gespannt) und den Nickname der Autorenkarte (Profil), der per `z-index` über der gespannten Fläche liegt. Ein Nickname als bloßer Text widerspräche der Autorenkarte (FR-P15); zwei Links, nebeneinander und nicht ineinander, sind das übliche Muster. **Gefunden und behoben:** Die Autorenkarte lud die fünf Farbwerte je Karte neu, sobald die Karte per `{% include %}` eingebunden ist (ihr Zwischenspeicher galt je Template, nicht je Anfrage); jetzt hängt er an der Anfrage (`social_tags._hex_by_code`), ein Test mit sechs Autoren hält die Abfragezahl konstant. Im Browser geprüft: Grid zweispaltig bei 727 px, einspaltig bei 375 px ohne horizontales Scrollen; HTMX-Wechsel der Auswahl tauscht das Grid mit aus (gleiches Dokument, Live-Region sagt „Bant" an); Liste mit „Show all posts".
 
 #### 5.7 · Melden
 **Abhängig von:** 5.4 · **Anforderungen:** FR-B10, FR-B11, D-81

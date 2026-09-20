@@ -1518,3 +1518,38 @@ main button {
   align-items: center;
   gap: var(--space-3);
 }
+
+/* Beiträge in den Color Infos (Task 5.6, FR-B7) ------------------------------ */
+
+.posts-grid {
+  margin-top: var(--space-4);
+}
+
+.post-grid {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: grid;
+  /* So viele Spalten, wie mit mindestens 16rem passen; mobil eine (NFR-3). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-3);
+}
+
+.post-grid .post-card {
+  height: 100%;
+}
+
+/* Der Nickname der Autorenkarte liegt über der gespannten Kartenfläche
+   (Task 5.6): ein eigenes, anklickbares Ziel neben dem Beitrag. */
+.post-card__author {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  margin-bottom: var(--space-2);
+}
+
+.posts-head__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}

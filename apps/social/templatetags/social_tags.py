@@ -12,6 +12,27 @@ register = template.Library()
 SIZES = ("small", "medium")
 
 
+def _hex_by_code(context):
+    """
+    Die fünf Farbwerte einmal laden, nicht je Karte. Der Zwischenspeicher hängt an
+    der Anfrage: `render_context` gilt nur je Template, und eine Karte, die selbst
+    per `{% include %}` eingebunden ist (Beitragskarten, Task 5.6), bekäme sonst
+    jedes Mal einen frischen und lüde die Werte je Karte neu. Ohne Anfrage im
+    Kontext (Rendern außerhalb eines Views) gilt der Zwischenspeicher je Template.
+    """
+    request = context.get("request")
+    if request is not None:
+        cached = getattr(request, "_author_card_hex", None)
+        if cached is None:
+            cached = request._author_card_hex = dict(Color.objects.values_list("code", "hex"))
+        return cached
+    cached = context.render_context.get("author_card_hex")
+    if cached is None:
+        cached = dict(Color.objects.values_list("code", "hex"))
+        context.render_context["author_card_hex"] = cached
+    return cached
+
+
 @register.inclusion_tag("social/_author_card.html", takes_context=True)
 def author_card(context, profile, size="medium"):
     """
@@ -30,11 +51,7 @@ def author_card(context, profile, size="medium"):
     """
     if size not in SIZES:
         raise ValueError(f"Unknown author card size: {size!r}")
-    # Die fünf Farbwerte einmal je Template-Rendering laden, nicht je Karte.
-    hex_by_code = context.render_context.get("author_card_hex")
-    if hex_by_code is None:
-        hex_by_code = dict(Color.objects.values_list("code", "hex"))
-        context.render_context["author_card_hex"] = hex_by_code
+    hex_by_code = _hex_by_code(context)
 
     assignment = next(iter(profile.color_assignments.all()), None)
     return {

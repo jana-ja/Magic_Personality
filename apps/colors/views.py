@@ -2,13 +2,16 @@
 
 from dataclasses import dataclass
 
+from django.contrib.auth.decorators import login_required
 from django.http import Http404
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
+from django.views.decorators.http import require_GET
 
-from apps.accounts.models import ColorAssignment
+from apps.accounts.models import ColorAssignment, Profile
+from apps.posts import combinations, listing
 
-from . import content, pentagon, selection
+from . import content, pentagon, selection, utils
 from .models import Color
 
 
@@ -38,7 +41,65 @@ def index(request, code=""):
 
     context = pentagon_context(selected_colors)
     context["my_colors_url"] = _my_colors_url(request.user)
+    context.update(_posts_context(request, selected_colors))
     return render(request, "colors/index.html", context)
+
+
+def _posts_context(request, selected_colors):
+    """
+    Das Grid mit Beiträgen unter den Eigenschaften (Task 5.6, FR-B7, FR-B8):
+    nur bei gewählter Kombination, und nur mit Inhalt für angemeldete
+    Nutzende — Gäste sehen einen Hinweis zum Anmelden, keinen Beitrag und keine
+    Zahl. Ein Account ohne Profil (z. B. ein per `createsuperuser` angelegter
+    Admin) bekommt gar nichts. Die Auswahl steht in der URL, das Grid ändert
+    sich also mit dem HTMX-Austausch von `#colors-panel` mit.
+    """
+    if not selected_colors:
+        return {}
+    code = utils.canonical_code(selected_colors)
+    url_code = code.lower()
+    context = {
+        "posts_label": combinations.combination_labels([code])[code],
+        "posts_login_url": reverse("login"),
+    }
+    if not request.user.is_authenticated:
+        return {**context, "posts_guest": True}
+    viewer = Profile.objects.filter(user=request.user).first()
+    if viewer is None:
+        return {}
+    return {
+        **context,
+        **listing.combination_grid(viewer, code),
+        "posts_write_url": f"{reverse('posts:new')}?colors={url_code}",
+        "posts_all_url": reverse("colors:posts", kwargs={"code": url_code}),
+    }
+
+
+@login_required
+@require_GET
+def combination_posts(request, code):
+    """
+    „Show all posts" (Task 5.6, FR-B7): alle Beiträge zu genau dieser
+    Kombination, zwölf je Seite. Adressen und Weiterleitungen wie `index()`:
+    ungültiger Code 404, falsche Reihenfolge oder Schreibweise 301 auf die
+    kanonische Form.
+    """
+    selected_colors = selection.parse_url_code(code)
+    if selected_colors is None:
+        raise Http404("Not a valid color combination.")
+    canonical = selection.canonical_url_code(selected_colors)
+    if code != canonical:
+        return redirect(reverse("colors:posts", kwargs={"code": canonical}), permanent=True)
+
+    viewer = get_object_or_404(Profile, user=request.user)
+    db_code = canonical.upper()
+    context = {
+        "posts_label": combinations.combination_labels([db_code])[db_code],
+        "colors_url": _url_for(canonical),
+        "posts_write_url": f"{reverse('posts:new')}?colors={canonical}",
+        **listing.combination_posts_page(viewer, db_code, request.GET.get("page")),
+    }
+    return render(request, "colors/combination_posts.html", context)
 
 
 def _my_colors_url(user):

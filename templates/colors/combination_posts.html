@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% blocktranslate with name=posts_label %}Posts about {{ name }}{% endblocktranslate %}{% endblock %}
+
+{% block content %}
+  {% comment %} Alle Beiträge zu einer Kombination (Task 5.6, FR-B7), zwölf je Seite. {% endcomment %}
+  <h1>{% blocktranslate with name=posts_label %}Posts about {{ name }}{% endblocktranslate %}</h1>
+  <p class="posts-head__links">
+    <a class="tap-target" href="{{ colors_url }}">{% translate "Back to Color Infos" %}</a>
+    <a class="tap-target" href="{{ posts_write_url }}">{% translate "Write a post about this" %}</a>
+  </p>
+
+  {% if grid_posts %}
+    <ul class="post-grid">
+      {% for post in grid_posts %}
+        <li>{% include "posts/_post_card.html" with post=post show_author=True hide_combination=True %}</li>
+      {% endfor %}
+    </ul>
+    {% include "posts/_pagination.html" with page=posts_page %}
+  {% else %}
+    <p>
+      {% translate "No posts about this combination yet." %}
+      <a href="{{ posts_write_url }}">{% translate "Write the first one" %}</a>
+    </p>
+  {% endif %}
+{% endblock %}

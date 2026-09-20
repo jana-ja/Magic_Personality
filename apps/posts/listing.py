@@ -13,6 +13,17 @@ from . import combinations
 from .models import Post
 
 PAGE_SIZE = 10
+#: So viele Beiträge zeigt das Grid der Color Infos höchstens (FR-B7); alle stehen auf der
+#: Listenseite.
+GRID_LIMIT = 6
+#: Beiträge je Seite der Liste zu einer Kombination (Task 5.6).
+COMBINATION_PAGE_SIZE = 12
+
+
+def _with_authors(posts):
+    """Autorin bzw. Autor samt Zuordnung und Kombination vorladen: die Autorenkarte
+    (Task 4.8) kostet dann je Karte keine Abfrage mehr."""
+    return posts.select_related("author").prefetch_related("author__color_assignments__combination")
 
 
 def cards_for(posts):
@@ -41,3 +52,23 @@ def author_posts_page(viewer, author, raw_page):
     posts = Post.objects.visible_to(viewer).filter(author=author)
     page = Paginator(posts, PAGE_SIZE).get_page(page_number(raw_page))
     return {"posts_page": page, "post_cards": cards_for(page)}
+
+
+def combination_grid(viewer, code):
+    """
+    Die neuesten Beiträge mit **genau** dem Farbcode `code` für das Grid der Color
+    Infos (Task 5.6, FR-B7): höchstens `GRID_LIMIT`, dazu, ob es weitere gibt.
+    Kein Teilmengen-Treffer: ein Beitrag zu `WG` erscheint nicht bei `W` und nicht
+    bei `WGU` (D-78).
+    """
+    posts = list(
+        _with_authors(Post.objects.visible_to(viewer).filter(colors=code))[: GRID_LIMIT + 1]
+    )
+    return {"grid_posts": posts[:GRID_LIMIT], "grid_has_more": len(posts) > GRID_LIMIT}
+
+
+def combination_posts_page(viewer, code, raw_page):
+    """Eine Seite mit allen Beiträgen zu `code` (Task 5.6), neueste zuerst."""
+    posts = _with_authors(Post.objects.visible_to(viewer).filter(colors=code))
+    page = Paginator(posts, COMBINATION_PAGE_SIZE).get_page(page_number(raw_page))
+    return {"posts_page": page, "grid_posts": list(page)}

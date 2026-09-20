@@ -34,5 +34,8 @@
       {% include "colors/_info_box.html" %}
     </div>
     {% include "colors/_trait_row.html" %}
+    {% comment %} Beiträge zur gewählten Kombination (Task 5.6, FR-B7): unter den Eigenschaften und
+       im selben Wrapper, damit der HTMX-Austausch der Auswahl sie mitnimmt. {% endcomment %}
+    {% include "colors/_posts_grid.html" %}
   </div>
 {% endblock %}
