@@ -207,6 +207,20 @@ Danach in `/admin/` mit den normalen Zugangsdaten anmelden. Weitere Admins lasse
 
 **Ein drittes Mal geprobt** (2026-09-19, Task 4.10/Release-Durchsicht v1.2, gleicher Ablauf wie zuvor mit allen drei Compose-Dateien): Dump mit `scripts/backup.sh`, Einspielen in eine Wegwerf-Datenbank (Schritt 2), Zeilenzahlen von `accounts_profile`, `accounts_colorassignment`, `quiz_testresult`, `social_friendship` und `colors_colorcombination` gegen die Ursprungsdatenbank verglichen — identisch —, die drei Constraints von `social_friendship` vorhanden und ein Prüfsummen-Vergleich über Nickname und Bio aller Profile identisch. Wegwerf-Datenbank danach gelöscht.
 
+**Ein viertes Mal geprobt** (2026-09-20, Task 5.9/Release-Durchsicht v1.3), diesmal ausdrücklich mit den neuen Tabellen `posts_post` und `posts_report`: `scripts/backup.sh` gegen den laufenden `db`-Container, Einspielen in eine Wegwerf-Datenbank (Schritt 2). Verglichen wurden vorher und nachher Zeilenzahlen (19 Beiträge, 1 Meldung, 4 Profile) samt Inhalts-Prüfsummen über Beiträge, Meldungen, Profile und Testergebnisse sowie alle Constraints und Indizes beider Tabellen (Textlänge, kanonischer Farbcode, nichtleerer Titel, `UNIQUE (reporter, post)`, drei Fremdschlüssel) — 24 Zeilen, identisch. Die Fremdschlüssel stehen in der Datenbank auf `NO ACTION`, das Kaskadieren beim Löschen leistet wie im ganzen Projekt Django; ein direktes `DELETE` per SQL nähme Kinder nicht mit. Wegwerf-Datenbank und Dump danach gelöscht.
+
+## Release-Hinweise v1.3 (Beiträge)
+
+Anders als v1.2 braucht v1.3 ein **vollständiges** Deployment:
+
+- **Migrationen:** `posts.0001_post` und `posts.0002_report` (zwei neue Tabellen, keine Änderung an bestehenden). Deshalb `scripts/deploy_full.sh`, nicht `scripts/deploy.sh`. Seeds ändern sich nicht.
+- **Neue Abhängigkeit:** `markdown-it-py` (`requirements/base.txt`); sie kommt mit dem neuen Image, auf dem Server ist nichts zu installieren.
+- **Neue Adressen** (alle hinter Gate und Login): `/posts/new/`, `/posts/<id>/` samt `edit/`, `delete/`, `report/`, `/u/<nickname>/posts/` und `/colors/<code>/posts/`. `compose*.yaml`, `Dockerfile` und `Caddyfile` sind unverändert.
+- **Admin:** Beiträge unter „Posts", Meldungen unter „Reports" (Filter „Open/Handled", Aktion „als bearbeitet markieren"). Gemeldete Beiträge löscht die Projektinhaberin dort; die Meldungen verschwinden mit ihnen.
+- **Datenschutz:** Die Datenschutzseite nennt Beiträge und Meldungen bereits; Account-Löschung entfernt beides.
+
+Vor dem Deployment lässt sich mit dem Backup-Ablauf oben ein Dump ziehen; nach dem Deployment reicht ein Blick auf `/healthz` und ein Beitrag zu einer Kombination (Color Infos → Kombination wählen → „Write a post about this").
+
 ## Release-Hinweise v1.2 (Profil-Überarbeitung)
 
 Für das Deployment von v1.2 ist nichts Besonderes zu tun: **keine Migrationen** (`makemigrations --check` meldet nichts, der Schema-Stand ist der von v1.1), keine neuen Abhängigkeiten, `compose*.yaml`, `Dockerfile` und `Caddyfile` unverändert — der übliche Ablauf aus „Folge-Deployments" genügt. Zwei Dinge, die auffallen können:

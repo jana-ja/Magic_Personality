@@ -237,6 +237,7 @@ Schwerpunkt auf den Regeln, die inhaltlich falsch sein *können* — nicht auf D
 - **Ally/Enemy-Berechnung** gegen die tatsächliche Nachbarschaft im Rad.
 - **Zugriffsschutz:** Ohne Gate-Cookie ist jede URL gesperrt; ohne Login sind Profile gesperrt; fremde Testhistorie ist nie sichtbar (FR-S1, FR-P6).
 - **FR-P8:** Löschen des referenzierten Testergebnisses leert die Referenz, lässt die Farben aber stehen.
+- **Beiträge (v1.3, D-78, D-80):** Injektionstest des Markdown-Renderers gegen eine Positivliste aus Tags und Attributen (über 60 Eingaben); Zugriffsmatrix aller Adressen (Gate, Login, Autorenrechte, CSRF, Methoden); Wächter für die Architekturregeln, die sich sonst unbemerkt aufweichen — jeder Lesezugriff über `visible_to`, `safe` nur über `render_markdown`, keine unbeabsichtigte Abhängigkeit, `posts` importiert nicht `social` (`apps/posts/tests/test_architecture.py`).
 
 ---
 

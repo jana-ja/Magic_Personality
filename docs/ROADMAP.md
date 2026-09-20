@@ -697,12 +697,26 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.9 · Release-Durchsicht v1.3
 **Abhängig von:** 5.8 · **Anforderungen:** PRD §11 (v1.3)
 **Fertig, wenn:**
-- [ ] Alle Abnahmekriterien aus PRD §11 (v1.3) durchgegangen und abgehakt.
-- [ ] Zugriffsschutz für jede neue Adresse geprüft (Gate, Login, Autorenrechte), auch für POST von Fremden.
-- [ ] Injektionstest zusätzlich im Browser: Beitrag mit Skript-Tag, `javascript:`-Link und Bildsyntax anlegen und in Beitragsseite, Profilliste, Grid, Vorschau und Admin ansehen.
-- [ ] Prüfung gegen `ARCHITECTURE.md`: einzige neue Abhängigkeit ist `markdown-it-py`, JavaScript-Umfang unverändert, kein `safe` auf Nutzereingaben außer `render_markdown`.
-- [ ] Backup-Wiederherstellung erneut geprobt, mit den neuen Tabellen.
-- [ ] `DECISIONS.md` vollständig; Hinweis für das Deployment: neue Migrationen, also `scripts/deploy_full.sh`.
+- [x] Alle Abnahmekriterien aus PRD §11 (v1.3) durchgegangen und abgehakt.
+- [x] Zugriffsschutz für jede neue Adresse geprüft (Gate, Login, Autorenrechte), auch für POST von Fremden.
+- [x] Injektionstest zusätzlich im Browser: Beitrag mit Skript-Tag, `javascript:`-Link und Bildsyntax anlegen und in Beitragsseite, Profilliste, Grid, Vorschau und Admin ansehen.
+- [x] Prüfung gegen `ARCHITECTURE.md`: einzige neue Abhängigkeit ist `markdown-it-py`, JavaScript-Umfang unverändert, kein `safe` auf Nutzereingaben außer `render_markdown`.
+- [x] Backup-Wiederherstellung erneut geprobt, mit den neuen Tabellen.
+- [x] `DECISIONS.md` vollständig; Hinweis für das Deployment: neue Migrationen, also `scripts/deploy_full.sh`.
+
+> **Durchsicht (2026-09-20).** **Abnahme PRD §11 (v1.3):** (1) Schreiben, Bearbeiten, Löschen und Melden mit und ohne Farbe — `test_post_editor.py`, `test_reports.py`, im Browser durchgespielt. (2) Injektionstest — über 60 Eingaben gegen eine Positivliste in `test_markdown.py` (Beitrag, Auszug, Vorschau, Template-Filter) **und** im Browser (siehe unten). (3) Tab „Posts" und Grid mit exaktem Treffer und Auszug — `test_profile_posts_tab.py`, `test_colors_grid.py`. (4) Gäste sehen nirgends einen Beitrag, jeder Lesepfad geht durch `visible_to` — Zugriffsmatrix und Wächtertests (neu, s. u.). (5) Account-Löschung — `test_account_deletion.py`.
+>
+> **Zugriffsschutz:** Neu `test_access_control.py`: jede Adresse (`new`, `detail`, `edit`, `delete`, `report`, `report_thanks`, Kombinationsliste) ohne Gate → Gate, ohne Login → Login (GET und POST, nichts ändert sich), Fremde bei `edit`/`delete` → 302 auf die Beitragsseite ohne Änderung, die Autorin bzw. der Autor kann den eigenen Beitrag nicht melden; **CSRF** mit eingeschalteter Prüfung: jede schreibende Adresse antwortet ohne Token mit 403; ein Test meldet eine neue, nicht aufgenommene Adresse. Die Gegenprobe (CSRF-Schutz testweise ausgeschaltet) lässt den Test fehlschlagen.
+>
+> **Gefunden und behoben:** `views.py` zählte für die Beitragsgrenze über `profile.posts.all()` und damit an `visible_to` vorbei. Für die Grenze harmlos, aber es hätte die Regel aufgeweicht; jetzt `Post.objects.visible_to(profile).filter(author=profile)`.
+>
+> **Injektionstest im Browser:** Beitrag mit `<script>`, `<img onerror>`, `<iframe src=javascript:>`, `<svg onload>`, `javascript:`-Link, Bildsyntax auf einen fremden Server und einem Code-Fence mit `"><script>` im Info-String, dazu derselbe Text im Titel und als Meldungsgrund. Angesehen in Vorschau, Beitragsseite, Profilliste, Grid und im Admin (Beitragsliste, Beitrag, Meldungsliste, Meldung, Löschbestätigung): nirgends wurde etwas ausgeführt (`window.__pwned` blieb ungesetzt), es gibt keine Elemente, Ereignis-Attribute oder Verweise auf den fremden Server aus der Nutzlast — alles steht als escapter Text da; der einzige Link im Text ist der harmlose mit `rel="nofollow noopener noreferrer"`. Das einzige `<svg>` im Artikel ist das Profilbild der Autorenkarte.
+>
+> **Prüfung gegen `ARCHITECTURE.md`:** `test_architecture.py` liest den Quelltext: kein Lesezugriff auf `Post` an `visible_to` vorbei (nur `create`), kein `|safe`/`autoescape off`, `mark_safe` nur in `apps/posts/markdown.py`, Abhängigkeiten genau die bekannten plus `markdown-it-py`, `posts` importiert kein `social`. Gegenprobe für jeden der vier Wächter (Umgehung eingebaut, `|safe`, `bleach` in `requirements`, CSRF aus): jeder schlägt an. Diff seit v1.2: `requirements/base.txt` (eine Zeile), `.github/workflows/ci.yml` (D-76); `static/js`, `compose*.yaml`, `Dockerfile`, `Caddyfile` unverändert — das JavaScript-Budget (Test aus 4.9) hält.
+>
+> **Backup-Wiederherstellung:** siehe `docs/DEPLOYMENT.md`, „Ein viertes Mal geprobt" — Zeilenzahlen, Inhalts-Prüfsummen, Constraints und Indizes der neuen Tabellen identisch. **`DECISIONS.md`:** 82 Einträge (D-01 bis D-82), lückenlos, keiner „Offen". **Deployment:** neue Migrationen, also `scripts/deploy_full.sh` (siehe „Release-Hinweise v1.3").
+
+**Meilenstein v1.3 abgeschlossen** — Beiträge sind schreib-, les-, melde- und löschbar; die Kommentare (v1.4) können darauf aufbauen.
 
 ---
 

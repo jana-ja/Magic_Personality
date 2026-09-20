@@ -79,7 +79,7 @@ def _editor(request, *, profile, post=None):
 
         form = PostForm(request.POST, post=post)
         if post is None and limits.is_limited(
-            profile.posts.all(),
+            Post.objects.visible_to(profile).filter(author=profile),
             max_count=settings.POST_RATE_LIMIT_MAX_POSTS,
             window_seconds=settings.POST_RATE_LIMIT_WINDOW_SECONDS,
         ):
