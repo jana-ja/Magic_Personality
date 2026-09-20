@@ -45,4 +45,16 @@
       }
     </script>
   {% endif %}
+
+  {% comment %} Task 4.11, FR-T18: Feedback direkt nach dem Test, wenn die
+     Erinnerung frisch ist. Dieselbe View wie auf /feedback/; mit HTMX
+     bleibt die Ergebnisseite stehen (sie ist die Antwort auf ein POST und
+     lässt sich nicht neu laden). {% endcomment %}
+  <section class="feedback" aria-labelledby="feedback-heading">
+    <h2 id="feedback-heading">{% translate "How did the test work for you?" %}</h2>
+    <p>{% translate "Your feedback is anonymous: it is not linked to your account." %}</p>
+    <div id="feedback-body" aria-live="polite">
+      {% include "quiz/_feedback_body.html" with form=feedback_form %}
+    </div>
+  </section>
 {% endblock %}

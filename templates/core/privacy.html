@@ -14,7 +14,8 @@
     <li>{% translate "Account: your email address and a hashed password (Argon2) — the password itself is never stored." %}</li>
     <li>{% translate "Profile: your nickname, an optional short bio, and the colors you have chosen or taken over from a test. Your profile picture is generated from these colors on the fly — it is never uploaded or stored as a file." %}</li>
     <li>{% translate "Test history: each time you take the personality test, the date, your points per color, and the resulting combination are stored privately in your own history." %}</li>
-    <li>{% translate "Security logs: to prevent abuse, the IP address of every attempt to enter the invite code, register, or log in is recorded, together with the attempted email address for login attempts." %}</li>
+    <li>{% translate "Feedback: if you send feedback about the personality test, your rating, your message, the date, and the questionnaire version are stored. It is anonymous — not linked to your account or your IP address — so it cannot be found again for deletion later. Please do not put personal details into the message." %}</li>
+    <li>{% translate "Security logs: to prevent abuse, the IP address of every attempt to enter the invite code, register, log in, or send feedback is recorded, together with the attempted email address for login attempts. The IP address is not stored with the feedback itself." %}</li>
     <li>{% translate "Session: while you're logged in, a session identifier is stored in a cookie in your browser and matched against a record on the server, so you stay logged in between visits." %}</li>
     <li>{% translate "Access cookie: this whole site sits behind an invite code. Once entered, a signed cookie remembers that on your device — it contains no personal data, only a signed \"granted\" marker." %}</li>
   </ul>
@@ -27,7 +28,8 @@
   <h2>{% translate "How long" %}</h2>
   <ul>
     <li>{% translate "Account, profile, and test history: for as long as your account exists." %}</li>
-    <li>{% translate "Security logs (IP addresses of invite-code, registration, and login attempts): currently kept indefinitely — there is no automatic cleanup yet. Removable manually on request (see below)." %}</li>
+    <li>{% translate "Feedback: kept until it is no longer needed and then deleted by hand; it survives the deletion of your account, because it is not linked to it." %}</li>
+    <li>{% translate "Security logs (IP addresses of invite-code, registration, login, and feedback attempts): currently kept indefinitely — there is no automatic cleanup yet. Removable manually on request (see below)." %}</li>
     <li>{% translate "Backups: 14 days on a rolling basis, then deleted automatically." %}</li>
   </ul>
 

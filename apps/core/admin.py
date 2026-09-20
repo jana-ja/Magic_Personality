@@ -2,7 +2,7 @@
 
 from django.contrib import admin
 
-from .models import GateAttempt, RegistrationAttempt
+from .models import FeedbackAttempt, GateAttempt, RegistrationAttempt
 
 
 class AttemptAdmin(admin.ModelAdmin):
@@ -17,3 +17,4 @@ class AttemptAdmin(admin.ModelAdmin):
 
 admin.site.register(GateAttempt, AttemptAdmin)
 admin.site.register(RegistrationAttempt, AttemptAdmin)
+admin.site.register(FeedbackAttempt, AttemptAdmin)

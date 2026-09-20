@@ -163,3 +163,40 @@ class TestResult(models.Model):
         (B, G, R, U, W) — die gespeicherte Reihenfolge taugt also nicht
         für die Anzeige."""
         return [(code, self.scores.get(code, 0)) for code, _label in Color.Code.choices]
+
+
+class Feedback(models.Model):
+    """
+    Feedback zum Personality Test (Task 4.11, FR-T18, D-75).
+
+    Bewusst **ohne** Verweis auf `User`/`Profile` und ohne IP-Adresse:
+    anonym abgegeben, damit es ehrlich bleibt und die Account-Löschung
+    (FR-U8) nichts damit zu tun hat. `questionnaire_version` ist wie bei
+    `TestResult` die Nummer selbst, kein Fremdschlüssel; sie ist leer,
+    wenn das Formular nicht direkt nach einem Test abgeschickt wurde.
+    """
+
+    MAX_MESSAGE_LENGTH = 2000
+
+    # 1 = passt gar nicht, 5 = passt sehr gut; leer = keine Angabe.
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
+    message = models.TextField(blank=True, max_length=MAX_MESSAGE_LENGTH)
+    questionnaire_version = models.PositiveIntegerField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        verbose_name_plural = "feedback"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(rating__isnull=True) | models.Q(rating__range=(1, 5)),
+                name="feedback_rating_between_1_and_5",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(rating__isnull=False) | ~models.Q(message=""),
+                name="feedback_has_rating_or_message",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.created_at:%Y-%m-%d} ({self.rating or '-'}/5)"

@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Feedback" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Feedback" %}</h1>
+  <p>
+    {% blocktranslate trimmed %}
+      Have you taken the personality test? Tell us how well the result fit you, or anything else that comes to mind. Feedback is anonymous: it is not linked to your account.
+    {% endblocktranslate %}
+  </p>
+
+  <div id="feedback-body" aria-live="polite">
+    {% include "quiz/_feedback_body.html" %}
+  </div>
+
+  {% if sent %}
+    <p><a href="{% url 'colors:index' %}">{% translate "Back to Color Infos" %}</a></p>
+  {% endif %}
+{% endblock %}

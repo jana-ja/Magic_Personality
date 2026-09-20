@@ -579,6 +579,25 @@ Anlass: Die Nutzung von v1.0/v1.1 hat gezeigt, dass das Profil mit einem einzige
 
 ---
 
+# M4.1 · v1.2.1 — Feedback zum Test
+
+Anlass: Rückmeldung zum Personality Test einsammeln, bevor Blogbeiträge und Kommentare kommen. Gestaltung und Begründung: D-75. Anforderungen: PRD §5.3 (FR-T18 bis FR-T20).
+
+#### 4.11 · Feedback zum Test
+**Abhängig von:** 2.10, 2.14 · **Anforderungen:** FR-T18, FR-T19, FR-T20, D-75, D-10, D-18
+**Fertig, wenn:**
+- [x] `quiz.Feedback` mit Bewertung (1–5, optional), Text (≤ 2000, optional) und Fragebogen-Version (optional); CheckConstraints in der Datenbank für Wertebereich und „mindestens eines von beiden"; kein Verweis auf `User`/`Profile`, keine IP-Adresse.
+- [x] Ein Formular, zwei Orte: unter der Ergebnisseite (HTMX, Ergebnis bleibt stehen, Dank an Ort und Stelle) und unter `/feedback/` mit Link im Footer jeder Seite; ohne JavaScript normales POST mit Weiterleitung auf die Dankeseite.
+- [x] Mit und ohne Login abgebbar; Gate gilt wie überall.
+- [x] Rate Limit über eigenen Zähler (`core.FeedbackAttempt`, 5 je IP und Stunde); die Meldung ist auch bei HTMX sichtbar.
+- [x] Django-Admin: Feedback nur lesbar, filterbar nach Version und Bewertung, durchsuchbar; `FeedbackAttempt` wie die anderen Zähler.
+- [x] Datenschutzseite nennt Feedback (anonym, nicht löschbar, keine persönlichen Angaben) und die Protokollierung der IP-Adresse beim Absenden.
+- [x] Test: Speichern mit Bewertung, Text oder beidem; leer, 0/6/Text als Bewertung, zu langer Text und unbekannte Version abgelehnt bzw. zu „keine Angabe"; HTMX-Bausteine ohne `<html>`; Rate Limit inklusive abgelaufener Einträge; Escaping beim erneuten Anzeigen; Datenbank-Constraints; Gate.
+
+> Umsetzung: `apps/quiz/{models,forms,views}.py`, Bausteine `templates/quiz/_feedback_body.html` (Formular oder Dank, steht in der Live-Region `#feedback-body`) und `feedback.html`; `FeedbackForm` ist ein einfaches `Form`, kein `ModelForm`, damit die Fehlermeldung „Bewertung oder Text nötig" nicht zusammen mit der Constraint-Meldung doppelt erscheint. Im Browser geprüft (Ergebnisseite: leer absenden zeigt die Meldung ohne Seitenwechsel, Absenden zeigt den Dank und lässt das Ergebnis stehen, Version landet in der Datenbank; `/feedback/` bei 375 px ohne horizontales Scrollen, Bedienelemente 44 px hoch).
+
+---
+
 ## Nicht in dieser Roadmap
 
 Bewusst außerhalb, siehe PRD §8: Blogbeiträge und Kommentare zu Farben samt der Tabs dafür sowie der Inhalt der **Pinnwand** (Favoriten: eigene oder fremde Beiträge und Kommentare; Tab und Platzhalter kommen mit Task 4.3/4.7, die Profilseite hält den Platz frei), fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
