@@ -617,11 +617,13 @@ Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben
 #### 5.2 · Markdown-Rendering
 **Abhängig von:** 5.1 · **Anforderungen:** FR-B3, D-80, R-7
 **Fertig, wenn:**
-- [ ] `markdown-it-py` fest gepinnt in `requirements/base.txt`; die Abhängigkeit ist in ARCHITECTURE §3 vermerkt.
-- [ ] `apps/posts/markdown.py`: `render_markdown(text)` (Überschriften, fett/kursiv, Listen, Zitate, Code, Links; Roh-HTML, Bilder, Tabellen aus), `excerpt(text, limit=200)` (Klartext, an Wortgrenze gekürzt, mit „…"). Template-Filter für beides.
-- [ ] Links nur `http`/`https`, jeder mit `rel="nofollow noopener noreferrer"`.
-- [ ] **Injektionstest:** Skript-Tags, Ereignisattribute im Roh-HTML, `javascript:`-, `data:`- und `vbscript:`-Links, Bildsyntax, verschachtelte und unvollständige Konstrukte, HTML-Entities — nichts davon wird ausführbar oder zu Markup, weder in `render_markdown` noch im Auszug.
-- [ ] Test: leerer Text, sehr langer Text, Auszug kürzt an Wortgrenze, Überschriften und Listen erscheinen im Auszug als Text.
+- [x] `markdown-it-py` in `requirements/base.txt` (Bereichsangabe `>=4.0,<5` wie die übrigen Abhängigkeiten); die Abhängigkeit ist in ARCHITECTURE §3 vermerkt.
+- [x] `apps/posts/markdown.py`: `render_markdown(text)` (Überschriften, fett/kursiv, Listen, Zitate, Code, Links; Roh-HTML, Bilder, Tabellen aus), `excerpt(text, limit=200)` (Klartext, an Wortgrenze gekürzt, mit „…"). Template-Filter für beides.
+- [x] Links nur `http`/`https`, jeder mit `rel="nofollow noopener noreferrer"`.
+- [x] **Injektionstest:** Skript-Tags, Ereignisattribute im Roh-HTML, `javascript:`-, `data:`- und `vbscript:`-Links, Bildsyntax, verschachtelte und unvollständige Konstrukte, HTML-Entities — nichts davon wird ausführbar oder zu Markup, weder in `render_markdown` noch im Auszug.
+- [x] Test: leerer Text, sehr langer Text, Auszug kürzt an Wortgrenze, Überschriften und Listen erscheinen im Auszug als Text.
+
+> Umsetzung: `apps/posts/markdown.py` (`render_markdown`, `excerpt`), Filter `markdown` und `excerpt` in `apps/posts/templatetags/posts_tags.py`. Preset `commonmark` mit `html: False`; Bilder zeigen nur ihren (escapten) Alternativtext, Links nur bei `http`/`https` (alles andere, auch `mailto:` und relative Adressen, bleibt als Text stehen), Überschriften eine Stufe tiefer (`#` → `<h2>`, höchstens `<h6>`, denn der Titel der Beitragsseite ist das `<h1>`), Codeblöcke bekommen die Klasse `language-…` nur bei einem echten Sprachnamen. Der Auszug entsteht aus den geparsten Tokens statt aus dem gerenderten HTML (Klartext, Entities aufgelöst, kein `safe`). Der Injektionstest (`test_markdown.py`, über 60 Eingaben) prüft die Ausgabe gegen eine **Positivliste** aus Tags, Attributen und Attributwerten statt nur gegen bekannte Zeichenketten; dazu ein Test, der die Positivliste selbst auf Fehlalarm prüft, und ein Robustheitstest mit pathologischen Eingaben (unter 2 Sekunden). Gegenprobe: Mit eingeschaltetem Roh-HTML schlagen 43, ohne Link-Prüfung 14 Tests fehl.
 
 #### 5.3 · Beitrag schreiben, bearbeiten, löschen
 **Abhängig von:** 5.1, 5.2, 4.6 · **Anforderungen:** FR-B1 bis FR-B4, FR-B11, D-78
