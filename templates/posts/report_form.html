@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Report post" %}{% endblock %}
+
+{% block content %}
+  {% comment %} Melden ohne JavaScript (Task 5.7): dieselbe Seite wie der Baustein auf der Beitragsseite. {% endcomment %}
+  <h1>{% translate "Report post" %}</h1>
+  <p>{% blocktranslate with title=post.title %}You are reporting “{{ title }}”.{% endblocktranslate %}</p>
+
+  <div id="report" aria-live="polite">
+    {% include "posts/_report_body.html" %}
+  </div>
+
+  <p><a class="tap-target" href="{% url 'posts:detail' pk=post.pk %}">{% translate "Back to the post" %}</a></p>
+{% endblock %}

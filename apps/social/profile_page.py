@@ -9,12 +9,11 @@ damit dieselbe Seite — die zweite nur, um Formularfehler auf derselben
 Vorlage anzuzeigen, bis Task 4.5 die Bereiche einzeln bearbeitbar macht.
 """
 
-from dataclasses import dataclass
-
 from apps.accounts import avatar
 from apps.accounts.forms import BioForm, ColorsForm, NicknameForm
 from apps.colors import pentagon
 from apps.colors.content import LOCALE
+from apps.colors.field import color_field_context
 from apps.colors.models import Color, ColorCombination
 
 from . import friendships
@@ -69,6 +68,7 @@ FRIENDS_PREVIEW_LIMIT = 8
 
 PINBOARD = "pinboard"
 FRIENDS = "friends"
+POSTS = "posts"
 HISTORY = "history"
 SETTINGS = "settings"
 
@@ -82,8 +82,8 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
 
     `is_owner` schaltet die Bearbeiten-Zugänge und alles Private ein.
     `tab`: `PINBOARD` (Standard, bei der eigenen Person mit dem
-    Bearbeiten-Formular), `FRIENDS` (Freundesliste, bei der eigenen Person
-    zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
+    Bearbeiten-Formular), `POSTS` (Beiträge, Task 5.5), `FRIENDS` (Freundesliste,
+    bei der eigenen Person zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
     vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
     die beiden rufen nur Views auf, die vorher `owner_only` passiert haben.
 
@@ -117,6 +117,10 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
         if is_owner:
             context["friend_requests_received"] = received
             context["friend_requests_sent"] = friendships.pending_requests_sent(profile)
+        return context
+
+    if tab == POSTS:
+        # Die Beiträge selbst legt der View dazu (`apps.posts.listing`, Task 5.5).
         return context
 
     if tab == HISTORY:
@@ -162,36 +166,6 @@ def score_bars(ordered_scores):
         }
         for code, points in ordered_scores
     ]
-
-
-@dataclass(frozen=True)
-class FieldVertex:
-    """Eine Ecke des Fünfecks als Formularfeld (Task 4.6): die Geometrie aus
-    `apps.colors.pentagon` plus, ob die Farbe gerade angekreuzt ist."""
-
-    vertex: pentagon.Vertex
-    is_selected: bool
-
-
-def color_field_context(selected_codes):
-    """
-    Kontext für `social/_color_field.html`: dieselbe Geometrie wie das
-    Fünfeck in den Color Infos und in der Farbsuche (`pentagon.vertices()`,
-    `outline_points()`, `star_points()`, `view_box()`, D-27/D-66) — hier
-    ohne Linienbeschriftungen und ohne Links, die Ecken sind Kästchen.
-    """
-    vertices = pentagon.vertices(Color.objects.all())
-    return {
-        "field_vertices": [
-            FieldVertex(vertex=vertex, is_selected=vertex.code in selected_codes)
-            for vertex in vertices
-        ],
-        "field_outline_points": pentagon.outline_points(vertices),
-        "field_star_points": pentagon.star_points(vertices),
-        "field_view_box": pentagon.view_box(vertices),
-        "field_name_size": pentagon.NAME_SIZE,
-        "field_has_selection": bool(selected_codes),
-    }
 
 
 def edit_form_for(section, profile, data=None):

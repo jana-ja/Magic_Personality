@@ -1,0 +1,35 @@
+{% load i18n %}
+{% comment %} Beiträge zur gewählten Kombination (Task 5.6, FR-B7, FR-B8): Grid unter den Eigenschaften,
+   nur bei gewählter Farbe (`posts_label` ist dann gesetzt). Gäste sehen nur den Hinweis zum
+   Anmelden. Höchstens sechs Karten, neueste zuerst; jede Karte ist ein Link auf den Beitrag. {% endcomment %}
+{% if posts_label %}
+  <section class="posts-grid" aria-labelledby="posts-grid-heading">
+    <div class="posts-head">
+      <h2 id="posts-grid-heading">{% blocktranslate with name=posts_label %}Posts about {{ name }}{% endblocktranslate %}</h2>
+      {% if posts_write_url %}
+        <a class="posts-head__write tap-target" href="{{ posts_write_url }}">{% translate "Write a post about this" %}</a>
+      {% endif %}
+    </div>
+
+    {% if posts_guest %}
+      <p>
+        {% translate "Log in to read and write posts." %}
+        <a href="{{ posts_login_url }}?next={{ request.path|urlencode }}">{% translate "Log in" %}</a>
+      </p>
+    {% elif grid_posts %}
+      <ul class="post-grid">
+        {% for post in grid_posts %}
+          <li>{% include "posts/_post_card.html" with post=post show_author=True hide_combination=True %}</li>
+        {% endfor %}
+      </ul>
+      {% if grid_has_more %}
+        <p><a class="tap-target" href="{{ posts_all_url }}">{% translate "Show all posts" %}</a></p>
+      {% endif %}
+    {% else %}
+      <p>
+        {% translate "No posts about this combination yet." %}
+        <a href="{{ posts_write_url }}">{% translate "Write the first one" %}</a>
+      </p>
+    {% endif %}
+  </section>
+{% endif %}

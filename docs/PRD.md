@@ -31,8 +31,8 @@ Die Anwendung besteht aus drei Bereichen:
 - Kein öffentliches Produkt, kein Wachstum, keine Kommerzialisierung.
 - Kein Deckbau, keine Kartendatenbank, kein Spielbezug über die Farbphilosophie hinaus.
 - Kein Tracking, keine Analytics, keine Werbung.
-- Keine Content-Moderation (kleiner, persönlich bekannter Nutzerkreis).
-- Kein Social Login, kein Newsletter, keine Benachrichtigungen.
+- Keine Moderationswerkzeuge über das Melden von Beiträgen und Kommentaren und das Django-Admin hinaus (kleiner, persönlich bekannter Nutzerkreis; ab v1.3, FR-B10).
+- Kein Social Login, kein Newsletter, keine Benachrichtigungen per E-Mail oder Push. Ab v1.4 zeigt die Seite selbst einen Zähler neuer Kommentare (FR-B20).
 
 ---
 
@@ -65,6 +65,15 @@ Ein Profil für eigene und fremde Ansicht, Kopfbereich mit Farbbanner, Tabs, Sid
 
 ### v1.2.1 — Feedback zum Test
 Ein kleines Formular, mit dem Testende Rückmeldung zum Personality Test geben: direkt auf der Ergebnisseite und dauerhaft über einen Link im Footer (für alle, die den Test schon vorher gemacht haben). Anonym, in der Datenbank gespeichert. Übt nebenbei, wie Nutzereingaben abgesichert werden, bevor Blogbeiträge und Kommentare sie für andere sichtbar machen.
+
+### v1.3 — Beiträge
+Registrierte Nutzende schreiben Beiträge, optional mit einer Farbkombination verknüpft. Sie erscheinen im Profil (Tab „Posts") und in den Color Infos unter den Eigenschaften der gewählten Kombination. Beitragsseite, Markdown, Bearbeiten, Löschen und Melden. Alles zunächst für alle Angemeldeten sichtbar; ein Sichtbarkeitsfeld für „nur Freunde" ist vorbereitet.
+
+### v1.4 — Kommentare
+Kommentare unter Beiträgen, flach mit festen Nummern (#3) und Antwort-Verweisen, Tab „Comments" im Profil, Melden auch für Kommentare, ein Zähler neuer Kommentare und Antworten für die eigene Person.
+
+### v1.5 — Pinnwand
+Beiträge und Kommentare (eigene und fremde) an die eigene Pinnwand heften. Ersetzt den „Coming soon"-Platzhalter aus v1.2.
 
 ---
 
@@ -212,6 +221,40 @@ betreffen, gehören zu keiner der beiden Aussagen und bleiben leer.
 - **FR-S5** Die eigene Freundesliste ist im eigenen Profil sichtbar.
 - **FR-S6** Von einem Profil aus ist dessen Freundesliste einsehbar und deren Einträge sind navigierbar — der soziale Graph ist erkundbar.
 
+### 5.7 Beiträge, Kommentare, Pinnwand (v1.3 bis v1.5)
+
+Gestaltung und Begründung: D-78 bis D-82.
+
+**Beiträge (v1.3)**
+- **FR-B1** Registrierte Nutzende schreiben **Beiträge** mit Titel (höchstens 120 Zeichen) und Text (Markdown, höchstens 10 000 Zeichen). Jeder Beitrag gehört einem Profil; die Autorin bzw. der Autor ist überall sichtbar, wo der Beitrag steht (Autorenkarte, FR-P15).
+- **FR-B2** Ein Beitrag ist optional mit **einer Farbkombination** (1 bis 5 Farben) verknüpft; ohne Farbe ist er allgemein. Die Wahl geschieht wie bei den Profilfarben am Fünfeck, ohne JavaScript mit Kontrollkästchen (FR-P13).
+- **FR-B3** Markdown umfasst Überschriften, fett und kursiv, Listen, Zitate, Code und Links. **Kein** HTML, keine Bilder, keine Tabellen. Links nur mit `http`/`https`, jeder Link mit `rel="nofollow noopener noreferrer"`. Der Editor bietet eine Vorschau.
+- **FR-B4** Die Autorin bzw. der Autor kann den eigenen Beitrag **bearbeiten** (Titel, Text, Farben) und **löschen**. Ein geänderter Beitrag trägt „edited" mit Zeitpunkt; unveränderte Angaben lösen keine Änderung aus. Löschen verlangt eine Bestätigung und entfernt Kommentare, Pins und Meldungen zu diesem Beitrag mit.
+- **FR-B5** Jeder Beitrag hat eine **eigene Seite** (`/posts/<id>/`) mit Autorenkarte, Farbkombination (verlinkt auf die Color Infos), Datum und gerendertem Text.
+- **FR-B6** Profil-Tab **Posts**: alle Beiträge der Person untereinander, neueste zuerst, mit Seiteneinteilung. Jeder Eintrag zeigt Titel, Farbkombination, Datum und einen Klartext-Auszug (etwa 200 Zeichen) und ist als Ganzes anklickbar. Die eigene Person sieht zusätzlich „Write a post".
+- **FR-B7** Ist in den **Color Infos** eine Kombination gewählt, zeigt die Seite unterhalb der Eigenschaften ein **Grid** der Beiträge, die **genau** mit dieser Kombination verknüpft sind (kein Teilmengen-Treffer): neueste zuerst, höchstens 6, Link auf alle. Jede Karte zeigt Titel, Autorenkarte, Auszug (höhenbegrenzt) und Datum und ist als Ganzes anklickbar. Ohne gewählte Farben zeigt die Seite kein Grid. Ein Link „Write a post about this" öffnet den Editor mit vorbelegten Farben.
+- **FR-B8** Beiträge und Kommentare sind **nur für eingeloggte Nutzende** sichtbar, auf jedem Pfad. Gäste sehen in den Color Infos statt des Grids nur einen Hinweis zum Anmelden.
+- **FR-B9** Jeder Beitrag trägt ein Feld `visibility` mit dem einzigen Wert `public`. Jeder lesende Zugriff geht durch **eine** zentrale Sichtbarkeitsprüfung, damit „nur Freunde" (§8.2) später an einer Stelle ergänzt werden kann.
+- **FR-B10** Jede Person kann fremde Beiträge (ab v1.4 auch Kommentare) **melden**: einmal je Person und Eintrag, mit optionalem Grund (höchstens 500 Zeichen). Meldungen sind nur im Django-Admin sichtbar; es gibt kein automatisches Ausblenden. Die Projektinhaberin löscht Beiträge dort bzw. entfernt Kommentare (FR-B16).
+- **FR-B11** Schreiben und Melden sind **je Person** begrenzt (NFR-8): 30 Beiträge und 20 Meldungen pro Stunde.
+- **FR-B12** Die Account-Löschung (FR-U8) entfernt die Beiträge der Person samt allem, was an ihnen hängt, sowie ihre eigenen Meldungen.
+
+**Kommentare (v1.4)**
+- **FR-B13** Unter einem Beitrag stehen **Kommentare**: Klartext (höchstens 2000 Zeichen) mit Zeilenumbrüchen und erkannten Links, **flach** und älteste zuerst. Die Autorin bzw. der Autor ist bei jedem Kommentar sichtbar (Autorenkarte, klein).
+- **FR-B14** Jeder Kommentar trägt eine **Nummer je Beitrag** (`#1`, `#2`, …). Sie wird beim Anlegen vergeben und **nie neu vergeben**, auch nicht, wenn Kommentare gelöscht werden.
+- **FR-B15** Ein Kommentar kann auf einen anderen Kommentar **desselben Beitrags antworten**. Die Antwort trägt den Verweis „↪ #3", der zum Bezug springt; Antworten werden nicht verschachtelt. Auf einen gelöschten Kommentar lässt sich nicht antworten.
+- **FR-B16** Die Autorin bzw. der Autor kann eigene Kommentare **löschen**; Kommentare sind **nicht bearbeitbar**. Ein gelöschter Kommentar, auf den geantwortet wurde, bleibt als Hülle „deleted" mit Nummer (ohne Text und ohne Autor) stehen, damit Verweise und Nummern erhalten bleiben; eine Hülle ohne Antworten wird nicht angezeigt. Dasselbe tut die Projektinhaberin im Admin mit gemeldeten Kommentaren.
+- **FR-B17** Profil-Tab **Comments**: alle Kommentare der Person (ohne Hüllen), neueste zuerst, mit Auszug, Nummer, Titel des Beitrags und Sprung zum Kommentar.
+- **FR-B18** Kommentare lassen sich melden (FR-B10). Je Person sind 60 Kommentare pro Stunde erlaubt; Meldungen zählen gemeinsam (FR-B11).
+- **FR-B19** Die Account-Löschung macht die Kommentare der Person unter fremden Beiträgen zu Hüllen (FR-B16); an eigenen Beiträgen verschwinden sie mit dem Beitrag.
+- **FR-B20** Die eigene Person sieht am Tab „Posts" einen **Zähler neuer Kommentare** unter eigenen Beiträgen und neuer Antworten auf eigene Kommentare (jeweils von anderen), gezählt seit die Beitragsseite zuletzt geöffnet wurde. Betroffene Einträge in den Tabs „Posts" und „Comments" sind markiert. Der Zähler steht nur im eigenen Profil; es gibt keine E-Mail, keinen Push und keine Benachrichtigungsliste.
+
+**Pinnwand (v1.5)**
+- **FR-B21** Jede Person kann Beiträge und Kommentare, **eigene und fremde**, an die eigene **Pinnwand** heften und wieder lösen; ein Eintrag höchstens einmal.
+- **FR-B22** Der Tab **Pinnwand** zeigt die gepinnten Einträge, zuletzt gepinnte zuerst, für alle Angemeldeten sichtbar. Jeder Eintrag zeigt die **Autorenkarte des Originals** (nicht der pinnenden Person), Art (Beitrag/Kommentar), Auszug und Link zum Original. Das ersetzt den „Coming soon"-Platzhalter (FR-P14).
+- **FR-B23** Ein Pin ist ein **Verweis**: nichts wird kopiert. Er verschwindet, wenn das Original gelöscht wird oder zur Hülle wird, und er wird nicht gezeigt, wenn die ansehende Person das Original nicht sehen darf (FR-B9).
+- **FR-B24** Fremde Autorinnen und Autoren müssen der Aufnahme nicht zustimmen: Die Inhalte sind ohnehin für alle Angemeldeten sichtbar, ein Pin macht sie nicht sichtbarer.
+
 ---
 
 ## 6. Datenmodell
@@ -275,6 +318,23 @@ je Option: `position` · `text` · `color` · `locale`
 
 > Verweist auf `Profile`, nicht auf `User` — damit später auch fremd angelegte Profile Teil des Graphen sein können.
 
+**`Post`** — Beitrag (v1.3)
+`author` (Profile) · `title` · `body` (Markdown) · `colors` (kanonischer Code, leer = allgemein) · `visibility` (`public`) · `created_at` · `edited_at` · `comment_seq` (Zähler für Kommentarnummern)
+
+**`Comment`** — Kommentar (v1.4)
+`post` · `author` (Profile, leer bei einer Hülle nach Account-Löschung) · `number` (je Beitrag eindeutig) · `body` (Klartext) · `reply_to` (Comment, optional) · `created_at` · `deleted_at`
+
+**`Report`** — Meldung (v1.3, um Kommentare erweitert in v1.4)
+`reporter` (Profile) · `post` **oder** `comment` · `reason` · `created_at` · `handled_at`
+
+**`PostSeen`** — Stand des Zählers (v1.4)
+`profile` · `post` · `last_seen_number`
+
+**`Pin`** — Pinnwand-Eintrag (v1.5)
+`profile` · `post` **oder** `comment` · `created_at`
+
+> Beitrag und Kommentar verweisen auf `Profile`, nicht auf `User`, wie `Friendship`: die Autorenkarte braucht nur das Profil, und fremd angelegte Profile (§8.1) bleiben möglich. Die Farbverknüpfung ist ein kanonischer Code wie bei `TestResult.result_colors`, kein Fremdschlüssel auf `ColorCombination` (die ist an eine Sprache gebunden).
+
 ### 6.3 Mehrsprachigkeit
 Content-Zeilen tragen eine `locale`-Spalte; fachlicher Schlüssel plus Locale sind zusammen eindeutig. In v1 existiert nur `en`. UI-Texte liegen in Sprachdateien, nicht in der Datenbank.
 
@@ -311,7 +371,9 @@ Vorbereitet ist:
 Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt · nur Name und Farbeinschätzung, keine persönlichen Inhalte · Übernahme oder Löschung durch die betroffene Person · Umgang mit Duplikaten · Darstellung abweichender Einschätzungen.
 
 ### 8.2 Weitere Ideen
-- **Pinnwand** im Profil: Nutzende zeigen dort ihre **Favoriten** — eigene oder fremde Beiträge und Kommentare. Welche Arten von Beiträgen und Kommentaren es gibt, ist noch offen und wird vor dem Bau festgelegt; der Tab ist ab v1.2 vorhanden (FR-P11). Vorzumerken: Ein Pinnwand-Eintrag verweist auf einen Beitrag oder Kommentar **beliebiger Autorschaft**, er kopiert nichts; wird das Original gelöscht, verschwindet der Eintrag. Ob fremde Autor:innen der Aufnahme zustimmen müssen, ist offen.
+- **Pinnwand** im Profil: ab v1.5 umgesetzt (FR-B21 bis FR-B24). Ein Pinnwand-Eintrag verweist auf einen Beitrag oder Kommentar beliebiger Autorschaft und kopiert nichts.
+- **Sichtbarkeit „nur Freunde"** für Beiträge: das Feld `visibility` und die zentrale Sichtbarkeitsprüfung sind vorbereitet (FR-B9). Noch zu entscheiden, wenn es kommt: ob Kommentare der Sichtbarkeit ihres Beitrags folgen (Vorschlag: ja), Verhalten von Pins auf danach eingeschränkte Beiträge (Vorschlag: ausgeblendet, FR-B23), Umstellung bestehender Beiträge.
+- Später denkbar, jetzt bewusst nicht: Kommentare bearbeiten, Kommentare unter dem eigenen Beitrag löschen, Likes, Suche in Beiträgen, Entwürfe, Bilder in Beiträgen (dann mit Upload- und Moderationskonzept).
 - Nutzende ergänzen fehlende Inhalte zu 3er-, 4er- und 5er-Kombinationen.
 - Rechtekonzept: kuratierte „Facts" gegenüber unbestätigten Nutzereindrücken.
 - Auswertungen des sozialen Graphen (Farbverteilung im direkten und im erweiterten Umkreis).
@@ -340,6 +402,7 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 | **R-4** | Schwellenwert `T` (FR-T11) ist erst nach echten Durchläufen kalibrierbar. | Konfigurierbar halten, Standard 2. |
 | **R-5** | Das Fünfeck ist die anspruchsvollste UI-Aufgabe, besonders mobil. | Zwei eigenständige Layouts (NFR-3), früh im Meilenstein einplanen. |
 | **R-6** | Fremdprofile berühren personenbezogene Daten Dritter. | Nicht in v1. Anforderungen dazu in §8.1 festgehalten. |
+| **R-7** | Ab v1.3 sehen Nutzende erstmals Eingaben anderer (Cross-Site-Scripting, Spam, Beleidigungen). | Markdown ohne HTML und ohne Bilder, Escaping überall, Längen- und Mengengrenzen je Person, Melden und Admin (D-80, D-81). Ausdrücklicher Injektionstest gegen Beiträge, Kommentare und Auszüge. |
 
 ---
 
@@ -378,3 +441,21 @@ Noch zu entscheiden, wenn das Feature kommt: Kennzeichnung als fremd erstellt ·
 - Leere Absendungen, Bewertungen außerhalb 1 bis 5 und zu lange Texte werden abgelehnt; die Grenzen sind auch in der Datenbank festgehalten.
 - Gespeichertes Feedback enthält nichts, was auf eine Person zeigt; die Datenschutzseite sagt das.
 - Mehr als 5 Absendungen je IP-Adresse und Stunde werden abgelehnt, die Meldung ist auch bei HTMX sichtbar.
+
+**v1.3**
+- Beiträge lassen sich schreiben, bearbeiten, löschen und melden; mit und ohne Farbverknüpfung.
+- Markdown erzeugt nie HTML aus Nutzereingaben: ein Injektionstest mit Skript-Tags, `javascript:`-Links, Bildsyntax und Roh-HTML besteht in Beitrag, Auszug und Vorschau.
+- Der Tab „Posts" zeigt die Beiträge einer Person; die Color Infos zeigen bei gewählter Kombination genau deren Beiträge im Grid, mit Auszug statt Volltext.
+- Für Gäste ist nirgends ein Beitrag sichtbar; jeder lesende Zugriff geht durch die zentrale Sichtbarkeitsprüfung.
+- Account-Löschung entfernt Beiträge und Meldungen der Person, andere Beiträge bleiben.
+
+**v1.4**
+- Kommentare erhalten feste Nummern, die nach Löschen nicht neu vergeben werden (auch bei gleichzeitigem Schreiben eindeutig); Antworten verweisen mit „↪ #n".
+- Ein gelöschter Kommentar mit Antworten bleibt als Hülle, ohne Text und Autor.
+- Der Tab „Comments" zeigt die Kommentare einer Person; der Zähler neuer Kommentare zählt nur Fremdes und setzt sich beim Öffnen des Beitrags zurück.
+- Account-Löschung macht fremde Kommentare zu Hüllen.
+
+**v1.5**
+- Beiträge und Kommentare lassen sich pinnen und lösen; die Pinnwand zeigt Autorenkarte und Link des Originals.
+- Gelöschte Originale, Hüllen und für die ansehende Person unsichtbare Beiträge erscheinen nicht auf der Pinnwand.
+- Mit ersatzweise leerer Sichtbarkeitsprüfung zeigt kein Pfad (Liste, Grid, Seite, Pinnwand) einen Beitrag: „nur Freunde" wäre eine Änderung an einer Stelle.

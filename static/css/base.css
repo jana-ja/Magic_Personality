@@ -1303,3 +1303,281 @@ main button {
   gap: var(--space-1);
   cursor: pointer;
 }
+
+/* Beiträge (Task 5.3, FR-B1 bis FR-B4) ------------------------------------ */
+
+.post-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 40rem;
+}
+
+.post-form input[type="text"],
+.post-form textarea {
+  width: 100%;
+}
+
+.post-form textarea {
+  min-height: 10rem;
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+}
+
+.post-form__hint,
+.post-form__optional {
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+  font-weight: normal;
+  margin: 0;
+}
+
+.post-form__colors {
+  width: 100%;
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.post-form__colors legend {
+  padding: 0;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+}
+
+.post-form__colors .pentagon {
+  max-width: 20rem;
+}
+
+.post-form__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.post-form__actions a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 2.75rem;
+}
+
+.post-form__secondary {
+  background: var(--color-surface);
+  color: var(--color-accent);
+}
+
+.post-preview {
+  max-width: 40rem;
+  margin-top: var(--space-4);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--color-border);
+}
+
+.post-preview__title {
+  font-weight: 700;
+}
+
+/* Gerenderter Markdown-Text (D-80). Lange Wörter, Adressen und Codezeilen dürfen
+   nie die Seite verbreitern (NFR-3). */
+.post-body {
+  max-width: 40rem;
+  overflow-wrap: anywhere;
+}
+
+.post-body pre {
+  overflow-x: auto;
+  padding: var(--space-2);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+}
+
+.post-body blockquote {
+  margin-inline: 0;
+  padding-inline-start: var(--space-3);
+  border-inline-start: 3px solid var(--color-border);
+  color: var(--color-muted);
+}
+
+.post__header h1 {
+  overflow-wrap: anywhere;
+}
+
+.post__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.post__combination {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+}
+
+.post__actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-4);
+}
+
+/* Beitragsliste im Profil (Task 5.5, FR-B6) --------------------------------- */
+
+.posts-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+
+.post-list {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  max-width: 40rem;
+}
+
+/* Die ganze Karte ist der Link: der Titel wird per ::after darüber gespannt. */
+.post-card {
+  position: relative;
+  padding: var(--space-3);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 0.5rem;
+}
+
+.post-card:hover {
+  border-color: var(--color-accent);
+}
+
+.post-card:has(.post-card__link:focus-visible) {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 2px;
+}
+
+.post-card__link {
+  color: inherit;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+}
+
+.post-card__link:hover {
+  text-decoration: underline;
+}
+
+.post-card__link:focus-visible {
+  outline: none;
+}
+
+.post-card__link::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.post-card__title {
+  margin: 0 0 var(--space-1);
+  font-size: 1.125rem;
+}
+
+.post-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0 0 var(--space-2);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+/* Auszug auf wenige Zeilen begrenzt: ein langer Beitrag nimmt nie die Seite ein. */
+.post-card__excerpt {
+  margin: 0;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+  line-clamp: 4;
+  overflow: hidden;
+}
+
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+/* Beiträge in den Color Infos (Task 5.6, FR-B7) ------------------------------ */
+
+.posts-grid {
+  margin-top: var(--space-4);
+}
+
+.post-grid {
+  list-style: none;
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  display: grid;
+  /* So viele Spalten, wie mit mindestens 16rem passen; mobil eine (NFR-3). */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: var(--space-3);
+}
+
+.post-grid .post-card {
+  height: 100%;
+}
+
+/* Der Nickname der Autorenkarte liegt über der gespannten Kartenfläche
+   (Task 5.6): ein eigenes, anklickbares Ziel neben dem Beitrag. */
+.post-card__author {
+  position: relative;
+  z-index: 1;
+  width: fit-content;
+  margin-bottom: var(--space-2);
+}
+
+.posts-head__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+/* Melden (Task 5.7, FR-B10) ---------------------------------------------------- */
+
+.post__report {
+  margin-top: var(--space-3);
+  color: var(--color-muted);
+  font-size: var(--font-size-sm);
+}
+
+.report-form {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-2);
+  max-width: 32rem;
+}
+
+.report-form textarea {
+  width: 100%;
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 0.25rem;
+}
+
+.report-note {
+  margin: 0;
+}

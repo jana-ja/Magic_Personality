@@ -1,0 +1,14 @@
+{% load i18n %}
+{% comment %} Seitenlinks (Task 5.5): nur wenn es mehr als eine Seite gibt. Erwartet `page` (Djangos Page).
+   Echte Links mit ?page=n — funktionieren ohne JavaScript. {% endcomment %}
+{% if page.paginator.num_pages > 1 %}
+  <nav class="pagination" aria-label="{% translate 'Pages' %}">
+    {% if page.has_previous %}
+      <a class="tap-target" href="?page={{ page.previous_page_number }}" rel="prev">{% translate "Newer" %}</a>
+    {% endif %}
+    <span class="pagination__current">{% blocktranslate with number=page.number total=page.paginator.num_pages %}Page {{ number }} of {{ total }}{% endblocktranslate %}</span>
+    {% if page.has_next %}
+      <a class="tap-target" href="?page={{ page.next_page_number }}" rel="next">{% translate "Older" %}</a>
+    {% endif %}
+  </nav>
+{% endif %}

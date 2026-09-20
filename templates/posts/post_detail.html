@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% load i18n posts_tags social_tags %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+  {% comment %} Beitragsseite (Task 5.4, FR-B5). Der Titel ist das einzige <h1>; Überschriften im Text
+     rutschen dafür eine Stufe tiefer (apps/posts/markdown.py). Die Autorenkarte ist die Komponente aus
+     Task 4.8 (FR-P15); die Farbverknüpfung steht als Text („General" oder Kombinationsname), nicht nur
+     als Farbe (NFR-6). Kommentare kommen mit v1.4 unter den Text. {% endcomment %}
+  <article class="post" aria-labelledby="post-title">
+    <header class="post__header">
+      <h1 id="post-title">{{ post.title }}</h1>
+      {% author_card post.author size="medium" %}
+      <p class="post__meta">
+        {% if combination %}
+          <a class="post__combination" href="{{ combination.url }}">{{ combination.label }}</a>
+        {% else %}
+          <span class="post__combination post__combination--general">{% translate "General" %}</span>
+        {% endif %}
+        <span aria-hidden="true">·</span>
+        <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"Y-m-d" }}</time>
+        {% if post.edited_at %}
+          <span aria-hidden="true">·</span>
+          <span class="post__edited">
+            {% translate "edited" %}
+            <time datetime="{{ post.edited_at|date:'c' }}" title="{{ post.edited_at|date:'Y-m-d H:i' }}">{{ post.edited_at|date:"Y-m-d" }}</time>
+          </span>
+        {% endif %}
+      </p>
+    </header>
+
+    <div class="post-body">{{ post.body|markdown }}</div>
+
+    {% if is_author %}
+      <footer class="post__actions">
+        <a class="tap-target" href="{% url 'posts:edit' pk=post.pk %}">{% translate "Edit" %}</a>
+        <a class="tap-target" href="{% url 'posts:delete' pk=post.pk %}">{% translate "Delete" %}</a>
+      </footer>
+    {% endif %}
+
+    {% comment %} Melden (Task 5.7, FR-B10): nur bei fremden Beiträgen. Mit HTMX öffnet der Link das Formular
+       an Ort und Stelle, ohne JavaScript führt er auf die eigene Seite. Der Bereich ist eine Live-Region. {% endcomment %}
+    {% if not is_author %}
+      <div id="report" class="post__report" aria-live="polite">
+        {% if already_reported %}
+          <p class="report-note">{% translate "You have reported this post." %}</p>
+        {% else %}
+          <a class="tap-target" href="{% url 'posts:report' pk=post.pk %}"
+             hx-get="{% url 'posts:report' pk=post.pk %}" hx-target="#report" hx-swap="innerHTML">{% translate "Report" %}</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  </article>
+{% endblock %}

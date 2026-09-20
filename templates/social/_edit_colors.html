@@ -36,7 +36,7 @@
         <input type="radio" name="choice" value="manual"{% if chosen == "manual" %} checked{% endif %}>
         <span>{% translate "Pick 1 to 5 colors, or none to clear them." %}</span>
       </label>
-      {% include "social/_color_field.html" %}
+      {% include "colors/_color_field.html" with edit_form=edit_form %}
     </fieldset>
   {% endwith %}
 

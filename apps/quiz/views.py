@@ -193,6 +193,8 @@ def claim_anonymous_result(request):
         "scores": scores,
         "test_result": test_result,
         "anonymous_token": None,
+        # Ohne das Formular zeigte result.html ein leeres, unbenutzbares Feedback-Feld.
+        "feedback_form": FeedbackForm(initial={"questionnaire_version": questionnaire_version}),
     }
     return render(request, "quiz/result.html", context)
 

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Delete post" %}{% endblock %}
+
+{% block content %}
+  <h1>{% translate "Delete post" %}</h1>
+  <p>
+    {% blocktranslate with title=post.title %}Do you really want to delete “{{ title }}”? This also removes everything attached to it, such as comments and pins. It cannot be undone.{% endblocktranslate %}
+  </p>
+  <form method="post" action="{% url 'posts:delete' pk=post.pk %}" class="post-form__actions">
+    {% csrf_token %}
+    <button type="submit">{% translate "Delete post" %}</button>
+    <a href="{% url 'posts:detail' pk=post.pk %}">{% translate "Cancel" %}</a>
+  </form>
+{% endblock %}

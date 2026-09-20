@@ -598,9 +598,233 @@ Anlass: Rückmeldung zum Personality Test einsammeln, bevor Blogbeiträge und Ko
 
 ---
 
+# M5 · v1.3 — Beiträge
+
+Anlass: Nutzende sollen eigene Gedanken zu Farben und Kombinationen aufschreiben können, sichtbar im Profil und in den Color Infos. Gestaltung und Begründung: D-78, D-80, D-81. Anforderungen: PRD §5.7 (FR-B1 bis FR-B12). Erstmals sehen Nutzende Eingaben anderer (PRD R-7): Sicherheit (Markdown, Zugriff) kommt vor der Oberfläche. Jeder Task lässt die Anwendung lauffähig; die Reihenfolge ist bindend, wo Abhängigkeiten genannt sind.
+
+#### 5.1 · App-Gerüst und Beitragsmodell
+**Abhängig von:** — · **Anforderungen:** FR-B1, FR-B2, FR-B8, FR-B9, D-78
+**Fertig, wenn:**
+- [x] `apps/posts` angelegt und registriert, ARCHITECTURE §5 stimmt.
+- [x] `Post` mit Autorin/Autor (`Profile`), Titel (≤ 120), Text (≤ 10 000), `colors` (kanonischer Code oder leer, `apps.colors.utils.canonical_code`), `visibility` (nur `public`), `created_at`, `edited_at`, `comment_seq`; Migration; Titel nicht leer als Constraint.
+- [x] Ungültige Farbcodes (unbekannter Buchstabe, Doppelung, nicht kanonisch) werden abgelehnt.
+- [x] `Post.objects.visible_to(profile)` ist die einzige Lesestelle; der Manager ist dokumentiert als der Weg, `Post.objects.all()` wird nirgends außerhalb von Tests benutzt.
+- [x] Django-Admin (D-71: der Test verlangt alle Modelle registriert): Liste mit Autorin/Autor, Titel, Farben, Datum; Löschen möglich.
+- [x] Test: Modell, Constraints, `visible_to` liefert öffentliche Beiträge; Löschen des Profils entfernt seine Beiträge.
+
+> Umsetzung: `apps/posts/{models,admin}.py`, Migration `0001_post`. Die Farbregel steht dreifach: `RegexValidator` (Formulare, `full_clean`) und ein DB-Constraint mit demselben Muster `^W?U?B?R?G?$` (genau die kanonischen Codes, leer erlaubt) — ein `GW` fände im Grid nie seine Kombination. Auch die Textlänge (≤ 10 000, per `Length` im Constraint) und ein nichtleerer Titel sind in der Datenbank festgehalten. `Post.Visibility` kennt nur `public`, den Wert `friends` gibt es erst mit dem Feature; `visible_to(None)` liefert für Gäste nichts. Der Admin ist nur lesbar plus löschen (D-71, D-81). Zwei Indizes für die späteren Abfragen (Grid je Kombination, Profil-Tab). Die Rate-Limit-Grenzen (30 Beiträge, 60 Kommentare, 20 Meldungen je Stunde) kommen mit 5.3, 6.2 und 5.7.
+
+#### 5.2 · Markdown-Rendering
+**Abhängig von:** 5.1 · **Anforderungen:** FR-B3, D-80, R-7
+**Fertig, wenn:**
+- [x] `markdown-it-py` in `requirements/base.txt` (Bereichsangabe `>=4.0,<5` wie die übrigen Abhängigkeiten); die Abhängigkeit ist in ARCHITECTURE §3 vermerkt.
+- [x] `apps/posts/markdown.py`: `render_markdown(text)` (Überschriften, fett/kursiv, Listen, Zitate, Code, Links; Roh-HTML, Bilder, Tabellen aus), `excerpt(text, limit=200)` (Klartext, an Wortgrenze gekürzt, mit „…"). Template-Filter für beides.
+- [x] Links nur `http`/`https`, jeder mit `rel="nofollow noopener noreferrer"`.
+- [x] **Injektionstest:** Skript-Tags, Ereignisattribute im Roh-HTML, `javascript:`-, `data:`- und `vbscript:`-Links, Bildsyntax, verschachtelte und unvollständige Konstrukte, HTML-Entities — nichts davon wird ausführbar oder zu Markup, weder in `render_markdown` noch im Auszug.
+- [x] Test: leerer Text, sehr langer Text, Auszug kürzt an Wortgrenze, Überschriften und Listen erscheinen im Auszug als Text.
+
+> Umsetzung: `apps/posts/markdown.py` (`render_markdown`, `excerpt`), Filter `markdown` und `excerpt` in `apps/posts/templatetags/posts_tags.py`. Preset `commonmark` mit `html: False`; Bilder zeigen nur ihren (escapten) Alternativtext, Links nur bei `http`/`https` (alles andere, auch `mailto:` und relative Adressen, bleibt als Text stehen), Überschriften eine Stufe tiefer (`#` → `<h2>`, höchstens `<h6>`, denn der Titel der Beitragsseite ist das `<h1>`), Codeblöcke bekommen die Klasse `language-…` nur bei einem echten Sprachnamen. Der Auszug entsteht aus den geparsten Tokens statt aus dem gerenderten HTML (Klartext, Entities aufgelöst, kein `safe`). Der Injektionstest (`test_markdown.py`, über 60 Eingaben) prüft die Ausgabe gegen eine **Positivliste** aus Tags, Attributen und Attributwerten statt nur gegen bekannte Zeichenketten; dazu ein Test, der die Positivliste selbst auf Fehlalarm prüft, und ein Robustheitstest mit pathologischen Eingaben (unter 2 Sekunden). Gegenprobe: Mit eingeschaltetem Roh-HTML schlagen 43, ohne Link-Prüfung 14 Tests fehl.
+
+#### 5.3 · Beitrag schreiben, bearbeiten, löschen
+**Abhängig von:** 5.1, 5.2, 4.6 · **Anforderungen:** FR-B1 bis FR-B4, FR-B11, D-78
+**Fertig, wenn:**
+- [x] `/posts/new/` (nur eingeloggt): Titel, Text, Farbwahl mit dem Fünfeck-Feld aus 4.6 (ohne Farbe = allgemein, ohne JavaScript Kontrollkästchen), `?colors=wg` belegt vor. Vorschau vom Server (Absende-Knopf `action=preview` am Editor selbst; mit HTMX kommt nur der Vorschau-Baustein, ohne JavaScript die Seite neu), derselbe Renderer wie die Anzeige.
+- [x] `/posts/<id>/edit/` nur für die Autorin bzw. den Autor, alle anderen: 302 auf die Beitragsseite, ohne Änderung (auch bei POST). `edited_at` nur bei tatsächlicher Änderung (wie D-72).
+- [x] `/posts/<id>/delete/`: GET zeigt die Bestätigung, POST löscht; nur die Autorin bzw. der Autor.
+- [x] Grenze: 30 Beiträge je Person und Stunde aus den eigenen Zeilen, die Meldung ist auch bei HTMX sichtbar (wie bei D-75).
+- [x] Test: Anlegen mit und ohne Farbe, Längengrenzen, fremde Person kann weder bearbeiten noch löschen, unveränderter Beitrag behält `edited_at`, Grenze greift.
+
+> Umsetzung: `apps/posts/{forms,views,decorators,limits,urls}.py`, Templates `posts/post_form.html`, `_preview.html`, `post_confirm_delete.html`. `PostForm` (ein einfaches `Form`) normalisiert Zeilenenden (Browser schicken CRLF, gespeichert wird LF), prüft die Länge **nach** der Normalisierung und behält eingerückten Code am Textanfang; die Autorin bzw. der Autor steht nicht im Formular. `author_only` (`decorators.py`) ist das Gegenstück zu `owner_only` (D-73): Gäste zum Login, unbekannt oder unsichtbar 404, jede andere Person 302 auf die Beitragsseite. Die Vorschau berührt weder die Datenbank noch die Grenze und prüft nicht (auch ein halb fertiger Text lässt sich ansehen). Die Grenze (`POST_RATE_LIMIT_MAX_POSTS = 30` je Stunde) zählt aus den eigenen Zeilen (`limits.is_limited`, wiederverwendbar für Kommentare und Meldungen), betrifft nur das Anlegen, und die Meldung erscheint im Formular mit dem eigenen Text (Status 429). Ein Test ersetzt `visible_to` durch eine Prüfung, die nichts durchlässt: Beitragsseite, Bearbeiten und Löschen liefern dann 404.
+>
+> **Abweichungen vom Plan:** (1) Eine **vorläufige Beitragsseite** (`/posts/<id>/`: Titel, Nickname, Text, Bearbeiten/Löschen für die Autorin bzw. den Autor) ist schon hier dabei, damit Speichern und Bearbeiten ein Ziel haben; 5.4 baut sie aus. (2) Löschen leitet vorläufig auf das Profil, 5.5 stellt auf den Tab „Posts" um. (3) Das Farbfeld (`color_field_context`, Template `_color_field.html`) ist von `social` nach `colors` gezogen (`apps/colors/field.py`, `templates/colors/`), damit `posts` nicht von `social` abhängt (D-78); Verhalten und Tests der Profilfarben unverändert. (4) Bis 5.5/5.6 gibt es noch keinen Knopf zum Editor; er ist unter `/posts/new/` erreichbar. Im Browser geprüft: Fünfeck mit Vorbelegung `?colors=gw`, Klick auf eine Ecke, HTMX-Vorschau (Skript als Text, Bild als Alternativtext, `javascript:`-Link bleibt Text), Veröffentlichen, Bearbeiten mit vorbelegten Werten; bei 375 px kein horizontales Scrollen auch mit sehr langen Wörtern und Codezeilen, Bedienelemente 44 px hoch.
+
+#### 5.4 · Beitragsseite
+**Abhängig von:** 5.3, 4.8 · **Anforderungen:** FR-B5, FR-B8
+**Fertig, wenn:**
+- [x] `/posts/<id>/` (Login-Pflicht, Gate wie überall): Autorenkarte, Farbkombination als Link auf die Color Infos (oder „General"), Datum und „edited", gerenderter Text; für die Autorin bzw. den Autor „Edit" und „Delete".
+- [x] Unbekannte ID und Beiträge, die `visible_to` ausschließt: 404.
+- [x] Mobil ohne horizontales Scrollen; `<title>` nennt den Beitragstitel.
+- [x] Test: Gast → Login, Zugriff, 404, Farb- und Allgemein-Anzeige.
+
+> Umsetzung: `templates/posts/post_detail.html`, `apps/posts/combinations.py` (`combination_labels`: eine Abfrage für alle Codes einer Seite, damit Liste und Grid in 5.5/5.6 sie mitbenutzen; hat eine Kombination noch keinen Namen, stehen die Farbnamen da, „White · Green", FR-C11). Die Autorenkarte ist die Komponente aus 4.8 (`{% author_card post.author size="medium" %}`, mit Prefetch der Zuordnung); die Farbverknüpfung steht als Text („General" oder Kombinationsname), nicht nur als Farbe (NFR-6). Der Titel ist das einzige `<h1>`, Überschriften im Text beginnen bei `<h2>`. Datum als `<time>`, „edited" nur bei gesetztem `edited_at`. Im Browser bei 727 und 375 px geprüft: kein horizontales Scrollen, der Codeblock scrollt in sich, sehr lange Wörter brechen um, „Edit"/„Delete" 44 px hoch. Kommentare kommen mit v1.4 unter den Text.
+
+#### 5.5 · Profil-Tab „Posts"
+**Abhängig von:** 5.4, 4.3 · **Anforderungen:** FR-B6
+**Fertig, wenn:**
+- [x] Tab „Posts" in der Leiste (für alle Profile), Adresse `/u/<nickname>/posts/`; Reihenfolge Pinboard, Posts, Friends, Test history, Settings.
+- [x] Liste untereinander, neueste zuerst, 10 je Seite mit Seitenlinks: Titel, Farbkombination, Datum, Auszug; die ganze Karte ist **ein** Link (kein Link in einem Link).
+- [x] Eigene Person: „Write a post"; leerer Zustand mit Hinweis statt Fehler (fremd wie eigen).
+- [x] Keine N+1-Abfragen (Kombinationsnamen einmal je Seite).
+- [x] Test: Reihenfolge, Seitenwechsel, fremdes und eigenes Profil, leer.
+
+> Umsetzung: `profile_posts` in `apps/social/views.py` (Adresse `/u/<nickname>/posts/`), Seitenlogik in `apps/posts/listing.py` (`author_posts_page`, `cards_for` — beides bereitet Task 5.6 mit vor), Templates `social/profile_posts.html`, `posts/_post_card.html` und `posts/_pagination.html` (allgemein, für die Kommentar-Liste in 6.4 wiederverwendbar). Die Karte ist ein einziger Link: der Titel, per `::after` über die ganze Karte gespannt (`.post-card__link`); die Kombination steht darin nur als Text. Der Auszug ist Klartext und per CSS auf vier Zeilen begrenzt. Eine Seite kostet drei Abfragen für die Beiträge (Zählung, Seite, Kombinationsnamen), unabhängig von der Zahl der Beiträge. Seitennummern unter 1 oder ungültig ergeben Seite 1 (Djangos `get_page` schickte `0` auf die letzte Seite), zu große die letzte. Löschen eines Beitrags leitet jetzt auf diesen Tab. Die Zugriffsmatrix der Social-App (`test_access_control.py`) kennt die neue Adresse. Im Browser geprüft: Klick auf den Auszug öffnet den Beitrag; bei 375 px kein horizontales Scrollen, ein Link je Karte, Seitenlinks 44 px hoch.
+
+#### 5.6 · Color Infos: Grid mit Beiträgen
+**Abhängig von:** 5.4, 1.8 · **Anforderungen:** FR-B7, FR-B8, D-78
+**Fertig, wenn:**
+- [x] Unterhalb der Eigenschaften (innerhalb `#colors-panel`, damit der HTMX-Austausch es mitnimmt): Beiträge mit **exakt** der gewählten Kombination, neueste zuerst, höchstens 6; ohne Auswahl kein Grid. Der Code ist kanonisch, die Reihenfolge der Auswahl spielt keine Rolle.
+- [x] Karte: Titel, kleine Autorenkarte, Auszug (Klartext ≈ 200 Zeichen, zusätzlich per CSS auf wenige Zeilen begrenzt), Datum; die ganze Karte ist ein Link. CSS-Grid mit automatischer Spaltenzahl, mobil eine Spalte (NFR-3).
+- [x] „Show all posts" führt auf `/colors/<code>/posts/` (Seiteneinteilung, 12 je Seite); „Write a post about this" öffnet den Editor mit vorbelegten Farben.
+- [x] Leerer Zustand: kurzer Hinweis mit Link zum Schreiben. Gäste sehen nur „Log in to read and write posts", keinen Beitrag und keine Zahl.
+- [x] Ansage der Änderung über die bestehende Live-Region unverändert, keine neuen Fokusfallen; jede Karte führt über **einen** Link (den Titel, über die ganze Karte gespannt) auf den Beitrag, dazu als einziges zweites Ziel der Nickname der Autorenkarte.
+- [x] Test: exakter Treffer (Beitrag zu WG erscheint nicht bei W und nicht bei WGU), kanonischer Code, Höchstzahl, leerer Zustand, Gast, HTMX-Fragment enthält das Grid, Abfragen bleiben konstant.
+
+> Umsetzung: `_posts_context` und `combination_posts` in `apps/colors/views.py` (`colors` liest aus `posts`, D-78), Auswahl in `apps/posts/listing.py` (`combination_grid`: höchstens 6, dazu ob es mehr gibt; `combination_posts_page`: 12 je Seite), Templates `colors/_posts_grid.html` (im `#colors-panel`, hinter den Eigenschaften), `colors/combination_posts.html` und die wiederverwendete Karte `posts/_post_card.html` mit den Schaltern `show_author` und `hide_combination`. Adresse der Liste: `/colors/<code>/posts/` (ungültiger Code 404, falsche Reihenfolge 301 wie bei den Color Infos). Ein Account ohne Profil bekommt das Grid nicht (statt eines Fehlers), Gäste nur den Hinweis mit Login-Link.
+>
+> **Abweichung vom Plan:** Eine Karte hat zwei Ziele statt einem — den Beitrag (Titel, über die ganze Karte gespannt) und den Nickname der Autorenkarte (Profil), der per `z-index` über der gespannten Fläche liegt. Ein Nickname als bloßer Text widerspräche der Autorenkarte (FR-P15); zwei Links, nebeneinander und nicht ineinander, sind das übliche Muster. **Gefunden und behoben:** Die Autorenkarte lud die fünf Farbwerte je Karte neu, sobald die Karte per `{% include %}` eingebunden ist (ihr Zwischenspeicher galt je Template, nicht je Anfrage); jetzt hängt er an der Anfrage (`social_tags._hex_by_code`), ein Test mit sechs Autoren hält die Abfragezahl konstant. Im Browser geprüft: Grid zweispaltig bei 727 px, einspaltig bei 375 px ohne horizontales Scrollen; HTMX-Wechsel der Auswahl tauscht das Grid mit aus (gleiches Dokument, Live-Region sagt „Bant" an); Liste mit „Show all posts".
+
+#### 5.7 · Melden
+**Abhängig von:** 5.4 · **Anforderungen:** FR-B10, FR-B11, D-81
+**Fertig, wenn:**
+- [x] `Report(reporter, post, reason, created_at, handled_at)`; einmal je Person und Beitrag (Unique-Constraint); Grund optional ≤ 500.
+- [x] „Report" auf der Beitragsseite (nicht beim eigenen Beitrag): kleines Formular, HTMX-Bestätigung „Thank you, we will look at it", ohne JavaScript eine eigene Seite. Grenze 20 Meldungen je Person und Stunde.
+- [x] Admin: Meldungen mit Link auf den Beitrag, Melder, Grund, Zeit; Filter offen/bearbeitet; Aktion „Als bearbeitet markieren". Löschen des Beitrags über das Admin entfernt die Meldung mit.
+- [x] PRD §2.2 und D-81 stimmen mit dem Verhalten überein.
+- [x] Test: doppelte Meldung, eigener Beitrag nicht meldbar, Grenze, Admin-Liste lädt, Meldung verschwindet mit dem Beitrag.
+
+> Umsetzung: `Report` in `apps/posts/models.py` (Migration `0002_report`; `post` ist vorerst Pflicht, 6.5 macht es zusammen mit `comment` zur Alternative), `ReportForm`, `report_post` und `report_thanks` in `apps/posts/views.py` (`/posts/<id>/report/` und `…/report/thanks/`), Bausteine `posts/_report_body.html` und `report_form.html`, Bereich `#report` auf der Beitragsseite (Live-Region). Mit HTMX öffnet der Link „Report" das Formular an Ort und Stelle und ersetzt es nach dem Senden durch „Thank you, we will look at it."; ohne JavaScript sind es die eigene Seite und eine Dankeseite (Weiterleitung, wie beim Feedback, D-75). Der eigene Beitrag lässt sich nicht melden (302 auf die Beitragsseite, ohne etwas anzulegen); wer schon gemeldet hat, sieht statt des Formulars einen Hinweis, und zwei gleichzeitige Absendungen fängt der Unique-Constraint ab. Grenze `REPORT_RATE_LIMIT_MAX_REPORTS = 20` je Stunde aus den eigenen Zeilen, die Meldung ist auch bei HTMX sichtbar. Admin (`ReportAdmin`, nur lesbar plus löschen): Beitrag als Link auf die öffentliche Seite, Melder, Grund, Status, Filter „Open/Handled", Aktionen „als bearbeitet markieren" und „wieder öffnen". **Löschen** gibt es bewusst nur bei den Beiträgen („Posts"): Das Löschen eines Beitrags nimmt seine Meldungen mit, ein Test bestätigt es auch für den Weg über die Admin-Aktion. Datenschutzseite und Account-Löschung ziehen mit 5.8 nach. Im Browser geprüft: Link öffnet das Formular im selben Dokument, Absenden ersetzt es durch den Dank, die Meldung steht in der Datenbank.
+
+#### 5.8 · Account-Löschung und Datenschutz
+**Abhängig von:** 5.7, 2.14 · **Anforderungen:** FR-B12, D-78
+**Fertig, wenn:**
+- [x] Account-Löschung entfernt Beiträge und Meldungen der Person; Beiträge anderer bleiben unberührt.
+- [x] Bestätigungsseite der Account-Löschung nennt Beiträge.
+- [x] Datenschutzseite ergänzt: Beiträge (sichtbar für alle Angemeldeten, mit Autorenname), Meldungen (Melder nur für die Projektinhaberin sichtbar), Löschwege, Backups.
+- [x] Test: Löschung mit Beiträgen und Meldungen; Datenschutzseite nennt beides.
+
+> Umsetzung: Die Kaskade stand seit 5.1/5.7 (`Post.author` und `Report.reporter` verweisen mit `CASCADE` auf `Profile`, `Report.post` auf `Post`); neu ist der Nachweis über den echten Weg (`test_account_deletion.py`): Beiträge der Person, ihre gesendeten Meldungen **und** alle Meldungen zu ihren Beiträgen sind weg, Beiträge und Profile anderer bleiben, Grid, Tab und Beitragsseite zeigen nichts mehr von ihr. Ein Test hält fest, dass jeder Verweis der Posts-App auf ein Profil kaskadiert — kommt in v1.4 die Ausnahme dazu (Kommentare werden zu Hüllen, D-79), muss sie dort bewusst begründet werden. Bestätigungsseite: „… your posts, and the reports you sent" und „Your posts disappear for everyone, together with everything attached to them." Datenschutzseite: unter „What is stored" Beiträge (sichtbar für alle Angemeldeten, mit Nickname, im Profil und in den Color Infos) und Meldungen (nur für die Projektinhaberin sichtbar, nichts geschieht automatisch), unter „How long" und „How to delete" die Löschwege (eigene Beiträge bearbeiten/löschen, Löschen eines Beitrags nimmt seine Meldungen mit, Account-Löschung nimmt alles mit); die Aussagen zu Backups (14 Tage) gelten unverändert. Kommentare und Pins kommen mit 6.3 und 7.3 in dieselben Texte.
+
+#### 5.9 · Release-Durchsicht v1.3
+**Abhängig von:** 5.8 · **Anforderungen:** PRD §11 (v1.3)
+**Fertig, wenn:**
+- [x] Alle Abnahmekriterien aus PRD §11 (v1.3) durchgegangen und abgehakt.
+- [x] Zugriffsschutz für jede neue Adresse geprüft (Gate, Login, Autorenrechte), auch für POST von Fremden.
+- [x] Injektionstest zusätzlich im Browser: Beitrag mit Skript-Tag, `javascript:`-Link und Bildsyntax anlegen und in Beitragsseite, Profilliste, Grid, Vorschau und Admin ansehen.
+- [x] Prüfung gegen `ARCHITECTURE.md`: einzige neue Abhängigkeit ist `markdown-it-py`, JavaScript-Umfang unverändert, kein `safe` auf Nutzereingaben außer `render_markdown`.
+- [x] Backup-Wiederherstellung erneut geprobt, mit den neuen Tabellen.
+- [x] `DECISIONS.md` vollständig; Hinweis für das Deployment: neue Migrationen, also `scripts/deploy_full.sh`.
+
+> **Durchsicht (2026-09-20).** **Abnahme PRD §11 (v1.3):** (1) Schreiben, Bearbeiten, Löschen und Melden mit und ohne Farbe — `test_post_editor.py`, `test_reports.py`, im Browser durchgespielt. (2) Injektionstest — über 60 Eingaben gegen eine Positivliste in `test_markdown.py` (Beitrag, Auszug, Vorschau, Template-Filter) **und** im Browser (siehe unten). (3) Tab „Posts" und Grid mit exaktem Treffer und Auszug — `test_profile_posts_tab.py`, `test_colors_grid.py`. (4) Gäste sehen nirgends einen Beitrag, jeder Lesepfad geht durch `visible_to` — Zugriffsmatrix und Wächtertests (neu, s. u.). (5) Account-Löschung — `test_account_deletion.py`.
+>
+> **Zugriffsschutz:** Neu `test_access_control.py`: jede Adresse (`new`, `detail`, `edit`, `delete`, `report`, `report_thanks`, Kombinationsliste) ohne Gate → Gate, ohne Login → Login (GET und POST, nichts ändert sich), Fremde bei `edit`/`delete` → 302 auf die Beitragsseite ohne Änderung, die Autorin bzw. der Autor kann den eigenen Beitrag nicht melden; **CSRF** mit eingeschalteter Prüfung: jede schreibende Adresse antwortet ohne Token mit 403; ein Test meldet eine neue, nicht aufgenommene Adresse. Die Gegenprobe (CSRF-Schutz testweise ausgeschaltet) lässt den Test fehlschlagen.
+>
+> **Gefunden und behoben:** `views.py` zählte für die Beitragsgrenze über `profile.posts.all()` und damit an `visible_to` vorbei. Für die Grenze harmlos, aber es hätte die Regel aufgeweicht; jetzt `Post.objects.visible_to(profile).filter(author=profile)`.
+>
+> **Injektionstest im Browser:** Beitrag mit `<script>`, `<img onerror>`, `<iframe src=javascript:>`, `<svg onload>`, `javascript:`-Link, Bildsyntax auf einen fremden Server und einem Code-Fence mit `"><script>` im Info-String, dazu derselbe Text im Titel und als Meldungsgrund. Angesehen in Vorschau, Beitragsseite, Profilliste, Grid und im Admin (Beitragsliste, Beitrag, Meldungsliste, Meldung, Löschbestätigung): nirgends wurde etwas ausgeführt (`window.__pwned` blieb ungesetzt), es gibt keine Elemente, Ereignis-Attribute oder Verweise auf den fremden Server aus der Nutzlast — alles steht als escapter Text da; der einzige Link im Text ist der harmlose mit `rel="nofollow noopener noreferrer"`. Das einzige `<svg>` im Artikel ist das Profilbild der Autorenkarte.
+>
+> **Prüfung gegen `ARCHITECTURE.md`:** `test_architecture.py` liest den Quelltext: kein Lesezugriff auf `Post` an `visible_to` vorbei (nur `create`), kein `|safe`/`autoescape off`, `mark_safe` nur in `apps/posts/markdown.py`, Abhängigkeiten genau die bekannten plus `markdown-it-py`, `posts` importiert kein `social`. Gegenprobe für jeden der vier Wächter (Umgehung eingebaut, `|safe`, `bleach` in `requirements`, CSRF aus): jeder schlägt an. Diff seit v1.2: `requirements/base.txt` (eine Zeile), `.github/workflows/ci.yml` (D-76); `static/js`, `compose*.yaml`, `Dockerfile`, `Caddyfile` unverändert — das JavaScript-Budget (Test aus 4.9) hält.
+>
+> **Backup-Wiederherstellung:** siehe `docs/DEPLOYMENT.md`, „Ein viertes Mal geprobt" — Zeilenzahlen, Inhalts-Prüfsummen, Constraints und Indizes der neuen Tabellen identisch. **`DECISIONS.md`:** 82 Einträge (D-01 bis D-82), lückenlos, keiner „Offen". **Deployment:** neue Migrationen, also `scripts/deploy_full.sh` (siehe „Release-Hinweise v1.3").
+
+**Meilenstein v1.3 abgeschlossen** — Beiträge sind schreib-, les-, melde- und löschbar; die Kommentare (v1.4) können darauf aufbauen.
+
+---
+
+# M6 · v1.4 — Kommentare
+
+Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: D-79. Anforderungen: PRD §5.7 (FR-B13 bis FR-B20).
+
+#### 6.1 · Kommentarmodell und Nummernvergabe
+**Abhängig von:** 5.9 · **Anforderungen:** FR-B14, FR-B15, D-79
+**Fertig, wenn:**
+- [ ] `Comment` (Beitrag, Autorin/Autor `Profile` oder leer, `number`, Klartext ≤ 2000, `reply_to`, `created_at`, `deleted_at`); `unique (post, number)`; Migration.
+- [ ] Ein Dienst legt Kommentare an: Nummer in einer Transaktion mit `select_for_update` aus `Post.comment_seq`; `reply_to` muss zum selben Beitrag gehören und darf keine Hülle sein.
+- [ ] Nummern bleiben nach dem Löschen unbenutzt.
+- [ ] Test: Nummernfolge, **gleichzeitiges** Anlegen (zwei Transaktionen) ergibt verschiedene Nummern, fremder Beitrag als Bezug abgelehnt, Hülle als Bezug abgelehnt.
+
+#### 6.2 · Kommentare auf der Beitragsseite
+**Abhängig von:** 6.1, 4.8 · **Anforderungen:** FR-B13, FR-B15, FR-B8
+**Fertig, wenn:**
+- [ ] Liste flach, älteste zuerst; je Kommentar kleine Autorenkarte, `#n` (Anker `c-n`), Datum, Text (`linebreaks` + `urlize`, escaped), bei Antworten „↪ #m" als Sprung zum Bezug.
+- [ ] Formular unter der Liste (≤ 2000 Zeichen), Grenze 60 je Person und Stunde; mit HTMX erscheint der neue Kommentar ohne Seitenwechsel, sonst POST mit Weiterleitung auf den Anker.
+- [ ] „Reply" je Kommentar: `?reply=3#comment-form`, das Formular zeigt „Replying to #3" mit „Cancel"; ohne JavaScript nutzbar. Auf Hüllen kein „Reply".
+- [ ] Nur eingeloggt; Beiträge, die `visible_to` ausschließt, nehmen keine Kommentare an.
+- [ ] Test: Reihenfolge, Antwort-Verweis, Anker, Grenze, Gast, unsichtbarer Beitrag, Escaping (Injektionstest wie 5.2 gegen Kommentare).
+
+#### 6.3 · Kommentar löschen, Hüllen, Account-Löschung
+**Abhängig von:** 6.2 · **Anforderungen:** FR-B16, FR-B19, D-79
+**Fertig, wenn:**
+- [ ] Die Autorin bzw. der Autor löscht den eigenen Kommentar (Bestätigung); er wird zur Hülle (Text und Autor leer, `deleted_at`); Hüllen ohne Antworten werden nicht angezeigt, Hüllen mit Antworten als „#n deleted".
+- [ ] Der Dienst „zur Hülle machen" ist derselbe für das Löschen, die Admin-Aktion und die Account-Löschung.
+- [ ] Account-Löschung macht die Kommentare der Person unter fremden Beiträgen zu Hüllen, vor `user.delete()`; unter eigenen Beiträgen verschwinden sie mit dem Beitrag.
+- [ ] Test: Hülle mit und ohne Antworten, fremde Person kann nicht löschen, Account-Löschung, Löschen eines Beitrags entfernt alle Kommentare.
+
+#### 6.4 · Profil-Tab „Comments"
+**Abhängig von:** 6.3, 4.3 · **Anforderungen:** FR-B17
+**Fertig, wenn:**
+- [ ] Tab „Comments" (für alle Profile), `/u/<nickname>/comments/`; Reihenfolge Pinboard, Posts, Comments, Friends, …
+- [ ] Neueste zuerst, 10 je Seite: Auszug, `#n`, Titel des Beitrags als Link mit Sprung zum Kommentar, Datum. Hüllen und Kommentare unter unsichtbaren Beiträgen fehlen.
+- [ ] Leerer Zustand; keine N+1-Abfragen.
+- [ ] Test: Reihenfolge, Hüllen fehlen, Sprungziel stimmt.
+
+#### 6.5 · Kommentare melden
+**Abhängig von:** 6.2, 5.7 · **Anforderungen:** FR-B10, FR-B18, D-81
+**Fertig, wenn:**
+- [ ] `Report` bekommt `comment` als Alternative zu `post` (genau eines von beiden, Constraint; einmal je Person und Kommentar); Migration.
+- [ ] „Report" je fremdem Kommentar; Grenze wie 5.7 gemeinsam für Beiträge und Kommentare.
+- [ ] Admin: Meldung zeigt Beitrag oder Kommentar; Aktion „Kommentar zur Hülle machen" (D-81).
+- [ ] Test: Constraint, Doppelmeldung, eigener Kommentar, Admin-Aktion.
+
+#### 6.6 · Zähler neuer Kommentare und Antworten
+**Abhängig von:** 6.4 · **Anforderungen:** FR-B20, D-79
+**Fertig, wenn:**
+- [ ] `PostSeen(profile, post, last_seen_number)`, angelegt bzw. angehoben, wenn die Autorin bzw. der Autor des Beitrags oder jemand mit eigenem Kommentar darunter die Beitragsseite öffnet oder selbst kommentiert.
+- [ ] „Neu" = Kommentare **anderer** mit Nummer über dem Stand, unter eigenem Beitrag oder als Antwort auf einen eigenen Kommentar; nichts doppelt gezählt; Hüllen zählen nicht.
+- [ ] Zahl am Tab „Posts" (nur eigenes Profil; Ziffer sichtbar, für Screenreader ausgeschrieben, nicht nur Farbe, NFR-6); Markierung „n new" je Beitrag im Tab „Posts" und je Kommentar im Tab „Comments".
+- [ ] Höchstens eine zusätzliche Abfrage je Seite (keine Schleife über Beiträge).
+- [ ] Test: Zählung, Zurücksetzen durch Öffnen, eigene Kommentare zählen nicht, fremde Antworten auf fremde Kommentare zählen nicht, Hüllen, Abfragezahl.
+
+#### 6.7 · Release-Durchsicht v1.4
+**Abhängig von:** 6.6 · **Anforderungen:** PRD §11 (v1.4)
+**Fertig, wenn:**
+- [ ] Alle Abnahmekriterien aus PRD §11 (v1.4) durchgegangen und abgehakt.
+- [ ] Zugriffsschutz für alle neuen Adressen erneut geprüft; Kommentar-POSTs von Gästen und Fremden ändern nichts.
+- [ ] Injektionstest im Browser gegen Kommentare (Beitragsseite, Tab „Comments", Admin).
+- [ ] Nummernvergabe unter gleichzeitiger Last einmal von Hand nachgestellt (zwei Sitzungen kommentieren im selben Moment).
+- [ ] Backup-Wiederherstellung erneut geprobt; `DECISIONS.md` vollständig; Deployment mit `scripts/deploy_full.sh`.
+
+---
+
+# M7 · v1.5 — Pinnwand
+
+Anlass: Der Platzhalter „Coming soon" aus v1.2 wird ersetzt. Gestaltung und Begründung: D-82. Anforderungen: PRD §5.7 (FR-B21 bis FR-B24).
+
+#### 7.1 · Pins
+**Abhängig von:** 6.7 · **Anforderungen:** FR-B21, FR-B23, D-82
+**Fertig, wenn:**
+- [ ] `Pin(profile, post | comment, created_at)`: genau eines von beiden (Constraint), einmal je Person und Ziel; Kaskade beim Löschen des Beitrags bzw. des Profils; Migration.
+- [ ] „Pin"/„Unpin" auf Beitragsseite und je Kommentar, für eigene und fremde Inhalte; HTMX schaltet um, ohne JavaScript ein POST mit Weiterleitung. Nur, was `visible_to` erlaubt; Hüllen lassen sich nicht pinnen.
+- [ ] Test: Pinnen und Lösen, doppelt, Hülle, unsichtbarer Beitrag, Kaskade.
+
+#### 7.2 · Pinnwand-Tab
+**Abhängig von:** 7.1, 4.7 · **Anforderungen:** FR-B22
+**Fertig, wenn:**
+- [ ] Der Platzhalter „Coming soon" ist weg: Hauptbereich des Standardtabs zeigt die Pins der Person, zuletzt gepinnt zuerst, 10 je Seite; Sidebar unverändert.
+- [ ] Eintrag: Art („Post"/„Comment"), Autorenkarte des **Originals**, Auszug, Datum, Link (bei Kommentaren mit Sprung zum Anker), bei der eigenen Person „Unpin". Die Ziel-Seite bleibt die einzige Volltext-Ansicht.
+- [ ] Leerer Zustand mit Hinweis (eigen: wie man etwas pinnt; fremd: „Nothing pinned yet").
+- [ ] Test: Reihenfolge, beide Arten, fremdes und eigenes Profil, leer; die alten Tests zum Platzhalter (Task 4.7) sind angepasst.
+
+#### 7.3 · Sichtbarkeit und Aufräumen
+**Abhängig von:** 7.2 · **Anforderungen:** FR-B23, D-78, D-82
+**Fertig, wenn:**
+- [ ] Die Anzeige filtert über `visible_to` der **ansehenden** Person; Hüllen und gelöschte Originale erscheinen nicht.
+- [ ] Account-Löschung entfernt die Pins der Person und alle Pins auf ihre Beiträge; Kommentare, die zu Hüllen werden, verschwinden aus fremden Pinnwänden.
+- [ ] Test: mit ersetzter (verschärfter) `visible_to` erscheint der Pin nicht; Hülle; Account-Löschung.
+
+#### 7.4 · Release-Durchsicht v1.5
+**Abhängig von:** 7.3 · **Anforderungen:** PRD §11 (v1.5)
+**Fertig, wenn:**
+- [ ] Alle Abnahmekriterien aus PRD §11 (v1.5) durchgegangen und abgehakt.
+- [ ] **Bereitschaft für „nur Freunde":** ein Test ersetzt `visible_to` durch eine Prüfung, die nichts durchlässt, und ruft jeden Pfad auf, der Beiträge oder Kommentare zeigt (Beitragsseite, Kommentare, Tab „Posts", Tab „Comments", Grid, Liste je Kombination, Pinnwand, Zähler, Melden, Pinnen) — überall kein Inhalt bzw. 404. Ein neuer Lesepfad ohne `visible_to` fällt damit auf.
+- [ ] Zugriffsschutz, Injektionstest, Backup-Wiederherstellung wie in 5.9/6.7 erneut; `DECISIONS.md` vollständig.
+
+**Meilenstein v1.5 abgeschlossen** — Beiträge, Kommentare und Pinnwand stehen; „nur Freunde" ist eine Änderung an einer Stelle.
+
+---
+
 ## Nicht in dieser Roadmap
 
-Bewusst außerhalb, siehe PRD §8: Blogbeiträge und Kommentare zu Farben samt der Tabs dafür sowie der Inhalt der **Pinnwand** (Favoriten: eigene oder fremde Beiträge und Kommentare; Tab und Platzhalter kommen mit Task 4.3/4.7, die Profilseite hält den Platz frei), fremd angelegte Profile, nutzerseitige Content-Bearbeitung, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
+Bewusst außerhalb, siehe PRD §8: Sichtbarkeit „nur Freunde" für Beiträge (Feld und zentrale Prüfung kommen mit v1.3, PRD §8.2), Bearbeiten von Kommentaren, Löschen fremder Kommentare unter dem eigenen Beitrag, Likes, Suche in Beiträgen, Entwürfe, Bilder in Beiträgen, fremd angelegte Profile, nutzerseitige Content-Bearbeitung der Color Infos, Kuratoren-Rechte, Auswertungen des sozialen Graphen, weitere Sprachen, Bild-Upload, Umzug in die Cloud.
 
 Der **Cloud-Umzug** ist als eigener Lern-Task nach v1.0 vorgesehen und in `ARCHITECTURE.md` §12 vorbereitet.
 
@@ -623,8 +847,19 @@ Der **Cloud-Umzug** ist als eigener Lern-Task nach v1.0 vorgesehen und in `ARCHI
                   │     │     └→ 4.7 ─┐
                   │     └→ 4.8 ───────┴→ 4.9 → 4.10
                   └→ 4.5 → 4.6 ─────────────────↗
+                                    ↓
+      5.1 → 5.2 → 5.3 → 5.4 ─┬→ 5.5                             [v1.3]
+                             ├→ 5.6
+                             └→ 5.7 → 5.8 → 5.9
+                                    ↓
+      6.1 → 6.2 → 6.3 → 6.4 → 6.6 → 6.7                         [v1.4]
+             └────→ 6.5 ────↗
+                                    ↓
+      7.1 → 7.2 → 7.3 → 7.4                                     [v1.5]
 ```
 
 **Die drei Tasks mit dem größten Risiko in v0.1 bis v1.0:** 1.4 (Content-Erfassung, größter Einzelposten), 2.7 (Fragenqualität entscheidet über das Produktziel P2), 1.9 plus 1.10 (Fünfeck-Bedienung auf allen Geräten).
+
+**Größtes Risiko in v1.3 bis v1.5:** 5.2 (Markdown darf nie zu ausführbarem HTML werden, PRD R-7), 6.1 (Kommentarnummern unter gleichzeitigem Schreiben) und 7.4 (jeder Lesepfad muss durch `visible_to` gehen, sonst ist „nur Freunde" später ein Datenleck).
 
 **Größtes Risiko in v1.2:** 4.6 (Fünfeck als Formularfeld, zwei Wege der Farbwahl, Erhalt der Testverknüpfung) und 4.1 (URL-Umbau: alle Redirects und Links auf die neue Profil-URL, ohne Bestandsdaten anzufassen).

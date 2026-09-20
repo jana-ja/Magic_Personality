@@ -1,0 +1,22 @@
+{% load i18n posts_tags social_tags %}
+{% comment %} Beitragskarte (Task 5.5, FR-B6; auch fürs Grid der Color Infos, Task 5.6). Erwartet
+   `post` und `label` (Kombinationsname oder leer bei einem allgemeinen Beitrag); optional
+   `show_author` (Autorenkarte, im Grid der Color Infos) und `hide_combination` (dort ist die Kombination
+   ohnehin die gewählte). Die ganze Karte führt auf den Beitrag: der Titel, per ::after über die Karte
+   gespannt; die Kombination ist nur Text. Einzige weitere Verlinkung ist der Nickname der Autorenkarte,
+   der bewusst *über* der gespannten Fläche liegt (z-index) — ein zweites Ziel, das Profil, kein Link im
+   Link. Der Auszug ist Klartext (apps/posts/markdown.py). {% endcomment %}
+<article class="post-card">
+  <h3 class="post-card__title">
+    <a class="post-card__link" href="{% url 'posts:detail' pk=post.pk %}">{{ post.title }}</a>
+  </h3>
+  {% if show_author %}<div class="post-card__author">{% author_card post.author size="small" %}</div>{% endif %}
+  <p class="post-card__meta">
+    {% if not hide_combination %}
+      <span class="post__combination{% if not label %} post__combination--general{% endif %}">{% if label %}{{ label }}{% else %}{% translate "General" %}{% endif %}</span>
+      <span aria-hidden="true">·</span>
+    {% endif %}
+    <time datetime="{{ post.created_at|date:'c' }}">{{ post.created_at|date:"Y-m-d" }}</time>
+  </p>
+  <p class="post-card__excerpt">{{ post.body|excerpt }}</p>
+</article>
