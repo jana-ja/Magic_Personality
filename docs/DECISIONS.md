@@ -159,7 +159,7 @@ Nicht beim Containerstart.
 **Warum:** ARCHITECTURE.md §2 zeigt drei Container (inklusive Caddy) für den *produktiven* Aufbau; Task 0.3 verlangt für die *lokale* Entwicklung ausdrücklich nur `web` und `db`. Ohne einen TLS-terminierenden Proxy davor würde `SECURE_SSL_REDIRECT=True` in einer Endlosschleife enden (Weiterleitung auf `https://`, das lokal nie ankommt). Caddy und die produktionsscharfe Einstellung (`SECURE_SSL_REDIRECT=True`) kommen mit Task 1.12.
 
 ### D-31 · CI baut das Image bei jedem Push, veröffentlicht aber nur von `main`
-**Status:** Ersetzt durch D-76 · 2026-09-07
+**Status:** Angenommen · 2026-09-07 · Auslöser (Push auf jedem Branch) ersetzt durch D-76
 Der `build`-Job aus `.github/workflows/ci.yml` baut das Docker-Image auf jedem Push und jedem PR (fängt einen kaputten Dockerfile-Build sofort ab, unabhängig vom Branch), meldet sich bei der GitHub Container Registry aber nur an und veröffentlicht auch nur, wenn `github.ref == 'refs/heads/main'`.
 **Warum:** ARCHITECTURE.md §11.3 nennt "Image-Build" als CI-Schritt, legt aber keine Branch-Policy fest. Ein Image bei jedem Feature-Branch-Push zu veröffentlichen würde die Registry mit nicht-deploybaren Zwischenständen zumüllen.
 Zunächst lokal per `act` verifiziert (inkl. Postgres-Service-Container und einem absichtlich roten Lauf), dann live auf GitHub bestätigt (`github.com/jana-ja/Magic_Personality`) — der erste echte Lauf schlug beim Registry-Push mit `permission_denied: read_package` fehl. Ursache war ein verwaistes GHCR-Package `magic_personality` aus einem zuvor gelöschten, gleichnamigen Repository: gelöschte Repos nehmen ihre Packages nicht mit, und ein neues Repo gleichen Namens wird der alten Zugriffsliste nicht automatisch hinzugefügt. Nach Löschen des verwaisten Packages lief der Workflow durch.
@@ -454,11 +454,11 @@ Task 4.11, FR-T18 bis FR-T20. `quiz.Feedback(rating 1–5 optional, message ≤ 
 - **Ausgabe:** Der Text erscheint nur im Admin und beim erneuten Anzeigen nach einem Fehler, beides über Djangos Autoescape; nirgends `|safe`, nirgends für andere Nutzende sichtbar. Damit ist Feedback bewusst die kleinere Vorstufe zu Blogbeiträgen und Kommentaren.
 **Warum nicht nur registrierte Nutzende:** Das Risiko, das eine Anmeldepflicht senken würde (Fremde, Massenspam), tragen schon Invite-Code und Rate Limit. Für Blogbeiträge und Kommentare gilt das nicht — dort sehen andere die Eingaben, dort ist Anmeldung angemessen.
 
-### D-76 · CI läuft nur bei einem Push auf `main`
-**Status:** Angenommen · 2026-09-20 · ersetzt D-31
-`.github/workflows/ci.yml` startet nur noch bei `push` auf `main`; Feature-Branches und Pull Requests lösen nichts aus. Damit entfallen die Bedingungen im `build`-Job, die zwischen „main" und „alles andere" unterschieden: Anmeldung an der Registry und Veröffentlichung geschehen immer, weil der Job ohnehin nur auf `main` läuft. Das Image entsteht weiterhin erst nach grünem `test`-Job (`needs`); ein roter Stand auf `main` veröffentlicht nichts.
-**Warum:** Ein Projekt mit einer Person und wenigen Branches braucht die doppelte Prüfung (Branch-Push plus PR) nicht; das spart Laufzeit und Rauschen, und die Prüfung findet dort statt, wo sie zählt — bei dem, was ausgeliefert wird.
-**Preis:** Ein Pull Request zeigt vor dem Merge keinen CI-Status mehr, ein kaputter Stand fällt erst auf `main` auf. Deshalb vor dem Merge lokal `ruff check .`, `ruff format --check .` und `pytest` laufen lassen. Soll eine Prüfung vor dem Merge zurückkehren, genügt `pull_request:` mit `branches: [main]` unter `on:`.
+### D-76 · CI läuft bei Push nur auf `main`, Pull Requests bleiben
+**Status:** Angenommen · 2026-09-20 · ändert den Auslöser aus D-31
+`.github/workflows/ci.yml` startet bei `push` nur noch auf `main` und weiterhin bei `pull_request` gegen `main`. Ein Push auf einen Feature-Branch löst nichts aus, ein PR zeigt seinen CI-Status wie bisher vor dem Merge. Der `build`-Job bleibt unverändert (D-31): Er baut auf jedem Lauf, meldet sich bei der Registry an und veröffentlicht aber nur bei einem Push auf `main`.
+**Warum:** Vorher lief jeder Branch-Push und bei offenem PR zusätzlich das PR-Event, also doppelt auf denselben Commits. Jetzt gibt es je Änderung einen Lauf: den des PR vor dem Merge und den auf `main` danach, der das Image veröffentlicht. Branches ohne PR (Arbeitsstände) kosten keine Laufzeit.
+**Preis:** Wer einen Branch ohne PR pusht, bekommt keine Prüfung; vor dem PR lokal `ruff check .`, `ruff format --check .` und `pytest` laufen lassen.
 
 ### D-77 · Deploy-Skripte im Repository: `deploy.sh` und `deploy_full.sh`
 **Status:** Angenommen · 2026-09-20
