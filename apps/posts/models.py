@@ -1,6 +1,6 @@
 """
-Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78) und Meldungen (Task 5.7,
-FR-B10, D-81).
+Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78), Meldungen (Task 5.7,
+FR-B10, D-81) und Kommentare (Task 6.1, FR-B14, FR-B15, D-79).
 
 `Post.author` verweist auf `accounts.Profile`, nicht auf `accounts.User`
 (D-78) — wie `Friendship` (D-22): die Autorenkarte braucht nur das
@@ -29,6 +29,8 @@ from django.utils.translation import gettext_lazy as _
 
 TITLE_MAX_LENGTH = 120
 BODY_MAX_LENGTH = 10_000
+# Klartext (D-80), deutlich kürzer als ein Beitrag (Task 6.1, FR-B13).
+COMMENT_MAX_LENGTH = 2000
 
 # Genau die kanonischen Codes: höchstens einmal je Farbe, in WUBRG-
 # Reihenfolge, leer erlaubt. Dieselbe Regel wie `apps.colors.utils.is_canonical`,
@@ -140,3 +142,77 @@ class Report(models.Model):
     @property
     def is_open(self):
         return self.handled_at is None
+
+
+class Comment(models.Model):
+    """
+    Kommentar unter einem Beitrag (Task 6.1, FR-B13 bis FR-B16, D-79). **Flach**
+    (kein Baum): `reply_to` verweist höchstens auf einen Kommentar desselben
+    Beitrags, eine Antwort auf eine Antwort verweist auf diese, nicht
+    verschachtelt.
+
+    `number` ist die Nummer **je Beitrag** (`#1`, `#2`, …, `unique (post,
+    number)`), vergeben von `apps.posts.comments.create_comment()` atomar aus
+    `Post.comment_seq` — nie hier direkt zuweisen. Sie wird **nie neu
+    vergeben**, auch wenn der Kommentar später zur Hülle wird (s. u.).
+
+    **Löschen** (Task 6.3) setzt `deleted_at` und leert `body`/`author` — die
+    Zeile selbst bleibt (**Hülle**), damit Nummern und `reply_to`-Verweise
+    anderer Kommentare stabil bleiben; es gibt bewusst keine
+    `Comment.objects.delete()`-Stelle im Anwendungscode. Deshalb ist `author`
+    nullbar und **nicht** kaskadierend mit `Profile` verknüpft
+    (`on_delete=PROTECT`, anders als bei `Post.author`/`Report.reporter`,
+    D-78): Löscht jemand den eigenen Account, muss der Löschvorgang jeden
+    eigenen Kommentar **zuerst** zur Hülle machen (Task 6.3) — vergisst er
+    das, bricht `PROTECT` den Vorgang, statt eine Zeile mit Autor, aber ohne
+    zugehöriges Profil zu hinterlassen. `test_account_deletion.py`s Wächter
+    (Task 5.9) nennt genau dieses Feld als bewusste Ausnahme von der sonst
+    durchgängigen Kaskade.
+
+    Kommentare sind **nicht bearbeitbar**: bei Verweisen bliebe sonst unklar,
+    worauf sich eine Antwort einmal bezogen hat (anders als bei `Post`, D-72).
+    """
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    # None: entweder eine Hülle (deleted_at gesetzt), oder — künftig denkbar,
+    # heute nicht vorgesehen — ein Kommentar ohne zurechenbare Person.
+    author = models.ForeignKey(
+        "accounts.Profile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="comments",
+    )
+    number = models.PositiveIntegerField()
+    # Klartext (D-80), nicht Markdown: kürzer, weniger Angriffsfläche. Leer nur
+    # bei einer Hülle — die Datenbank erzwingt das nicht (dafür bräuchte es
+    # einen Constraint mit deleted_at), `apps.posts.comments` erzwingt es.
+    body = models.TextField(blank=True, validators=[MaxLengthValidator(COMMENT_MAX_LENGTH)])
+    reply_to = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="replies"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ["number"]
+        indexes = [
+            # Profil-Tab „Comments" (Task 6.4).
+            models.Index(fields=["author", "-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["post", "number"], name="comment_unique_number_per_post"
+            ),
+            models.CheckConstraint(
+                condition=LessThanOrEqual(Length("body"), COMMENT_MAX_LENGTH),
+                name="comment_body_max_length",
+            ),
+        ]
+
+    def __str__(self):
+        return f"#{self.number} on {self.post}"
+
+    @property
+    def is_tombstone(self):
+        return self.deleted_at is not None

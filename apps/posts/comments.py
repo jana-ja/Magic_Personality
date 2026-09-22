@@ -1,0 +1,57 @@
+"""
+Kommentare anlegen (Task 6.1, FR-B14, FR-B15, D-79).
+
+Die **einzige** Stelle, die `Comment`-Zeilen erzeugt — Nummer und `post`
+kommen nie von außen, damit die Nummernvergabe nicht umgangen werden kann.
+
+Die Nummer vergibt die Datenbank atomar aus `Post.comment_seq`:
+`select_for_update()` sperrt genau diese eine Beitrags-Zeile für die Dauer
+der Transaktion, eine zweite, gleichzeitige Anfrage wartet an dieser Sperre,
+bis die erste committet hat, und erhöht danach den bereits erhöhten Zähler
+weiter — zwei gleichzeitige Kommentare zum selben Beitrag bekommen dadurch
+nie dieselbe Nummer. `unique (post, number)` (D-79) ist die zusätzliche
+Absicherung in der Datenbank, falls das doch je umgangen würde.
+
+Gesperrt wird über `Post.objects.visible_to(author)` (FR-B9, D-78), nicht
+über `Post.objects` direkt: Der View hat die Sichtbarkeit zwar schon vor
+dem Aufruf geprüft, aber falls sie sich dazwischen geändert hätte (oder ein
+künftiger Aufrufer diese Prüfung vergisst), bricht das hier sauber mit
+`Post.DoesNotExist` ab, statt einen Kommentar auf einem inzwischen
+unsichtbaren Beitrag anzulegen.
+"""
+
+from django.core.exceptions import ValidationError
+from django.db import transaction
+from django.utils.translation import gettext_lazy as _
+
+from .models import Comment, Post
+
+
+def create_comment(*, post, author, body, reply_to=None):
+    """
+    Legt einen Kommentar unter `post` an (FR-B13) und gibt ihn zurück.
+
+    `reply_to` (optional) muss ein Kommentar **desselben Beitrags** sein und
+    darf keine Hülle sein (FR-B15, D-79) — beides kann kein
+    Datenbank-Constraint prüfen (kein Fremdschlüssel über zwei Spalten
+    hinweg, und „ist keine Hülle" ist ein Wertevergleich), deshalb prüft es
+    dieser Dienst. Die Länge von `body` prüft die Aufruferin (Formular): das
+    hier ist reine Zuordnung, keine vollständige Validierung.
+    """
+    if reply_to is not None:
+        if reply_to.post_id != post.pk:
+            raise ValidationError(_("You can only reply to a comment on the same post."))
+        if reply_to.is_tombstone:
+            raise ValidationError(_("You can't reply to a deleted comment."))
+
+    with transaction.atomic():
+        locked_post = Post.objects.visible_to(author).select_for_update().get(pk=post.pk)
+        locked_post.comment_seq += 1
+        locked_post.save(update_fields=["comment_seq"])
+        return Comment.objects.create(
+            post=locked_post,
+            author=author,
+            number=locked_post.comment_seq,
+            body=body,
+            reply_to=reply_to,
+        )

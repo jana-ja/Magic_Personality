@@ -727,10 +727,12 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.1 · Kommentarmodell und Nummernvergabe
 **Abhängig von:** 5.9 · **Anforderungen:** FR-B14, FR-B15, D-79
 **Fertig, wenn:**
-- [ ] `Comment` (Beitrag, Autorin/Autor `Profile` oder leer, `number`, Klartext ≤ 2000, `reply_to`, `created_at`, `deleted_at`); `unique (post, number)`; Migration.
-- [ ] Ein Dienst legt Kommentare an: Nummer in einer Transaktion mit `select_for_update` aus `Post.comment_seq`; `reply_to` muss zum selben Beitrag gehören und darf keine Hülle sein.
-- [ ] Nummern bleiben nach dem Löschen unbenutzt.
-- [ ] Test: Nummernfolge, **gleichzeitiges** Anlegen (zwei Transaktionen) ergibt verschiedene Nummern, fremder Beitrag als Bezug abgelehnt, Hülle als Bezug abgelehnt.
+- [x] `Comment` (Beitrag, Autorin/Autor `Profile` oder leer, `number`, Klartext ≤ 2000, `reply_to`, `created_at`, `deleted_at`); `unique (post, number)`; Migration.
+- [x] Ein Dienst legt Kommentare an: Nummer in einer Transaktion mit `select_for_update` aus `Post.comment_seq`; `reply_to` muss zum selben Beitrag gehören und darf keine Hülle sein.
+- [x] Nummern bleiben nach dem Löschen unbenutzt.
+- [x] Test: Nummernfolge, **gleichzeitiges** Anlegen (zwei Transaktionen) ergibt verschiedene Nummern, fremder Beitrag als Bezug abgelehnt, Hülle als Bezug abgelehnt.
+
+> Umsetzung: `Comment` in `apps/posts/models.py` (Migration `0003_comment`), Dienst `apps/posts/comments.py::create_comment()` — die einzige Stelle, die Kommentare anlegt. `author` verweist `on_delete=PROTECT` auf `Profile` statt `CASCADE` (anders als `Post.author`/`Report.reporter`, D-78): Ein Account lässt sich erst löschen, wenn seine Kommentare zuvor zur Hülle gemacht wurden (Task 6.3) — vergisst der Löschweg das, bricht `PROTECT` sauber ab, statt eine Zeile mit Autor, aber ohne Profil zu hinterlassen; zwei Tests belegen das (blockiert vs. funktioniert nach `author = None`). `reply_to` verweist `on_delete=SET_NULL` auf sich selbst: Ein (im Anwendungscode nie vorkommendes) hartes Löschen eines Kommentars lässt Antworten darauf stehen, nur die Referenz wird leer — bewusst kein `PROTECT`, das hätte das Kaskaden-Löschen eines ganzen Beitrags blockiert, sobald ein Kommentar Antworten hat. Der Dienst sperrt über `Post.objects.visible_to(author)` (FR-B9), nicht über `Post.objects` direkt — Task 5.9s Wächtertest verlangt das, ein eigener Test bestätigt außerdem, dass ein unsichtbarer Beitrag den Kommentar ablehnt. **Gleichzeitigkeit real geprüft:** zwölf echte Threads (`transaction=True`, eigene DB-Verbindung je Thread, gemeinsam losgelassen durch eine `Barrier`) bekommen zwölf verschiedene, lückenlose Nummern; Gegenprobe ohne `select_for_update()` lässt denselben Test in drei von drei Läufen mit doppelten Nummern scheitern.
 
 #### 6.2 · Kommentare auf der Beitragsseite
 **Abhängig von:** 6.1, 4.8 · **Anforderungen:** FR-B13, FR-B15, FR-B8

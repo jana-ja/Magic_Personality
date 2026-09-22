@@ -1,8 +1,10 @@
 """
-Django-Admin für Beiträge und Meldungen (Task 5.1, 5.7, D-71, D-81). Nutzerdaten
-sind nur lesbar, löschen bleibt möglich (D-81: die Projektinhaberin löscht
-gemeldete Beiträge hier): Anlegen und Ändern läuft ausschließlich über die
-Views, die Längen, Farbcode und Rechte prüfen.
+Django-Admin für Beiträge, Meldungen (Task 5.1, 5.7, D-71, D-81) und Kommentare
+(Task 6.1, D-79). Nutzerdaten sind nur lesbar: Anlegen und Ändern läuft
+ausschließlich über die Views bzw. `apps.posts.comments`, die Längen,
+Farbcode und Rechte prüfen. Löschen bleibt bei Beiträgen und Meldungen
+möglich (D-81: die Projektinhaberin löscht gemeldete Beiträge hier), bei
+Kommentaren nicht — siehe `CommentAdmin`.
 """
 
 from django.contrib import admin
@@ -10,7 +12,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.html import format_html
 
-from .models import Post, Report
+from .models import Comment, Post, Report
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -87,3 +89,30 @@ class ReportAdmin(ReadOnlyAdmin):
     def mark_open(self, request, queryset):
         updated = queryset.filter(handled_at__isnull=False).update(handled_at=None)
         self.message_user(request, f"{updated} report(s) reopened.")
+
+
+@admin.register(Comment)
+class CommentAdmin(ReadOnlyAdmin):
+    """
+    Nur zum Nachsehen (D-71) — anders als bei `Post`/`Report` auch **kein
+    Löschen**: Ein hartes Löschen ließe `reply_to`-Verweise anderer
+    Kommentare stillschweigend ins Leere zeigen (`on_delete=SET_NULL`)
+    statt als Hülle stehen zu bleiben (D-79). Moderation kommt mit Task 6.5
+    als eigene Admin-Aktion „zur Hülle machen", die genau das *nicht* tut.
+    """
+
+    list_display = ["post", "number", "author", "short_body", "created_at", "is_tombstone"]
+    list_select_related = ["post", "author"]
+    search_fields = ["body", "author__nickname", "post__title"]
+    date_hierarchy = "created_at"
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+    @admin.display(description="body")
+    def short_body(self, obj):
+        return obj.body[:80]
+
+    @admin.display(boolean=True, description="tombstone")
+    def is_tombstone(self, obj):
+        return obj.is_tombstone
