@@ -748,10 +748,12 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.3 · Kommentar löschen, Hüllen, Account-Löschung
 **Abhängig von:** 6.2 · **Anforderungen:** FR-B16, FR-B19, D-79
 **Fertig, wenn:**
-- [ ] Die Autorin bzw. der Autor löscht den eigenen Kommentar (Bestätigung); er wird zur Hülle (Text und Autor leer, `deleted_at`); Hüllen ohne Antworten werden nicht angezeigt, Hüllen mit Antworten als „#n deleted".
-- [ ] Der Dienst „zur Hülle machen" ist derselbe für das Löschen, die Admin-Aktion und die Account-Löschung.
-- [ ] Account-Löschung macht die Kommentare der Person unter fremden Beiträgen zu Hüllen, vor `user.delete()`; unter eigenen Beiträgen verschwinden sie mit dem Beitrag.
-- [ ] Test: Hülle mit und ohne Antworten, fremde Person kann nicht löschen, Account-Löschung, Löschen eines Beitrags entfernt alle Kommentare.
+- [x] Die Autorin bzw. der Autor löscht den eigenen Kommentar (Bestätigung); er wird zur Hülle (Text und Autor leer, `deleted_at`); Hüllen ohne Antworten werden nicht angezeigt, Hüllen mit Antworten als „#n deleted".
+- [x] Der Dienst „zur Hülle machen" ist derselbe für das Löschen, die Admin-Aktion und die Account-Löschung.
+- [x] Account-Löschung macht die Kommentare der Person unter fremden Beiträgen zu Hüllen, vor `user.delete()`; unter eigenen Beiträgen verschwinden sie mit dem Beitrag.
+- [x] Test: Hülle mit und ohne Antworten, fremde Person kann nicht löschen, Account-Löschung, Löschen eines Beitrags entfernt alle Kommentare.
+
+> Umsetzung: `apps/posts/comments.py::make_tombstone()` (eine Zeile zur Hülle) und `tombstone_comments_by()` (ein `UPDATE` für alle Kommentare einer Person, aufgerufen aus `apps.accounts.views.delete_account` **vor** `user.delete()`); die Admin-Aktion selbst nutzt dieselbe `make_tombstone()`-Funktion erst ab Task 6.5, sobald `Report.comment` existiert. View `delete_comment` (`/posts/<post_pk>/comments/<pk>/delete/`, GET Bestätigung, POST löscht) prüft `comment.author_id != profile.pk` — **nicht** die Autorschaft des Beitrags: ein eigener Test (`test_comment_delete_checks_the_comments_author_not_the_posts`) stellt das ausdrücklich sicher, weil beides sonst leicht verwechselt wird. Eine bereits gelöschte Zeile hat keinen Autor mehr und fällt ohne eigene Prüfung in denselben „nicht meine"-Fall (idempotent). Die Anzeigeregel (Hüllen ohne Antworten ausblenden) stand schon aus Task 6.2 (`Comment.objects.for_post()`) und musste hier an den Templates nicht angefasst werden. `Comment.author` bleibt die einzige `PROTECT`-Ausnahme der Posts-App (Task 5.9s Kaskaden-Wächter kennt sie jetzt namentlich, `test_every_relation_from_posts_to_a_person_deletes_with_the_person`); eine Gegenprobe (`PROTECT` testweise durch `CASCADE` ersetzt) lässt genau diesen Test und den PROTECT-Test in `test_comment_deletion.py` fehlschlagen. Datenschutzseite und Bestätigungsseite der Account-Löschung nennen Kommentare jetzt ausdrücklich (D-79-Nuance: Text und Name verschwinden, die Zeile nur, wenn niemand geantwortet hat). Im Browser geprüft: Bestätigungsseite, Löschen einer Hülle mit Antwort zeigt „#6 deleted" mit funktionierendem „↪ #6"-Sprung, Löschen einer Hülle ohne Antworten lässt sie ganz verschwinden, Kommentarzähler bleibt korrekt.
 
 #### 6.4 · Profil-Tab „Comments"
 **Abhängig von:** 6.3, 4.3 · **Anforderungen:** FR-B17

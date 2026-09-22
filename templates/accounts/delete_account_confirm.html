@@ -11,6 +11,9 @@
   <p>
     {% translate "Your posts disappear for everyone, together with everything attached to them." %}
   </p>
+  <p>
+    {% translate "Comments you wrote under other people's posts lose your name and text; they stay only if someone has replied to them, otherwise they disappear too." %}
+  </p>
 
   <form method="post" action="{% url 'delete_account' %}">
     {% csrf_token %}

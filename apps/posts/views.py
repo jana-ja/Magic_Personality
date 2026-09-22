@@ -1,8 +1,8 @@
 """
 Views der Posts-App: Beitrag schreiben, bearbeiten, löschen (Task 5.3,
-FR-B1 bis FR-B4, FR-B11), die Beitragsseite (Task 5.4, FR-B5) und Kommentare
-darauf (Task 6.2, FR-B13, FR-B15, FR-B18). Die Listen (Task 5.5, 5.6) kommen
-mit den eigenen Tasks.
+FR-B1 bis FR-B4, FR-B11), die Beitragsseite (Task 5.4, FR-B5), Kommentare
+darauf (Task 6.2, FR-B13, FR-B15, FR-B18) und Kommentare löschen
+(Task 6.3, FR-B16). Die Listen (Task 5.5, 5.6) kommen mit den eigenen Tasks.
 
 Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 `Post.objects.visible_to()` (FR-B9).
@@ -20,7 +20,7 @@ from apps.colors import selection
 from apps.colors.field import color_field_context
 
 from . import combinations, limits
-from .comments import create_comment
+from .comments import create_comment, make_tombstone
 from .decorators import author_only, current_profile
 from .forms import CommentForm, PostForm, ReportForm
 from .markdown import render_markdown
@@ -163,13 +163,16 @@ def _find_replyable(post, number):
     return Comment.objects.filter(post=post, number=number, deleted_at__isnull=True).first()
 
 
-def _comments_context(post, *, reply_number=None, comment_form=None):
+def _comments_context(post, *, viewer_id, reply_number=None, comment_form=None):
     """
     Kommentarliste und -formular für die Beitragsseite und den Baustein
     `#comments` (Task 6.2). `comment_form=None` erzeugt ein leeres Formular,
     mit `reply_to` vorbelegt, wenn `reply_number` einen echten Kommentar
     trifft — sonst ein übergebenes (gebundenes, ggf. fehlerhaftes)
-    Formular unverändert weiterreichen.
+    Formular unverändert weiterreichen. `viewer_id` reicht das Template
+    durch, um „Delete" nur am eigenen Kommentar zu zeigen (Task 6.3,
+    FR-B16) — ein bloßer Vergleich, kein zweiter Zugriffsschutz: den trifft
+    ausschließlich der View `delete_comment` selbst.
     """
     replying_to = _find_replyable(post, reply_number)
     if comment_form is None:
@@ -187,6 +190,7 @@ def _comments_context(post, *, reply_number=None, comment_form=None):
         "comments": comments,
         "comment_form": comment_form,
         "replying_to": replying_to,
+        "viewer_id": viewer_id,
     }
 
 
@@ -211,7 +215,10 @@ def post_detail(request, pk):
     return render(
         request,
         "posts/post_detail.html",
-        {**_post_extras(post, profile), **_comments_context(post, reply_number=reply_number)},
+        {
+            **_post_extras(post, profile),
+            **_comments_context(post, viewer_id=profile.pk, reply_number=reply_number),
+        },
     )
 
 
@@ -249,18 +256,49 @@ def add_comment(request, pk):
             post=post, author=profile, body=form.cleaned_data["body"], reply_to=reply_to
         )
         if _is_htmx(request):
-            return render(request, "posts/_comments_section.html", _comments_context(post))
+            context = _comments_context(post, viewer_id=profile.pk)
+            return render(request, "posts/_comments_section.html", context)
         anchor = reverse("posts:detail", kwargs={"pk": post.pk}) + f"#c-{comment.number}"
         return redirect(anchor)
 
     context = _comments_context(
-        post, reply_number=_reply_number(request.POST.get("reply_to", "")), comment_form=form
+        post,
+        viewer_id=profile.pk,
+        reply_number=_reply_number(request.POST.get("reply_to", "")),
+        comment_form=form,
     )
     if _is_htmx(request):
         return render(request, "posts/_comments_section.html", context, status=status)
     return render(
         request, "posts/post_detail.html", {**_post_extras(post, profile), **context}, status=status
     )
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def delete_comment(request, post_pk, pk):
+    """
+    FR-B16, D-79: Die Autorin bzw. der Autor löscht den eigenen Kommentar —
+    er wird zur Hülle (`apps.posts.comments.make_tombstone()`), nicht
+    wirklich entfernt: Nummer und „↪ #m"-Verweise anderer Kommentare bleiben
+    stabil. GET zeigt nur die Bestätigung, erst ein eigenes POST löscht
+    (wie bei Beiträgen, FR-B4).
+
+    Jede andere Person — auch die des Beitrags, falls verschieden — landet
+    ohne Änderung auf der Beitragsseite; eine bereits gelöschte Zeile hat
+    keinen Autor mehr (`author=None`) und fällt in denselben Fall, ganz ohne
+    eigene Prüfung auf „schon eine Hülle".
+    """
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=post_pk)
+    comment = get_object_or_404(Comment, pk=pk, post=post)
+    if comment.author_id != profile.pk:
+        return redirect("posts:detail", pk=post.pk)
+
+    if request.method == "POST":
+        make_tombstone(comment)
+        return redirect("posts:detail", pk=post.pk)
+    return render(request, "posts/comment_confirm_delete.html", {"post": post, "comment": comment})
 
 
 def _report_response(request, post, **context):

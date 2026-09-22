@@ -12,4 +12,9 @@ urlpatterns = [
     path("posts/<int:pk>/report/", views.report_post, name="report"),
     path("posts/<int:pk>/report/thanks/", views.report_thanks, name="report_thanks"),
     path("posts/<int:pk>/comment/", views.add_comment, name="comment"),
+    path(
+        "posts/<int:post_pk>/comments/<int:pk>/delete/",
+        views.delete_comment,
+        name="comment_delete",
+    ),
 ]

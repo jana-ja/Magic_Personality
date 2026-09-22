@@ -22,6 +22,7 @@ unsichtbaren Beitrag anzulegen.
 
 from django.core.exceptions import ValidationError
 from django.db import transaction
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .models import Comment, Post
@@ -55,3 +56,46 @@ def create_comment(*, post, author, body, reply_to=None):
             body=body,
             reply_to=reply_to,
         )
+
+
+def make_tombstone(comment):
+    """
+    Macht `comment` zur Hülle (Task 6.3, FR-B16, D-79): `deleted_at` gesetzt,
+    `body` und `author` geleert — die Zeile selbst bleibt, damit ihre Nummer
+    und die „↪ #n"-Verweise anderer Kommentare stabil bleiben. **Die einzige**
+    Stelle, die das tut: dieselbe Funktion für das Löschen durch die Autorin
+    bzw. den Autor (View `delete_comment`), die Admin-Aktion bei gemeldeten
+    Kommentaren (Task 6.5) und die Account-Löschung (`tombstone_comments_by`
+    unten).
+
+    Bereits eine Hülle: keine Wirkung, kein Fehler — praktisch für
+    `tombstone_comments_by()`, das nicht vorher prüfen muss, ob eine Zeile
+    das schon ist.
+    """
+    if comment.is_tombstone:
+        return comment
+    comment.deleted_at = timezone.now()
+    comment.author = None
+    comment.body = ""
+    comment.save(update_fields=["deleted_at", "author", "body"])
+    return comment
+
+
+def tombstone_comments_by(profile):
+    """
+    Macht **jeden** Kommentar von `profile` zur Hülle (FR-B19, Task 6.3) —
+    aufzurufen, bevor der Account gelöscht wird: `Comment.author` verweist
+    mit `on_delete=PROTECT` auf `Profile` (D-79), das Löschen bräche sonst
+    ab, statt eine verwaiste Zeile zu hinterlassen.
+
+    Läuft über **alle** Kommentare der Person, nicht nur die unter fremden
+    Beiträgen: Kommentare unter den eigenen Beiträgen verschwinden gleich
+    darauf ohnehin mit dem Beitrag selbst (`Post`-Kaskade, FR-B19) — sie
+    vorher zur Hülle zu machen ändert daran nichts, erspart hier aber die
+    Fallunterscheidung „eigener oder fremder Beitrag". Ein `UPDATE` statt
+    `make_tombstone()` je Zeile: kein Fall hier braucht dessen
+    Bereits-Hülle-Kurzschluss, eine einzige Anfrage genügt.
+    """
+    Comment.objects.filter(author=profile, deleted_at__isnull=True).update(
+        deleted_at=timezone.now(), author=None, body=""
+    )

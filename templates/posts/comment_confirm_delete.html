@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Delete comment" %}{% endblock %}
+
+{% block content %}
+  {% comment %} Task 6.3, FR-B16, D-79: löschen heißt hier "zur Hülle machen" — die Zeile bleibt,
+     damit Nummer und "↪ #n"-Verweise anderer Kommentare stabil bleiben. {% endcomment %}
+  <h1>{% translate "Delete comment" %}</h1>
+  <p>
+    {% blocktranslate with number=comment.number %}Do you really want to delete comment #{{ number }}? Your name and text will be removed. If someone has already replied to it, it stays visible as “deleted”, without your name or text; otherwise it disappears from the list. This cannot be undone.{% endblocktranslate %}
+  </p>
+  <form method="post" action="{% url 'posts:comment_delete' post_pk=post.pk pk=comment.pk %}" class="post-form__actions">
+    {% csrf_token %}
+    <button type="submit">{% translate "Delete comment" %}</button>
+    <a href="{% url 'posts:detail' pk=post.pk %}#c-{{ comment.number }}">{% translate "Cancel" %}</a>
+  </form>
+{% endblock %}

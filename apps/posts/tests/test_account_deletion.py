@@ -1,5 +1,6 @@
 """
-Tests für Account-Löschung und Datenschutz mit Beiträgen (Task 5.8, FR-B12, D-78, D-81).
+Tests für Account-Löschung und Datenschutz mit Beiträgen (Task 5.8, FR-B12,
+D-78, D-81) und Kommentaren (Task 6.3, FR-B19, D-79).
 
 Die Kaskade selbst (Beitrag und Meldung verschwinden mit Profil bzw. Beitrag)
 steht schon in test_models.py und test_reports.py; hier geht es um den echten
@@ -10,7 +11,8 @@ import pytest
 from django.db import models
 
 from apps.accounts.models import Profile, User
-from apps.posts.models import Post, Report
+from apps.posts.comments import create_comment
+from apps.posts.models import Comment, Post, Report
 
 pytestmark = pytest.mark.django_db
 
@@ -80,23 +82,118 @@ def test_the_deleted_posts_page_is_gone(member, author, robin):
 
 def test_every_relation_from_posts_to_a_person_deletes_with_the_person():
     """Beiträge und Meldungen gehören der Person: jeder Verweis der Posts-App auf
-    ein Profil kaskadiert. Kommt mit v1.4 eine Ausnahme dazu (Kommentare werden
-    zu Hüllen, D-79), gehört sie bewusst hier begründet hinein."""
-    for model in (Post, Report):
+    ein Profil kaskadiert — mit **einer** bewussten, hier ausdrücklich benannten
+    Ausnahme seit Task 6.3: `Comment.author` (D-79, `PROTECT`, weil ein
+    Kommentar erst zur Hülle werden muss, siehe die Tests unten)."""
+    exceptions = {(Comment, "author"): models.PROTECT}
+    for model in (Post, Report, Comment):
         for field in model._meta.fields:
             if field.is_relation and field.related_model is Profile:
-                assert field.remote_field.on_delete is models.CASCADE, (model, field.name)
+                expected = exceptions.get((model, field.name), models.CASCADE)
+                assert field.remote_field.on_delete is expected, (model, field.name)
+
+
+# Kommentare (Task 6.3, FR-B19, D-79) ------------------------------------------------------
+
+
+def test_deleting_the_account_tombstones_comments_under_foreign_posts(member, author, robin):
+    theirs = Post.objects.create(author=robin, title="Theirs", body="b")
+    mine = create_comment(post=theirs, author=author, body="my two cents")
+    someone_replied = create_comment(post=theirs, author=robin, body="re: you", reply_to=mine)
+
+    member.post(DELETE_URL)
+
+    mine.refresh_from_db()
+    assert mine.is_tombstone
+    assert mine.author is None
+    assert mine.body == ""
+    assert mine.number == 1  # die Nummer bleibt, der Verweis der Antwort auch
+    someone_replied.refresh_from_db()
+    assert someone_replied.reply_to_id == mine.pk
+
+
+def test_a_tombstoned_comment_without_replies_disappears_from_the_page(member, author, robin):
+    theirs = Post.objects.create(author=robin, title="Theirs", body="b")
+    create_comment(post=theirs, author=author, body="my two cents")
+
+    member.post(DELETE_URL)
+    member.force_login(robin.user)
+
+    html = member.get(f"/posts/{theirs.pk}/").content.decode()
+    assert "0 comments" in html
+
+
+def test_comments_under_the_deleted_persons_own_post_vanish_with_the_post(member, author, robin):
+    mine = Post.objects.create(author=author, title="Mine", body="b")
+    theirs_on_mine = create_comment(post=mine, author=robin, body="visiting")
+
+    member.post(DELETE_URL)
+
+    assert not Post.objects.filter(pk=mine.pk).exists()
+    assert not Comment.objects.filter(pk=theirs_on_mine.pk).exists()
+
+
+def test_other_peoples_comments_and_their_authorship_stay(member, author, robin, make_profile):
+    post = Post.objects.create(author=make_profile("sam"), title="Sam's", body="b")
+    theirs = create_comment(post=post, author=robin, body="staying")
+
+    member.post(DELETE_URL)
+
+    theirs.refresh_from_db()
+    assert theirs.author == robin
+    assert theirs.body == "staying"
+
+
+# Löschen des eigenen Kommentars (der View, FR-B16) --------------------------------------------
+
+
+def test_the_author_of_a_comment_can_delete_it(member, robin):
+    post = Post.objects.create(author=robin, title="Theirs", body="b")
+    comment = create_comment(post=post, author=robin, body="oops")
+    member.force_login(robin.user)
+
+    response = member.post(f"/posts/{post.pk}/comments/{comment.pk}/delete/")
+
+    assert response.status_code == 302
+    comment.refresh_from_db()
+    assert comment.is_tombstone
+
+
+def test_someone_else_cannot_delete_a_comment(member, author, robin):
+    post = Post.objects.create(author=author, title="Mine", body="b")
+    comment = create_comment(post=post, author=robin, body="theirs")
+
+    response = member.post(f"/posts/{post.pk}/comments/{comment.pk}/delete/")
+
+    assert response.status_code == 302
+    comment.refresh_from_db()
+    assert not comment.is_tombstone
+    assert comment.body == "theirs"
+
+
+def test_a_comment_confirmation_page_is_shown_first(member, robin):
+    post = Post.objects.create(author=robin, title="Theirs", body="b")
+    comment = create_comment(post=post, author=robin, body="oops")
+    member.force_login(robin.user)
+
+    response = member.get(f"/posts/{post.pk}/comments/{comment.pk}/delete/")
+
+    assert response.status_code == 200
+    assert "#1" in response.content.decode()
+    comment.refresh_from_db()
+    assert not comment.is_tombstone
 
 
 # Was Nutzende lesen ------------------------------------------------------------------------
 
 
-def test_the_confirmation_page_names_posts_and_reports(member):
+def test_the_confirmation_page_names_posts_reports_and_comments(member):
     html = member.get(DELETE_URL).content.decode()
 
     assert "your posts" in html
     assert "the reports you sent" in html
     assert "disappear for everyone" in html
+    assert "Comments you wrote under other people" in html
 
 
 def test_the_confirmation_page_does_not_delete_anything(member, author):
@@ -120,8 +217,21 @@ def test_the_privacy_page_covers_posts_and_reports(gated_client):
     assert "Posts: until you delete them or your account." in html
     # wie löschbar
     assert "Edit or delete your own posts yourself" in html
-    assert "Deleting a post also removes every report about it." in html
+    assert "Deleting a post also removes every comment and report about it." in html
     assert "posts, and the reports you sent, together with all reports about your posts" in html
+
+
+def test_the_privacy_page_covers_comments(gated_client):
+    html = gated_client.get("/privacy/").content.decode()
+
+    # welche Daten
+    assert "Comments: the comments you write under posts" in html
+    assert "a number that stays the same even if earlier comments are deleted" in html
+    # wie lange
+    assert "Comments: until you delete them." in html
+    assert 'anonymous "deleted" entry' in html
+    # wie löschbar
+    assert "Delete your own comments yourself, any time, from the post they" in html
 
 
 def test_the_privacy_page_still_covers_everything_else(gated_client):
