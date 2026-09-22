@@ -100,6 +100,26 @@ def _inline_text(children):
     return "".join(parts)
 
 
+def truncate_at_word_boundary(plain, limit):
+    """
+    Kürzt bereits reinen Klartext auf höchstens `limit` Zeichen, an einer
+    Wortgrenze, mit „…" versehen. Geteilt von `excerpt()` (Markdown-Auszug
+    für Beiträge) und `apps.posts.listing.comment_excerpt()` (Kommentare sind
+    schon Klartext, D-80, brauchen also kein Markdown-Parsing davor).
+    """
+    if len(plain) <= limit:
+        return plain
+    cut = plain[:limit]
+    # Liegt das Limit nicht ohnehin an einer Wortgrenze, an der letzten davor
+    # kürzen — außer sie liegt so früh, dass fast nichts übrig bliebe (ein
+    # sehr langes Wort wird hart abgeschnitten).
+    if plain[limit] != " ":
+        boundary = cut.rfind(" ")
+        if boundary >= limit // 2:
+            cut = cut[:boundary]
+    return cut.rstrip(" ,;:.-–—") + "…"
+
+
 def excerpt(text, limit=EXCERPT_LENGTH):
     """
     Klartext-Auszug für Listen und Grid: ohne Formatierung, Absätze und
@@ -115,14 +135,4 @@ def excerpt(text, limit=EXCERPT_LENGTH):
         elif token.type in ("fence", "code_block"):
             parts.append(token.content)
     plain = " ".join(" ".join(parts).split())
-    if len(plain) <= limit:
-        return plain
-    cut = plain[:limit]
-    # Liegt das Limit nicht ohnehin an einer Wortgrenze, an der letzten davor
-    # kürzen — außer sie liegt so früh, dass fast nichts übrig bliebe (ein
-    # sehr langes Wort wird hart abgeschnitten).
-    if plain[limit] != " ":
-        boundary = cut.rfind(" ")
-        if boundary >= limit // 2:
-            cut = cut[:boundary]
-    return cut.rstrip(" ,;:.-–—") + "…"
+    return truncate_at_word_boundary(plain, limit)

@@ -758,10 +758,12 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.4 · Profil-Tab „Comments"
 **Abhängig von:** 6.3, 4.3 · **Anforderungen:** FR-B17
 **Fertig, wenn:**
-- [ ] Tab „Comments" (für alle Profile), `/u/<nickname>/comments/`; Reihenfolge Pinboard, Posts, Comments, Friends, …
-- [ ] Neueste zuerst, 10 je Seite: Auszug, `#n`, Titel des Beitrags als Link mit Sprung zum Kommentar, Datum. Hüllen und Kommentare unter unsichtbaren Beiträgen fehlen.
-- [ ] Leerer Zustand; keine N+1-Abfragen.
-- [ ] Test: Reihenfolge, Hüllen fehlen, Sprungziel stimmt.
+- [x] Tab „Comments" (für alle Profile), `/u/<nickname>/comments/`; Reihenfolge Pinboard, Posts, Comments, Friends, …
+- [x] Neueste zuerst, 10 je Seite: Auszug, `#n`, Titel des Beitrags als Link mit Sprung zum Kommentar, Datum. Hüllen und Kommentare unter unsichtbaren Beiträgen fehlen.
+- [x] Leerer Zustand; keine N+1-Abfragen.
+- [x] Test: Reihenfolge, Hüllen fehlen, Sprungziel stimmt.
+
+> Umsetzung: `apps.posts.listing.author_comments_page()` (`Comment.objects.filter(author=author, post__in=Post.objects.visible_to(viewer))` — Hüllen fallen schon über `author=author` heraus, sie haben keinen Autor mehr, D-79; unsichtbare Beiträge über dieselbe `visible_to()` wie überall, FR-B9/D-78), View `apps.social.views.profile_comments` (Tab-Konstante `COMMENTS` in `profile_page.py`, Adresse in `apps.social.urls`, Eintrag in `apps.social.tests.test_access_control.PUBLIC_FOR_MEMBERS`), Templates `social/profile_comments.html` und `posts/_comment_card.html` — Letztere nutzt bewusst dieselben `.post-card`-CSS-Klassen wie die Beitragskarte (Task 5.5), damit beide Listen gleich aussehen. Auszug über einen neuen, geteilten Baustein: `apps.posts.markdown.truncate_at_word_boundary()` (aus `excerpt()` herausgelöst) plus `apps.posts.listing.comment_excerpt()` (kein Markdown-Parsing nötig, Kommentare sind schon Klartext, D-80) und der Template-Filter `comment_excerpt`. **Zwei Abfrage-Tests, nicht nur einer:** „mehr Kommentare auf demselben Beitrag" reicht allein nicht — ohne `select_related("post")` kostet *jeder* Zugriff auf `.post` eine eigene Abfrage, unabhängig davon, ob sich der Beitrag wiederholt; ein eigener Test mit lauter *verschiedenen* Beiträgen deckt das ausdrücklich ab (Gegenprobe: `select_related` entfernt lässt beide Tests scheitern). Im Browser geprüft: Tab-Reihenfolge, Sprung von der Karte auf `#c-8` (`:target` greift), leerer Zustand eigen/fremd, bei 375 px kein horizontales Scrollen.
 
 #### 6.5 · Kommentare melden
 **Abhängig von:** 6.2, 5.7 · **Anforderungen:** FR-B10, FR-B18, D-81

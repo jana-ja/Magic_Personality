@@ -1,7 +1,8 @@
 """
 Views der Social-App: fremde Profile ansehen (Task 3.1, FR-S1), nach
 Nickname suchen (Task 3.2, FR-S2), nach Farbkombination suchen
-(Task 3.3, FR-S3) und Freundschaften (Task 3.4, FR-S4).
+(Task 3.3, FR-S3) und Freundschaften (Task 3.4, FR-S4). Die Tabs „Posts"
+(Task 5.5) und „Comments" (Task 6.4) lesen aus `apps.posts.listing`.
 
 Freundeslisten und Graph (3.5) kommen mit dem eigenen Task hinzu.
 """
@@ -96,6 +97,22 @@ def profile_posts(request, nickname):
     context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.POSTS)
     context.update(listing.author_posts_page(viewer_profile, profile, request.GET.get("page")))
     return render(request, "social/profile_posts.html", context)
+
+
+@login_required
+@require_GET
+def profile_comments(request, nickname):
+    """
+    Tab „Comments" (Task 6.4, FR-B17): die Kommentare **dieses** Profils,
+    neueste zuerst, zehn je Seite. Hüllen erscheinen nie (kein Autor mehr,
+    D-79); Kommentare unter für `viewer_profile` unsichtbaren Beiträgen
+    ebenso wenig (FR-B9).
+    """
+    profile = get_object_or_404(Profile, nickname__iexact=nickname)
+    viewer_profile = _current_profile(request)
+    context = profile_page.profile_context(profile, viewer_profile, tab=profile_page.COMMENTS)
+    context.update(listing.author_comments_page(viewer_profile, profile, request.GET.get("page")))
+    return render(request, "social/profile_comments.html", context)
 
 
 @owner_only

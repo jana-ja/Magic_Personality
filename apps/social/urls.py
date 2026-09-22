@@ -12,6 +12,7 @@ urlpatterns = [
     path("search/colors/<str:code>/", views.search_by_colors, name="search_colors_combination"),
     path("u/<str:nickname>/", views.profile_detail, name="profile_detail"),
     path("u/<str:nickname>/posts/", views.profile_posts, name="profile_posts"),
+    path("u/<str:nickname>/comments/", views.profile_comments, name="profile_comments"),
     path("u/<str:nickname>/friends/", views.profile_friends, name="profile_friends"),
     path("u/<str:nickname>/history/", views.profile_history, name="profile_history"),
     path("u/<str:nickname>/settings/", views.profile_settings, name="profile_settings"),

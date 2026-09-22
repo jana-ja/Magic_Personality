@@ -1,0 +1,17 @@
+{% load i18n posts_tags %}
+{% comment %} Kommentar-Karte für den Profil-Tab "Comments" (Task 6.4, FR-B17) — dieselben
+   .post-card-Klassen wie die Beitragskarte (Task 5.5), damit beide Listen gleich aussehen.
+   Erwartet `comment` (mit vorgeladenem `.post`, `apps.posts.listing.author_comments_page`).
+   Die ganze Karte ist **ein** Link: der Titel des Beitrags, per ::after über die Karte gespannt,
+   mit Sprung zum Kommentar selbst (#c-<nummer>). {% endcomment %}
+<article class="post-card">
+  <h3 class="post-card__title">
+    <a class="post-card__link" href="{% url 'posts:detail' pk=comment.post_id %}#c-{{ comment.number }}">{{ comment.post.title }}</a>
+  </h3>
+  <p class="post-card__meta">
+    <span class="comment__number">#{{ comment.number }}</span>
+    <span aria-hidden="true">·</span>
+    <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"Y-m-d" }}</time>
+  </p>
+  <p class="post-card__excerpt">{{ comment.body|comment_excerpt }}</p>
+</article>
