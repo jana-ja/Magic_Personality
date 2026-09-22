@@ -768,10 +768,16 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.5 · Kommentare melden
 **Abhängig von:** 6.2, 5.7 · **Anforderungen:** FR-B10, FR-B18, D-81
 **Fertig, wenn:**
-- [ ] `Report` bekommt `comment` als Alternative zu `post` (genau eines von beiden, Constraint; einmal je Person und Kommentar); Migration.
-- [ ] „Report" je fremdem Kommentar; Grenze wie 5.7 gemeinsam für Beiträge und Kommentare.
-- [ ] Admin: Meldung zeigt Beitrag oder Kommentar; Aktion „Kommentar zur Hülle machen" (D-81).
-- [ ] Test: Constraint, Doppelmeldung, eigener Kommentar, Admin-Aktion.
+- [x] `Report` bekommt `comment` als Alternative zu `post` (genau eines von beiden, Constraint; einmal je Person und Kommentar); Migration.
+- [x] „Report" je fremdem Kommentar; Grenze wie 5.7 gemeinsam für Beiträge und Kommentare.
+- [x] Admin: Meldung zeigt Beitrag oder Kommentar; Aktion „Kommentar zur Hülle machen" (D-81).
+- [x] Test: Constraint, Doppelmeldung, eigener Kommentar, Admin-Aktion.
+
+> Umsetzung: `Report.post`/`Report.comment` beide nullbar, ein `CheckConstraint` erzwingt genau eines, zwei partielle `UniqueConstraint`s (mit `condition=`) ersetzen die eine unbedingte von vorher — eine einzelne über beide Spalten hätte zwei Meldungen derselben Person zugelassen, solange nur je eine Spalte `NULL` bleibt. `Report.target`/`target_kind` für die Anzeige. Views: `_process_report()` (`apps/posts/views.py`) fasst Grenze, Formular und Anlegen für Beitrag **und** Kommentar zusammen — die Grenze zählt aus `profile.reports.all()`, kennt also keine Unterscheidung nach Ziel (FR-B18); `report_post`/`report_comment` bleiben zwei dünne, für sich lesbare Views, die nur noch Zielsuche, Eigentums-Check und Adressen/Vorlagen beisteuern. Je Kommentar ein eigener Bereich `#report-comment-<pk>` (nicht ein einzelner `#report` wie beim Beitrag, da eine Seite viele Kommentare hat); der „schon gemeldet"-Zustand kommt vorgerechnet aus der View (`already_reported_comment_ids`, eine Abfrage für die ganze Liste). `ReportAdmin`: Spalten `type`/`target` (Link auf die öffentliche Seite bzw. den Anker `#c-n`), Suche über `comment__body`/`comment__post__title`, Aktion `delete_reported_comments` (macht die gemeldeten Kommentare zur Hülle, ignoriert Beitrags-Meldungen, die Meldung selbst bleibt bestehen, bis sie separat als bearbeitet markiert wird).
+>
+> **Gefunden und behoben:** `CommentAdmin.has_delete_permission()` (Task 6.3, `False` gegen hartes Löschen einzelner Kommentare) blockierte unbemerkt auch das Löschen eines **Beitrags mit Kommentaren** im Admin — Djangos `get_deleted_objects()` prüft beim Löschen für jedes kaskadierte Modell dessen eigene Löschberechtigung, ein `PermissionDenied` traf also jeden Beitrag, sobald er einen Kommentar hatte (Task 5.7s eigener Test blieb davon unberührt, weil sein Beitrag keine Kommentare hatte). Behoben, ohne den ursprünglichen Schutz aufzugeben: `has_delete_permission` bleibt die Voreinstellung (die Kaskade funktioniert wieder), `delete_selected` fehlt stattdessen in `CommentAdmin.actions` (`get_actions()`), ersetzt durch die eigene Aktion `tombstone_selected` — ein hartes Löschen **einzelner** Kommentare direkt über die Kommentarliste bleibt damit weiterhin ausgeschlossen, nur der berechtigte Kaskadenfall funktioniert wieder. Ein Test deckt genau diesen Fall ab (Beitrag mit Kommentar über die Admin-Bestätigungsseite löschen); Gegenprobe mit der alten, zu weiten Sperre bestätigt, dass der Test angeschlagen hätte.
+>
+> Im Browser geprüft: „Report" öffnet das Formular per HTMX an Ort und Stelle, Absenden zeigt den Dank dort, ein Neuladen zeigt „You have reported this comment.", die Admin-Aktion macht den Kommentar zur Hülle und lässt die Meldung stehen, und ein Beitrag mit einem Kommentar lässt sich über die Admin-Bestätigungsseite wieder vollständig löschen (Zusammenfassung nennt „Posts: 1, Comments: 1").
 
 #### 6.6 · Zähler neuer Kommentare und Antworten
 **Abhängig von:** 6.4 · **Anforderungen:** FR-B20, D-79

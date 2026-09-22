@@ -108,13 +108,24 @@ class Post(models.Model):
 
 class Report(models.Model):
     """
-    Meldung eines Beitrags (Task 5.7, FR-B10, D-81). Sichtbar nur für die
-    Projektinhaberin im Django-Admin; es gibt kein automatisches Ausblenden.
+    Meldung eines Beitrags oder eines Kommentars (Task 5.7/6.5, FR-B10,
+    FR-B18, D-81). Sichtbar nur für die Projektinhaberin im Django-Admin; es
+    gibt kein automatisches Ausblenden.
 
-    Einmal je Person und Beitrag (Unique-Constraint). Die Meldung verschwindet
-    mit dem gemeldeten Beitrag und mit dem Account der meldenden Person
-    (Kaskade, D-81). Ab v1.4 kommt `comment` als Alternative zu `post` dazu
-    (Task 6.5).
+    Genau eines von `post`/`comment` ist gesetzt (Check-Constraint — die
+    Views legen nie beide oder keines an, das hier ist die Absicherung in
+    der Datenbank). Einmal je Person und Ziel (zwei partielle
+    Unique-Constraints, je eine für `post` und `comment` — eine einzelne
+    über beide Spalten hinweg würde zwei Meldungen derselben Person
+    zulassen, solange nur jeweils die andere Spalte `NULL` ist). Die Grenze
+    aus FR-B11/FR-B18 zählt **beide** zusammen: `profile.reports.all()`
+    kennt keine Unterscheidung nach Ziel.
+
+    Die Meldung verschwindet mit dem gemeldeten Eintrag (Kaskade) und mit
+    dem Account der meldenden Person (D-81). Wird ein Kommentar zur Hülle
+    gemacht (Task 6.3/6.5), bleibt seine Zeile bestehen — die Meldung dazu
+    bleibt deshalb ebenfalls bestehen, bis die Projektinhaberin sie im
+    Admin als bearbeitet markiert.
     """
 
     MAX_REASON_LENGTH = 500
@@ -122,7 +133,12 @@ class Report(models.Model):
     reporter = models.ForeignKey(
         "accounts.Profile", on_delete=models.CASCADE, related_name="reports"
     )
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reports")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, null=True, blank=True, related_name="reports"
+    )
+    comment = models.ForeignKey(
+        "Comment", on_delete=models.CASCADE, null=True, blank=True, related_name="reports"
+    )
     reason = models.CharField(max_length=MAX_REASON_LENGTH, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     # Gesetzt, sobald die Projektinhaberin die Meldung im Admin als bearbeitet markiert.
@@ -131,17 +147,36 @@ class Report(models.Model):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(post__isnull=False, comment__isnull=True)
+                    | Q(post__isnull=True, comment__isnull=False)
+                ),
+                name="report_exactly_one_of_post_or_comment",
+            ),
             models.UniqueConstraint(
-                fields=["reporter", "post"], name="report_once_per_person_and_post"
+                fields=["reporter", "post"],
+                condition=Q(post__isnull=False),
+                name="report_once_per_person_and_post",
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "comment"],
+                condition=Q(comment__isnull=False),
+                name="report_once_per_person_and_comment",
             ),
         ]
 
     def __str__(self):
-        return f"{self.reporter} → {self.post}"
+        return f"{self.reporter} → {self.post or self.comment}"
 
     @property
     def is_open(self):
         return self.handled_at is None
+
+    @property
+    def target(self):
+        """Das gemeldete Ding, gleich welcher Art (immer genau eines gesetzt)."""
+        return self.post or self.comment
 
 
 class CommentQuerySet(models.QuerySet):
