@@ -17,11 +17,22 @@ from apps.posts.models import Post, Report
 pytestmark = pytest.mark.django_db
 
 #: Alle Adressen der Posts-App und der Kombinationsliste (`colors:posts`).
-NAMES = ["new", "detail", "edit", "delete", "report", "report_thanks", "colors_posts"]
+NAMES = [
+    "new",
+    "detail",
+    "edit",
+    "delete",
+    "report",
+    "report_thanks",
+    "comment",
+    "colors_posts",
+]
 #: Adressen, die nur die Autorin bzw. der Autor erreicht.
 AUTHOR_ONLY = ["edit", "delete"]
 #: Adressen, die etwas speichern oder löschen (also CSRF-geschützt sein müssen).
-WRITING = ["new", "edit", "delete", "report"]
+WRITING = ["new", "edit", "delete", "report", "comment"]
+#: Adressen, die **nur** POST annehmen (kein GET, anders als die übrigen WRITING-Adressen).
+POST_ONLY = ["comment"]
 
 
 def _path(name, post):
@@ -32,6 +43,7 @@ def _path(name, post):
         "delete": f"/posts/{post.pk}/delete/",
         "report": f"/posts/{post.pk}/report/",
         "report_thanks": f"/posts/{post.pk}/report/thanks/",
+        "comment": f"/posts/{post.pk}/comment/",
         "colors_posts": "/colors/wg/posts/",
     }[name]
 
@@ -138,4 +150,12 @@ def test_read_only_addresses_refuse_writing_methods(gated_client, post, stranger
     gated_client.force_login(stranger.user)
 
     for method in ("post", "put", "patch", "delete"):
+        assert getattr(gated_client, method)(_path(name, post)).status_code == 405
+
+
+@pytest.mark.parametrize("name", POST_ONLY)
+def test_post_only_addresses_refuse_get_and_other_methods(gated_client, post, stranger, name):
+    gated_client.force_login(stranger.user)
+
+    for method in ("get", "put", "patch", "delete"):
         assert getattr(gated_client, method)(_path(name, post)).status_code == 405

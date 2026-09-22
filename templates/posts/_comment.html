@@ -1,0 +1,28 @@
+{% load i18n social_tags %}
+{% comment %} Ein Kommentar (Task 6.2, FR-B13 bis FR-B16, D-79). Anker `c-<nummer>` — Ziel eines
+   "↪ #m"-Verweises und der Weiterleitung nach dem Absenden ohne JavaScript. Text als Klartext:
+   `urlize` erkennt Links (mit `rel="nofollow"`, escaped), `linebreaks` macht Absätze/Zeilenumbrüche
+   daraus (D-80) — kein Markdown, anders als bei Beiträgen. Eine Hülle (nur in der Liste, wenn
+   beantwortet — `Comment.objects.for_post`) zeigt nur ihre Nummer, keinen Autor, keinen Text und
+   kein „Reply" (D-79). {% endcomment %}
+<article id="c-{{ comment.number }}" class="comment{% if comment.is_tombstone %} comment--tombstone{% endif %}">
+  <p class="comment__meta">
+    <span class="comment__number">#{{ comment.number }}</span>
+    {% if comment.reply_to_id %}
+      <a class="comment__reply-ref" href="#c-{{ comment.reply_to.number }}">↪ #{{ comment.reply_to.number }}</a>
+    {% endif %}
+  </p>
+
+  {% if comment.is_tombstone %}
+    <p class="comment__deleted">{% translate "deleted" %}</p>
+  {% else %}
+    {% author_card comment.author size="small" %}
+    <p class="comment__date">
+      <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"Y-m-d H:i" }}</time>
+    </p>
+    <div class="comment__body">{{ comment.body|urlize|linebreaks }}</div>
+    <p class="comment__actions">
+      <a class="tap-target" href="?reply={{ comment.number }}#comment-form">{% translate "Reply" %}</a>
+    </p>
+  {% endif %}
+</article>

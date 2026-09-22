@@ -7,7 +7,7 @@
   {% comment %} Beitragsseite (Task 5.4, FR-B5). Der Titel ist das einzige <h1>; Überschriften im Text
      rutschen dafür eine Stufe tiefer (apps/posts/markdown.py). Die Autorenkarte ist die Komponente aus
      Task 4.8 (FR-P15); die Farbverknüpfung steht als Text („General" oder Kombinationsname), nicht nur
-     als Farbe (NFR-6). Kommentare kommen mit v1.4 unter den Text. {% endcomment %}
+     als Farbe (NFR-6). Kommentare (Task 6.2) stehen unter dem Text, in einem eigenen Baustein. {% endcomment %}
   <article class="post" aria-labelledby="post-title">
     <header class="post__header">
       <h1 id="post-title">{{ post.title }}</h1>
@@ -52,4 +52,6 @@
       </div>
     {% endif %}
   </article>
+
+  {% include "posts/_comments_section.html" %}
 {% endblock %}

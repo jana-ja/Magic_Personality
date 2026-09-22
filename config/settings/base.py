@@ -253,6 +253,10 @@ POST_RATE_LIMIT_WINDOW_SECONDS = 3600
 REPORT_RATE_LIMIT_MAX_REPORTS = 20
 REPORT_RATE_LIMIT_WINDOW_SECONDS = 3600
 
+# Kommentare (Task 6.2, FR-B18): ebenso je Person, aus den eigenen Zeilen.
+COMMENT_RATE_LIMIT_MAX_COMMENTS = 60
+COMMENT_RATE_LIMIT_WINDOW_SECONDS = 3600
+
 # Der Schwellenwert T der Auswertungsregel (FR-T11) ist seit D-65 keine
 # Einstellung mehr, sondern steht je Fragebogen-Version in der Seed-Datei
 # (`Questionnaire.result_threshold`).

@@ -1,7 +1,8 @@
 """
 Views der Posts-App: Beitrag schreiben, bearbeiten, löschen (Task 5.3,
-FR-B1 bis FR-B4, FR-B11) und die Beitragsseite (Task 5.4, FR-B5). Die Listen
-(Task 5.5, 5.6) kommen mit den eigenen Tasks.
+FR-B1 bis FR-B4, FR-B11), die Beitragsseite (Task 5.4, FR-B5) und Kommentare
+darauf (Task 6.2, FR-B13, FR-B15, FR-B18). Die Listen (Task 5.5, 5.6) kommen
+mit den eigenen Tasks.
 
 Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 `Post.objects.visible_to()` (FR-B9).
@@ -11,6 +12,7 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
@@ -18,10 +20,11 @@ from apps.colors import selection
 from apps.colors.field import color_field_context
 
 from . import combinations, limits
+from .comments import create_comment
 from .decorators import author_only, current_profile
-from .forms import PostForm, ReportForm
+from .forms import CommentForm, PostForm, ReportForm
 from .markdown import render_markdown
-from .models import Post, Report
+from .models import Comment, Post, Report
 
 
 def _prefilled_colors(request):
@@ -125,15 +128,77 @@ def delete_post(request, post, profile):
     return render(request, "posts/post_confirm_delete.html", {"post": post})
 
 
+def _post_extras(post, profile):
+    """Der Teil des Beitragsseiten-Kontexts, der nichts mit Kommentaren zu tun
+    hat (Task 5.4): Farbkombination, Autorenrechte, Meldestatus."""
+    combination = None
+    if post.colors:
+        combination = {
+            "label": combinations.combination_labels([post.colors])[post.colors],
+            "url": combinations.combination_url(post.colors),
+        }
+    is_author = post.author_id == profile.pk
+    return {
+        "combination": combination,
+        "is_author": is_author,
+        # Nur fremde Beiträge lassen sich melden (FR-B10).
+        "already_reported": not is_author
+        and Report.objects.filter(reporter=profile, post=post).exists(),
+    }
+
+
+def _reply_number(raw):
+    """Eine Nummer aus `?reply=` oder dem `reply_to`-Feld des Formulars —
+    leer oder keine (positive) Zahl wird zu `None`, ohne Fehler (wie bei
+    `?colors=`, Task 5.6)."""
+    return int(raw) if raw and raw.isdigit() else None
+
+
+def _find_replyable(post, number):
+    """Der Kommentar `#number` dieses Beitrags, wenn er existiert und keine
+    Hülle ist (FR-B15) — sonst `None`. Eine veraltete oder erfundene Nummer
+    blockiert niemanden, sie wird einfach zu „kein Bezug"."""
+    if number is None:
+        return None
+    return Comment.objects.filter(post=post, number=number, deleted_at__isnull=True).first()
+
+
+def _comments_context(post, *, reply_number=None, comment_form=None):
+    """
+    Kommentarliste und -formular für die Beitragsseite und den Baustein
+    `#comments` (Task 6.2). `comment_form=None` erzeugt ein leeres Formular,
+    mit `reply_to` vorbelegt, wenn `reply_number` einen echten Kommentar
+    trifft — sonst ein übergebenes (gebundenes, ggf. fehlerhaftes)
+    Formular unverändert weiterreichen.
+    """
+    replying_to = _find_replyable(post, reply_number)
+    if comment_form is None:
+        initial = {"reply_to": replying_to.number} if replying_to else None
+        comment_form = CommentForm(initial=initial)
+    comments = list(
+        Comment.objects.for_post(post)
+        # "author": die Autorenkarte je Kommentar. "reply_to": der Verweis
+        # "↪ #m" braucht dessen Nummer — sonst eine Abfrage je Antwort.
+        .select_related("author", "reply_to")
+        .prefetch_related("author__color_assignments__combination")
+    )
+    return {
+        "post": post,
+        "comments": comments,
+        "comment_form": comment_form,
+        "replying_to": replying_to,
+    }
+
+
 @login_required
 @require_http_methods(["GET"])
 def post_detail(request, pk):
     """
     FR-B5: die Seite eines Beitrags — Autorenkarte, Farbkombination (Link auf
     die Color Infos, oder „General"), Datum, „edited" und der gerenderte
-    Text; die Autorin bzw. der Autor sieht „Edit" und „Delete". Unbekannte
-    und nicht sichtbare Beiträge sind 404 (`visible_to`). Kommentare kommen
-    mit v1.4.
+    Text; die Autorin bzw. der Autor sieht „Edit" und „Delete". Darunter die
+    Kommentare (Task 6.2). Unbekannte und nicht sichtbare Beiträge sind 404
+    (`visible_to`).
     """
     profile = current_profile(request)
     post = get_object_or_404(
@@ -142,24 +207,59 @@ def post_detail(request, pk):
         .prefetch_related("author__color_assignments__combination"),
         pk=pk,
     )
-    combination = None
-    if post.colors:
-        combination = {
-            "label": combinations.combination_labels([post.colors])[post.colors],
-            "url": combinations.combination_url(post.colors),
-        }
-    is_author = post.author_id == profile.pk
+    reply_number = _reply_number(request.GET.get("reply", ""))
     return render(
         request,
         "posts/post_detail.html",
-        {
-            "post": post,
-            "combination": combination,
-            "is_author": is_author,
-            # Nur fremde Beiträge lassen sich melden (FR-B10).
-            "already_reported": not is_author
-            and Report.objects.filter(reporter=profile, post=post).exists(),
-        },
+        {**_post_extras(post, profile), **_comments_context(post, reply_number=reply_number)},
+    )
+
+
+@login_required
+@require_http_methods(["POST"])
+def add_comment(request, pk):
+    """
+    FR-B13, FR-B15: einen Kommentar anlegen. `Post.objects.visible_to()`
+    entscheidet wie überall, ob der Beitrag überhaupt erreichbar ist
+    (FR-B8/FR-B9) — dieselbe Prüfung sitzt noch einmal in
+    `apps.posts.comments.create_comment()` (Task 6.1). Die Grenze (FR-B18)
+    steht hier statt in einem Decorator, damit ihre Meldung auch bei HTMX
+    (kein 4xx-Austausch) sichtbar ist — wie bei Beiträgen (5.3) und
+    Meldungen (5.7).
+
+    Mit HTMX kommt nur der Baustein `#comments` zurück, der neue Kommentar
+    erscheint ohne Seitenwechsel; ohne JavaScript ein POST mit Weiterleitung
+    auf den Anker `#c-<nummer>` des neuen Kommentars (FR-B14).
+    """
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
+
+    form = CommentForm(request.POST)
+    status = 200
+    if limits.is_limited(
+        Comment.objects.filter(author=profile),
+        max_count=settings.COMMENT_RATE_LIMIT_MAX_COMMENTS,
+        window_seconds=settings.COMMENT_RATE_LIMIT_WINDOW_SECONDS,
+    ):
+        form.add_error(None, _("You are commenting too fast. Please try again later."))
+        status = 200 if _is_htmx(request) else 429
+    elif form.is_valid():
+        reply_to = _find_replyable(post, form.cleaned_data["reply_to"])
+        comment = create_comment(
+            post=post, author=profile, body=form.cleaned_data["body"], reply_to=reply_to
+        )
+        if _is_htmx(request):
+            return render(request, "posts/_comments_section.html", _comments_context(post))
+        anchor = reverse("posts:detail", kwargs={"pk": post.pk}) + f"#c-{comment.number}"
+        return redirect(anchor)
+
+    context = _comments_context(
+        post, reply_number=_reply_number(request.POST.get("reply_to", "")), comment_form=form
+    )
+    if _is_htmx(request):
+        return render(request, "posts/_comments_section.html", context, status=status)
+    return render(
+        request, "posts/post_detail.html", {**_post_extras(post, profile), **context}, status=status
     )
 
 

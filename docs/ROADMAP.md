@@ -737,11 +737,13 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.2 · Kommentare auf der Beitragsseite
 **Abhängig von:** 6.1, 4.8 · **Anforderungen:** FR-B13, FR-B15, FR-B8
 **Fertig, wenn:**
-- [ ] Liste flach, älteste zuerst; je Kommentar kleine Autorenkarte, `#n` (Anker `c-n`), Datum, Text (`linebreaks` + `urlize`, escaped), bei Antworten „↪ #m" als Sprung zum Bezug.
-- [ ] Formular unter der Liste (≤ 2000 Zeichen), Grenze 60 je Person und Stunde; mit HTMX erscheint der neue Kommentar ohne Seitenwechsel, sonst POST mit Weiterleitung auf den Anker.
-- [ ] „Reply" je Kommentar: `?reply=3#comment-form`, das Formular zeigt „Replying to #3" mit „Cancel"; ohne JavaScript nutzbar. Auf Hüllen kein „Reply".
-- [ ] Nur eingeloggt; Beiträge, die `visible_to` ausschließt, nehmen keine Kommentare an.
-- [ ] Test: Reihenfolge, Antwort-Verweis, Anker, Grenze, Gast, unsichtbarer Beitrag, Escaping (Injektionstest wie 5.2 gegen Kommentare).
+- [x] Liste flach, älteste zuerst; je Kommentar kleine Autorenkarte, `#n` (Anker `c-n`), Datum, Text (`linebreaks` + `urlize`, escaped), bei Antworten „↪ #m" als Sprung zum Bezug.
+- [x] Formular unter der Liste (≤ 2000 Zeichen), Grenze 60 je Person und Stunde; mit HTMX erscheint der neue Kommentar ohne Seitenwechsel, sonst POST mit Weiterleitung auf den Anker.
+- [x] „Reply" je Kommentar: `?reply=3#comment-form`, das Formular zeigt „Replying to #3" mit „Cancel"; ohne JavaScript nutzbar. Auf Hüllen kein „Reply".
+- [x] Nur eingeloggt; Beiträge, die `visible_to` ausschließt, nehmen keine Kommentare an.
+- [x] Test: Reihenfolge, Antwort-Verweis, Anker, Grenze, Gast, unsichtbarer Beitrag, Escaping (Injektionstest wie 5.2 gegen Kommentare).
+
+> Umsetzung: `apps/posts/{forms,views}.py` (`CommentForm`, `add_comment`, `_comments_context`), Templates `posts/_comments_section.html` (Baustein `#comments`, Live-Region, HTMX-Ziel) und `posts/_comment.html`. `Comment.objects.for_post(post)` (Task 6.1) blendet Hüllen ohne Antworten schon jetzt aus — 6.3 muss dafür an den Templates nichts mehr ändern, nur den Löschweg selbst bauen. „Reply" ist ein reiner Navigationslink (`?reply=3#comment-form`, wie die Seitenlinks aus Task 5.5): kein eigenes JavaScript nötig, funktioniert dadurch aus sich heraus auch ohne JavaScript. Die Grenze (`COMMENT_RATE_LIMIT_MAX_COMMENTS = 60`) zählt wie bei Beiträgen und Meldungen aus den eigenen Zeilen; eine unbekannte oder veraltete `?reply=`-Nummer wird still zu „kein Bezug" (wie `?colors=`, Task 5.6), kein Formularfehler. Text als Klartext über Djangos `urlize`+`linebreaks` (D-80) — kein eigener Renderer nötig, an echten Angriffs-Nutzlasten sowie per Gegenprobe (Escaping kurz durch `|safe` ersetzt: 24 von 32 Fällen schlagen dann fehl) geprüft. Die Zugriffsmatrix aus Task 5.9 (`test_access_control.py`) kennt die neue Adresse `comment` (schreibend, nur POST). Im Browser geprüft: HTMX-Kommentar ohne Seitenwechsel, „Reply" mit Banner und Zurücksetzen nach dem Absenden, echte Formularübermittlung ohne JavaScript springt auf `#c-4` (`:target` greift), bei 375 px kein horizontales Scrollen, „Reply"/„Post comment" 44 px hoch.
 
 #### 6.3 · Kommentar löschen, Hüllen, Account-Löschung
 **Abhängig von:** 6.2 · **Anforderungen:** FR-B16, FR-B19, D-79

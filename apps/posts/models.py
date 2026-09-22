@@ -22,7 +22,7 @@ Stelle ergänzen (Test in Task 7.4).
 
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.db.models.functions import Length
 from django.db.models.lookups import LessThanOrEqual
 from django.utils.translation import gettext_lazy as _
@@ -144,6 +144,25 @@ class Report(models.Model):
         return self.handled_at is None
 
 
+class CommentQuerySet(models.QuerySet):
+    def for_post(self, post):
+        """
+        Die Kommentare eines Beitrags für die Anzeige (Task 6.2, FR-B13, D-79):
+        älteste zuerst (`Meta.ordering`), ohne Hüllen ohne Antworten — sie
+        tragen nichts mehr bei, sobald niemand mehr auf sie verweist.
+
+        `Exists()` statt eines `annotate(Count(...))`: fragt nur „gibt es
+        mindestens eine Antwort", ohne für jeden Kommentar alle seine
+        Antworten zu zählen.
+        """
+        has_a_reply = self.model.objects.filter(reply_to=OuterRef("pk"))
+        return (
+            self.filter(post=post)
+            .annotate(has_reply=Exists(has_a_reply))
+            .exclude(deleted_at__isnull=False, has_reply=False)
+        )
+
+
 class Comment(models.Model):
     """
     Kommentar unter einem Beitrag (Task 6.1, FR-B13 bis FR-B16, D-79). **Flach**
@@ -171,6 +190,11 @@ class Comment(models.Model):
 
     Kommentare sind **nicht bearbeitbar**: bei Verweisen bliebe sonst unklar,
     worauf sich eine Antwort einmal bezogen hat (anders als bei `Post`, D-72).
+
+    **Anzeige** (Task 6.2): `objects.for_post(post)` ist der Weg, auf dem eine
+    Seite Kommentare liest — er lässt Hüllen ohne Antworten aus (D-79: „Eine
+    Hülle wird nur angezeigt, wenn auf sie geantwortet wurde"). Eine Hülle mit
+    Antworten bleibt drin, damit deren „↪ #n"-Verweise ein Ziel behalten.
     """
 
     post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
@@ -193,6 +217,8 @@ class Comment(models.Model):
     )
     created_at = models.DateTimeField(auto_now_add=True)
     deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = CommentQuerySet.as_manager()
 
     class Meta:
         ordering = ["number"]
