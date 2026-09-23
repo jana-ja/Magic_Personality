@@ -797,11 +797,23 @@ Anlass: Beiträge sollen diskutiert werden können. Gestaltung und Begründung: 
 #### 6.7 · Release-Durchsicht v1.4
 **Abhängig von:** 6.6 · **Anforderungen:** PRD §11 (v1.4)
 **Fertig, wenn:**
-- [ ] Alle Abnahmekriterien aus PRD §11 (v1.4) durchgegangen und abgehakt.
-- [ ] Zugriffsschutz für alle neuen Adressen erneut geprüft; Kommentar-POSTs von Gästen und Fremden ändern nichts.
-- [ ] Injektionstest im Browser gegen Kommentare (Beitragsseite, Tab „Comments", Admin).
-- [ ] Nummernvergabe unter gleichzeitiger Last einmal von Hand nachgestellt (zwei Sitzungen kommentieren im selben Moment).
-- [ ] Backup-Wiederherstellung erneut geprobt; `DECISIONS.md` vollständig; Deployment mit `scripts/deploy_full.sh`.
+- [x] Alle Abnahmekriterien aus PRD §11 (v1.4) durchgegangen und abgehakt.
+- [x] Zugriffsschutz für alle neuen Adressen erneut geprüft; Kommentar-POSTs von Gästen und Fremden ändern nichts.
+- [x] Injektionstest im Browser gegen Kommentare (Beitragsseite, Tab „Comments", Admin).
+- [x] Nummernvergabe unter gleichzeitiger Last einmal von Hand nachgestellt (zwei Sitzungen kommentieren im selben Moment).
+- [x] Backup-Wiederherstellung erneut geprobt; `DECISIONS.md` vollständig; Deployment mit `scripts/deploy_full.sh`.
+
+> **Durchsicht (2026-09-23).** **Abnahme PRD §11 (v1.4):** (1) Feste, nach Löschen nicht neu vergebene Nummern, auch bei gleichzeitigem Schreiben eindeutig, „↪ #n" für Antworten — `test_comments.py` (zwölf echte Threads, Task 6.1) **und** von Hand gegen den laufenden Dev-Server nachgestellt (s. u.). (2) Eine Hülle mit Antworten bleibt ohne Text und Autor stehen — `test_comment_deletion.py` (Task 6.3). (3) Tab „Comments" und Zähler neuer Kommentare (nur Fremdes, Rücksetzen beim Öffnen) — `test_profile_comments_tab.py` (6.4), `test_new_comment_counter.py` (6.6). (4) Account-Löschung macht fremde Kommentare zu Hüllen — `test_account_deletion.py` (`test_deleting_the_account_tombstones_comments_under_foreign_posts` u. a., Task 6.3). Gesamtsuite: 1586 Tests, alle grün; `ruff check`/`format` sauber; `makemigrations --check` meldet nichts.
+>
+> **Zugriffsschutz:** `test_access_control.py` (Posts-App) deckt seit Task 6.3/6.5 auch die Kommentar-Adressen ab (`comment`, `comment_delete`, `comment_report`, `comment_report_thanks`) — Gate, Login (GET **und** POST, nichts ändert sich), Autorenrechte (bei `comment_delete` die des Kommentars, nicht des Beitrags — eigener Test dafür), CSRF mit eingeschalteter Prüfung, erlaubte Methoden; ein Wächtertest meldet jede neue, nicht aufgenommene Adresse. 112 Tests (Posts- und Social-Matrix zusammen), alle grün. Eine gezielte Gegenprobe (`@login_required` versuchsweise von `add_comment` entfernen, Matrix-Test erneut laufen lassen) wurde von der Sandbox als sicherheitsschwächende Codeänderung abgelehnt, bevor der Test lief — der Code kam unverändert zurück (`git diff` leer); die Abdeckung selbst steht bereits durch die parametrisierte Matrix (`test_without_a_login_every_address_leads_to_the_login_and_changes_nothing` läuft für `"comment"` mit).
+>
+> **Injektionstest im Browser:** Ein Kommentar mit `<script>`, `<img onerror>`, `<iframe src=javascript:>`, `<svg onload>`, einem Markdown-artigen `[click](javascript:...)`-Link und einem rohen `javascript:`-Text, angesehen auf der Beitragsseite, im Tab „Comments" der Autorin bzw. des Autors und im Admin (Liste **und** Detailseite): `window.__pwned*` blieb in jeder der vier Ansichten `null`, der ganze Text erscheint als escapter Klartext in einem einzelnen `<p>` ohne verschachtelte Elemente — anders als bei Beiträgen (Markdown, D-80) erzeugt hier `urlize`+`linebreaks` nicht einmal einen Link aus dem `javascript:`-Text, geschweige denn Markup aus der eckigen-Klammer-Syntax.
+>
+> **Nummernvergabe unter Last, von Hand:** Zwölf echte HTTP-POSTs (nicht der In-Process-Test-Client, sondern `http.client` gegen den laufenden Dev-Server) von zwei getrennt angemeldeten Sitzungen gleichzeitig (`ThreadPoolExecutor`) gegen denselben Beitrag — Ergebnis `#1` bis `#12`, jede Nummer genau einmal, `Post.comment_seq` am Ende `12`. Bestätigt denselben Schutz (`select_for_update()` in `create_comment()`) noch einmal über den vollen HTTP-Stack statt nur direkt gegen die Datenbank.
+>
+> **Backup-Wiederherstellung:** siehe `docs/DEPLOYMENT.md`, „Ein fünftes Mal geprobt" — mit eigens angelegten Kommentar- und `PostSeen`-Testdaten, damit der Vergleich echten Inhalt bewegt; Zeilenzahlen, eine Inhalts-Prüfsumme über die Kommentare und der `PostSeen`-Wasserstand identisch, alle Constraints beider neuen Tabellen (`comment_unique_number_per_post`, `comment_body_max_length`, `post_seen_once_per_person_and_post`, alle Fremdschlüssel) korrekt wiederhergestellt. **`DECISIONS.md`:** 82 Einträge (D-01 bis D-82), jeder „Angenommen" oder ausdrücklich „Ersetzt durch …", keiner „Offen". **Deployment:** neue Migrationen (`posts.0003` bis `0005`), also `scripts/deploy_full.sh` (siehe „Release-Hinweise v1.4").
+
+**Meilenstein v1.4 abgeschlossen** — Beiträge lassen sich kommentieren; die Pinnwand (v1.5) kann Kommentare als zweite Art von Pin-Ziel aufnehmen.
 
 ---
 
