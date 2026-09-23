@@ -1491,6 +1491,20 @@ main button {
   font-size: 1.125rem;
 }
 
+/* Zähler neuer Kommentare/Antworten (Task 6.6, FR-B20) — dieselbe Form wie
+   .profile-tabs__count, aber mit Text statt nur einer Ziffer: hier steht sie
+   nicht neben einem Tab-Namen, der schon sagt, worum es geht. */
+.post-card__new {
+  display: inline-block;
+  padding: 0 var(--space-1);
+  border-radius: 999px;
+  background: var(--color-accent);
+  color: #ffffff;
+  font-size: var(--font-size-sm);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
 .post-card__meta {
   display: flex;
   flex-wrap: wrap;

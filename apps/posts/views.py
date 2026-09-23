@@ -27,6 +27,7 @@ from .decorators import author_only, current_profile
 from .forms import CommentForm, PostForm, ReportForm
 from .markdown import render_markdown
 from .models import Comment, Post, Report
+from .seen import mark_seen
 
 
 def _prefilled_colors(request):
@@ -213,6 +214,9 @@ def post_detail(request, pk):
     Text; die Autorin bzw. der Autor sieht „Edit" und „Delete". Darunter die
     Kommentare (Task 6.2). Unbekannte und nicht sichtbare Beiträge sind 404
     (`visible_to`).
+
+    Öffnen setzt den gesehenen Stand dieses Beitrags auf den aktuellen
+    Kommentarstand (Task 6.6, `mark_seen()`).
     """
     profile = current_profile(request)
     post = get_object_or_404(
@@ -222,14 +226,12 @@ def post_detail(request, pk):
         pk=pk,
     )
     reply_number = _reply_number(request.GET.get("reply", ""))
-    return render(
-        request,
-        "posts/post_detail.html",
-        {
-            **_post_extras(post, profile),
-            **_comments_context(post, viewer_id=profile.pk, reply_number=reply_number),
-        },
-    )
+    context = {
+        **_post_extras(post, profile),
+        **_comments_context(post, viewer_id=profile.pk, reply_number=reply_number),
+    }
+    mark_seen(profile, post)
+    return render(request, "posts/post_detail.html", context)
 
 
 @login_required
@@ -247,6 +249,10 @@ def add_comment(request, pk):
     Mit HTMX kommt nur der Baustein `#comments` zurück, der neue Kommentar
     erscheint ohne Seitenwechsel; ohne JavaScript ein POST mit Weiterleitung
     auf den Anker `#c-<nummer>` des neuen Kommentars (FR-B14).
+
+    Ein erfolgreicher eigener Kommentar setzt zugleich den gesehenen Stand
+    dieses Beitrags (Task 6.6, `mark_seen()`) — wer selbst kommentiert hat,
+    hat den Beitrag damit gesehen.
     """
     profile = current_profile(request)
     post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
@@ -265,6 +271,7 @@ def add_comment(request, pk):
         comment = create_comment(
             post=post, author=profile, body=form.cleaned_data["body"], reply_to=reply_to
         )
+        mark_seen(profile, post)
         if _is_htmx(request):
             context = _comments_context(post, viewer_id=profile.pk)
             return render(request, "posts/_comments_section.html", context)

@@ -454,6 +454,7 @@ def test_the_validator_itself_catches_dangerous_markup():
 
 def test_more_comments_do_not_cost_more_queries(member, post, author, make_profile):
     create_comment(post=post, author=author, body="one")
+    member.get(detail_url(post))  # legt die PostSeen-Zeile an (Task 6.6), vor der Messung
     one = _query_count(member, detail_url(post))
 
     last = None

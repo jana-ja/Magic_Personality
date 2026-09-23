@@ -1,6 +1,7 @@
 """
-Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78), Meldungen (Task 5.7,
-FR-B10, D-81) und Kommentare (Task 6.1, FR-B14, FR-B15, D-79).
+Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78), Meldungen (Task 5.7/6.5,
+FR-B10, D-81), Kommentare (Task 6.1, FR-B14, FR-B15, D-79) und der Stand des
+Zählers neuer Kommentare (Task 6.6, FR-B20, D-79).
 
 `Post.author` verweist auf `accounts.Profile`, nicht auf `accounts.User`
 (D-78) — wie `Friendship` (D-22): die Autorenkarte braucht nur das
@@ -277,3 +278,36 @@ class Comment(models.Model):
     @property
     def is_tombstone(self):
         return self.deleted_at is not None
+
+
+class PostSeen(models.Model):
+    """
+    Der Stand des Zählers neuer Kommentare (Task 6.6, FR-B20, D-79):
+    `last_seen_number` ist die höchste Kommentar-Nummer dieses Beitrags, die
+    `profile` schon gesehen hat — technisch derselbe Wert wie
+    `Post.comment_seq` zum Zeitpunkt des letzten Aufrufs, nicht live daran
+    gekoppelt (`apps.posts.seen.mark_seen()` schreibt ihn fest).
+
+    Es gibt nur eine Zeile je Person und Beitrag — auch wenn beide Gründe
+    aus FR-B20 zutreffen (Autorin/Autor **und** eigener Kommentar
+    darunter), reicht ein gemeinsamer Stand: „neu" bemisst sich ohnehin an
+    derselben Zahl. Eine Zeile entsteht nur für Personen mit einem der
+    beiden Gründe (`mark_seen()` prüft das) — für alle anderen gäbe es nie
+    eine „neu"-Markierung, eine Zeile wäre also Verschwendung.
+    """
+
+    profile = models.ForeignKey(
+        "accounts.Profile", on_delete=models.CASCADE, related_name="post_seen"
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="seen_by")
+    last_seen_number = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile", "post"], name="post_seen_once_per_person_and_post"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.profile} @ {self.post} (#{self.last_seen_number})"

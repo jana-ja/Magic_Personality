@@ -1,11 +1,12 @@
 """
-Django-Admin für Beiträge, Meldungen (Task 5.1, 5.7, 6.5, D-71, D-81) und
-Kommentare (Task 6.1, D-79). Nutzerdaten sind nur lesbar: Anlegen und Ändern
-läuft ausschließlich über die Views bzw. `apps.posts.comments`, die Längen,
-Farbcode und Rechte prüfen. Löschen bleibt bei Beiträgen und Meldungen
-möglich (D-81: die Projektinhaberin löscht gemeldete Beiträge hier), bei
-Kommentaren nicht — siehe `CommentAdmin`; gemeldete Kommentare werden über
-eine eigene Aktion auf `ReportAdmin` zur Hülle gemacht (Task 6.5).
+Django-Admin für Beiträge, Meldungen (Task 5.1, 5.7, 6.5, D-71, D-81),
+Kommentare (Task 6.1, D-79) und den Stand des Zählers neuer Kommentare
+(Task 6.6, `PostSeen`). Nutzerdaten sind nur lesbar: Anlegen und Ändern
+läuft ausschließlich über die Views bzw. `apps.posts.comments`/`apps.posts.seen`,
+die Längen, Farbcode und Rechte prüfen. Löschen bleibt bei Beiträgen und
+Meldungen möglich (D-81: die Projektinhaberin löscht gemeldete Beiträge
+hier), bei Kommentaren nicht — siehe `CommentAdmin`; gemeldete Kommentare
+werden über eine eigene Aktion auf `ReportAdmin` zur Hülle gemacht (Task 6.5).
 """
 
 from django.contrib import admin
@@ -14,7 +15,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 
 from .comments import make_tombstone
-from .models import Comment, Post, Report
+from .models import Comment, Post, PostSeen, Report
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -174,3 +175,13 @@ class CommentAdmin(ReadOnlyAdmin):
             make_tombstone(comment)
             count += 1
         self.message_user(request, f"{count} comment(s) deleted.")
+
+
+@admin.register(PostSeen)
+class PostSeenAdmin(ReadOnlyAdmin):
+    """Nur zum Nachsehen (D-71) — reiner interner Stand, den ausschließlich
+    `apps.posts.seen.mark_seen()` schreibt (Task 6.6)."""
+
+    list_display = ["profile", "post", "last_seen_number"]
+    list_select_related = ["profile", "post"]
+    search_fields = ["profile__nickname", "post__title"]

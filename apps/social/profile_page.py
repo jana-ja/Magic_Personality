@@ -15,6 +15,7 @@ from apps.colors import pentagon
 from apps.colors.content import LOCALE
 from apps.colors.field import color_field_context
 from apps.colors.models import Color, ColorCombination
+from apps.posts import seen as comment_seen
 
 from . import friendships
 from .models import Friendship
@@ -89,6 +90,10 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     (Testhistorie) und `SETTINGS` (Einstellungen) — die beiden rufen nur Views
     auf, die vorher `owner_only` passiert haben.
 
+    `new_comment_count` (Task 6.6, FR-B20) steht ebenfalls nur für die
+    eigene Person: neue Kommentare unter eigenen Beiträgen oder als
+    Antwort auf eigene Kommentare, fürs Abzeichen am Reiter „Posts".
+
     `editing` (`"nickname"`, `"bio"` oder `"colors"`, Task 4.5/4.6) schaltet den jeweiligen
     Bereich der Seite in den Bearbeiten-Modus, `edit_form` ist dessen
     (ggf. gebundenes, fehlerhaftes) Formular.
@@ -111,6 +116,7 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     if is_owner:
         received = list(friendships.pending_requests_received(profile))
         context["friend_request_count"] = len(received)
+        context["new_comment_count"] = comment_seen.total_new_comment_count(profile)
     else:
         context.update(relationship_context(viewer_profile, profile))
 

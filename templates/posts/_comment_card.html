@@ -1,12 +1,17 @@
 {% load i18n posts_tags %}
 {% comment %} Kommentar-Karte für den Profil-Tab "Comments" (Task 6.4, FR-B17) — dieselben
    .post-card-Klassen wie die Beitragskarte (Task 5.5), damit beide Listen gleich aussehen.
-   Erwartet `comment` (mit vorgeladenem `.post`, `apps.posts.listing.author_comments_page`).
-   Die ganze Karte ist **ein** Link: der Titel des Beitrags, per ::after über die Karte gespannt,
-   mit Sprung zum Kommentar selbst (#c-<nummer>). {% endcomment %}
+   Erwartet `comment` (mit vorgeladenem `.post` und `.new_count`,
+   `apps.posts.listing.author_comments_page`) — `new_count` (Task 6.6) sind neue Antworten
+   auf genau diesen Kommentar. Die ganze Karte ist **ein** Link: der Titel des Beitrags, per
+   ::after über die Karte gespannt, mit Sprung zum Kommentar selbst (#c-<nummer>). {% endcomment %}
 <article class="post-card">
   <h3 class="post-card__title">
     <a class="post-card__link" href="{% url 'posts:detail' pk=comment.post_id %}#c-{{ comment.number }}">{{ comment.post.title }}</a>
+    {% if comment.new_count %}
+      <span class="post-card__new" aria-hidden="true">{{ comment.new_count }} {% translate "new" %}</span>
+      <span class="visually-hidden">{% blocktranslate count counter=comment.new_count %}, {{ counter }} new reply{% plural %}, {{ counter }} new replies{% endblocktranslate %}</span>
+    {% endif %}
   </h3>
   <p class="post-card__meta">
     <span class="comment__number">#{{ comment.number }}</span>
