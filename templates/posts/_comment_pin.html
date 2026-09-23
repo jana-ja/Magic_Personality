@@ -1,0 +1,14 @@
+{% load i18n %}
+{% comment %} Pin-Knopf eines Kommentars (Task 7.1, FR-B21, D-82) — Gegenstück zu
+   `_post_pin.html`, eigener Bereich je Kommentar (`id="comment-pin-<pk>"`), damit
+   HTMX genau diesen Knopf tauscht, nicht die ganze Liste. {% endcomment %}
+<span id="comment-pin-{{ comment.pk }}" class="comment__pin">
+  <form method="post" action="{% url 'posts:comment_pin' post_pk=post.pk pk=comment.pk %}"
+        hx-post="{% url 'posts:comment_pin' post_pk=post.pk pk=comment.pk %}"
+        hx-target="#comment-pin-{{ comment.pk }}" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button type="submit" class="tap-target">
+      {% if is_pinned %}{% translate "Unpin" %}{% else %}{% translate "Pin" %}{% endif %}
+    </button>
+  </form>
+</span>

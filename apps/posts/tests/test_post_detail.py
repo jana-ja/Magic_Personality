@@ -215,12 +215,13 @@ def test_only_get_is_allowed(member, author):
 
 def test_the_page_needs_a_constant_number_of_queries(member, author, django_assert_max_num_queries):
     """
-    17 statt vorher 14 (Task 6.6): `mark_seen()` setzt den gesehenen Stand
-    beim Öffnen — ein fester Aufschlag (Nachladen von `comment_seq`, Suchen
-    und Anlegen/Aktualisieren der `PostSeen`-Zeile, je in einem Savepoint),
-    der nicht mit der Zahl der Kommentare wächst.
+    18 statt vorher 17 (Task 7.1): `_post_extras()` prüft den Pin-Status mit
+    einer weiteren, festen Abfrage (`Pin.objects.filter(...).exists()`), die
+    nicht mit der Zahl der Kommentare wächst — zuvor 14 → 17 durch
+    `mark_seen()` (Task 6.6: Nachladen von `comment_seq`, Suchen und
+    Anlegen/Aktualisieren der `PostSeen`-Zeile, je in einem Savepoint).
     """
     post = Post.objects.create(author=author, title="T", body="b", colors="WG")
 
-    with django_assert_max_num_queries(17):
+    with django_assert_max_num_queries(18):
         member.get(_url(post))

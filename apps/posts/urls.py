@@ -11,6 +11,7 @@ urlpatterns = [
     path("posts/<int:pk>/delete/", views.delete_post, name="delete"),
     path("posts/<int:pk>/report/", views.report_post, name="report"),
     path("posts/<int:pk>/report/thanks/", views.report_thanks, name="report_thanks"),
+    path("posts/<int:pk>/pin/", views.pin_post, name="pin"),
     path("posts/<int:pk>/comment/", views.add_comment, name="comment"),
     path(
         "posts/<int:post_pk>/comments/<int:pk>/delete/",
@@ -26,5 +27,10 @@ urlpatterns = [
         "posts/<int:post_pk>/comments/<int:pk>/report/thanks/",
         views.comment_report_thanks,
         name="comment_report_thanks",
+    ),
+    path(
+        "posts/<int:post_pk>/comments/<int:pk>/pin/",
+        views.pin_comment,
+        name="comment_pin",
     ),
 ]

@@ -1,6 +1,7 @@
 """
 Zugriffsmatrix aller Adressen der Beiträge (Task 5.9, FR-B4, FR-B8, FR-B10,
-D-78) und ihrer Kommentare (Task 6.3, FR-B16; Task 6.5, FR-B18).
+D-78), ihrer Kommentare (Task 6.3, FR-B16; Task 6.5, FR-B18) und des Pinnens
+(Task 7.1, FR-B21).
 
 Gleiche Idee wie `apps/social/tests/test_access_control.py`: jede Adresse wird
 systematisch durchgegangen, und ein Test sorgt dafür, dass eine **neue** Adresse
@@ -26,19 +27,33 @@ NAMES = [
     "delete",
     "report",
     "report_thanks",
+    "pin",
     "comment",
     "comment_delete",
     "comment_report",
     "comment_report_thanks",
+    "comment_pin",
     "colors_posts",
 ]
 #: Adressen, die nur die Autorin bzw. der Autor erreicht — bei "comment_delete"
 #: die des Kommentars, hier (Fixtur `comment`) dieselbe Person wie beim Beitrag.
+#: "pin"/"comment_pin" bewusst nicht dabei: Pinnen geht bei eigenen wie fremden
+#: Inhalten (FR-B21/FR-B24), anders als Bearbeiten/Löschen/Melden.
 AUTHOR_ONLY = ["edit", "delete", "comment_delete"]
 #: Adressen, die etwas speichern oder löschen (also CSRF-geschützt sein müssen).
-WRITING = ["new", "edit", "delete", "report", "comment", "comment_delete", "comment_report"]
+WRITING = [
+    "new",
+    "edit",
+    "delete",
+    "report",
+    "pin",
+    "comment",
+    "comment_delete",
+    "comment_report",
+    "comment_pin",
+]
 #: Adressen, die **nur** POST annehmen (kein GET, anders als die übrigen WRITING-Adressen).
-POST_ONLY = ["comment"]
+POST_ONLY = ["comment", "pin", "comment_pin"]
 #: Adressen, die **nur** GET annehmen.
 GET_ONLY = ["detail", "report_thanks", "comment_report_thanks", "colors_posts"]
 
@@ -51,10 +66,12 @@ def _path(name, post, comment):
         "delete": f"/posts/{post.pk}/delete/",
         "report": f"/posts/{post.pk}/report/",
         "report_thanks": f"/posts/{post.pk}/report/thanks/",
+        "pin": f"/posts/{post.pk}/pin/",
         "comment": f"/posts/{post.pk}/comment/",
         "comment_delete": f"/posts/{post.pk}/comments/{comment.pk}/delete/",
         "comment_report": f"/posts/{post.pk}/comments/{comment.pk}/report/",
         "comment_report_thanks": f"/posts/{post.pk}/comments/{comment.pk}/report/thanks/",
+        "comment_pin": f"/posts/{post.pk}/comments/{comment.pk}/pin/",
         "colors_posts": "/colors/wg/posts/",
     }[name]
 

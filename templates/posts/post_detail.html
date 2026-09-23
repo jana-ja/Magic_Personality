@@ -32,12 +32,13 @@
 
     <div class="post-body">{{ post.body|markdown }}</div>
 
-    {% if is_author %}
-      <footer class="post__actions">
+    <footer class="post__actions">
+      {% if is_author %}
         <a class="tap-target" href="{% url 'posts:edit' pk=post.pk %}">{% translate "Edit" %}</a>
         <a class="tap-target" href="{% url 'posts:delete' pk=post.pk %}">{% translate "Delete" %}</a>
-      </footer>
-    {% endif %}
+      {% endif %}
+      {% include "posts/_post_pin.html" %}
+    </footer>
 
     {% comment %} Melden (Task 5.7, FR-B10): nur bei fremden Beiträgen. Mit HTMX öffnet der Link das Formular
        an Ort und Stelle, ohne JavaScript führt er auf die eigene Seite. Der Bereich ist eine Live-Region. {% endcomment %}
