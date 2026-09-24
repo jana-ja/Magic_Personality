@@ -211,6 +211,19 @@ Danach in `/admin/` mit den normalen Zugangsdaten anmelden. Weitere Admins lasse
 
 **Ein fünftes Mal geprobt** (2026-09-23, Task 6.7/Release-Durchsicht v1.4), diesmal mit den neuen Tabellen `posts_comment` und `posts_postseen`: `scripts/backup.sh` gegen den laufenden `db`-Container, Einspielen in eine Wegwerf-Datenbank (Schritt 2), mit eigens angelegten Testdaten (2 Profile, 1 Beitrag, 3 Kommentare — davon einer eine Antwort und einer eine Hülle —, 1 `PostSeen`-Zeile), damit der Vergleich auch wirklich Inhalt bewegt statt nur Nullen gegen Nullen zu prüfen. Verglichen wurden Zeilenzahlen (4 Profile, 1 Beitrag, 3 Kommentare, 1 `PostSeen`-Zeile), eine Inhalts-Prüfsumme über Nummer, Text und Autor aller Kommentare sowie der Wasserstand (`last_seen_number`) der `PostSeen`-Zeile — identisch. `\d posts_comment`/`\d posts_postseen` zeigten alle Constraints aus `apps.posts.models` korrekt wiederhergestellt: `comment_unique_number_per_post`, `comment_body_max_length`, die drei Fremdschlüssel von `posts_comment` (Autor, Beitrag, `reply_to`) sowie `post_seen_once_per_person_and_post` und die beiden Fremdschlüssel von `posts_postseen`. Testdaten, Wegwerf-Datenbank und Dump danach gelöscht.
 
+**Ein sechstes Mal geprobt** (2026-09-24, Task 7.4/Release-Durchsicht v1.5), diesmal mit der neuen Tabelle `posts_pin`: `scripts/backup.sh` gegen den laufenden `db`-Container, Einspielen in eine Wegwerf-Datenbank (Schritt 2), mit eigens angelegten Testdaten (2 Profile, 1 Beitrag, 1 Kommentar, 2 Pins — einer auf den Beitrag, einer auf den Kommentar). Verglichen wurden Zeilenzahlen (4 Profile, 2 Pins) und eine Inhalts-Prüfsumme über Person und Ziel beider Pins — identisch. `\d posts_pin` zeigte alle Constraints aus `Pin.Meta` korrekt wiederhergestellt: `pin_exactly_one_of_post_or_comment`, die beiden partiellen `UNIQUE`-Indizes (`pin_once_per_person_and_post`/`_and_comment`) und alle drei Fremdschlüssel (Profil, Beitrag, Kommentar). Testdaten, Wegwerf-Datenbank und Dump danach gelöscht.
+
+## Release-Hinweise v1.5 (Pinnwand)
+
+Wie v1.3/v1.4 braucht v1.5 ein **vollständiges** Deployment:
+
+- **Migrationen:** `posts.0006_pin` — eine neue Tabelle (`Pin`, Task 7.1); `posts_post`, `posts_comment` und `posts_report` selbst unverändert. Deshalb `scripts/deploy_full.sh`, nicht `scripts/deploy.sh`. Seeds ändern sich nicht, keine neue Abhängigkeit und kein neues JavaScript (Pinnen ist derselbe HTMX-Knopf-Baustein wie Melden/Kommentieren).
+- **Neue Adressen** (alle hinter Gate und Login): `/posts/<id>/pin/`, `/posts/<id>/comments/<id>/pin/`. Der Standardtab des Profils (`/u/<nickname>/`) zeigt jetzt die Pinnwand statt des „Coming soon"-Platzhalters — dieselbe Adresse wie zuvor, keine neue URL dafür nötig. `compose*.yaml`, `Dockerfile` und `Caddyfile` sind unverändert.
+- **Admin:** Pins unter „Pins" (nur lesbar, `ReadOnlyAdmin` wie `PostSeen` — keine Moderation vorgesehen, Pinnen ist eine private Sammlung, keine Meldung).
+- **Datenschutz:** Die Datenschutzseite nennt Pins jetzt (Task 7.3): sichtbar für alle Angemeldeten wie Beiträge/Kommentare, Pinnen macht nichts sichtbarer, was es nicht schon war; Account-Löschung nimmt eigene Pins und fremde Pins auf die eigenen Beiträge mit, ein Pin auf einen zur Hülle gewordenen Kommentar bleibt als Zeile bestehen, wird aber nicht mehr angezeigt.
+
+Vor dem Deployment lässt sich mit dem Backup-Ablauf oben ein Dump ziehen; nach dem Deployment reicht ein Blick auf `/healthz` und ein Pin auf einen Beitrag (Standardtab des eigenen Profils zeigt ihn dann statt des früheren Platzhalters).
+
 ## Release-Hinweise v1.4 (Kommentare)
 
 Wie v1.3 braucht v1.4 ein **vollständiges** Deployment:

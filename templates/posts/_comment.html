@@ -1,12 +1,13 @@
 {% load i18n social_tags %}
-{% comment %} Ein Kommentar (Task 6.2/6.3/6.5, FR-B13 bis FR-B16, FR-B18, D-79/D-81). Anker
-   `c-<nummer>` — Ziel eines "↪ #m"-Verweises und der Weiterleitung nach dem Absenden ohne
+{% comment %} Ein Kommentar (Task 6.2/6.3/6.5/7.1, FR-B13 bis FR-B16, FR-B18, FR-B21, D-79/D-81/D-82).
+   Anker `c-<nummer>` — Ziel eines "↪ #m"-Verweises und der Weiterleitung nach dem Absenden ohne
    JavaScript. Text als Klartext: `urlize` erkennt Links (mit `rel="nofollow"`, escaped),
    `linebreaks` macht Absätze/Zeilenumbrüche daraus (D-80) — kein Markdown, anders als bei
    Beiträgen. Eine Hülle (nur in der Liste, wenn beantwortet — `Comment.objects.for_post`) zeigt
-   nur ihre Nummer, keinen Autor, keinen Text und weder „Reply"/„Delete" noch „Report" (D-79) —
-   `viewer_id` träfe wegen `author=None` ohnehin nie zu, und eine Hülle hat nichts mehr zu melden.
-   „Delete" nur am eigenen Kommentar, „Report" nur an fremden (nie beides zugleich). {% endcomment %}
+   nur ihre Nummer, keinen Autor, keinen Text und weder „Reply"/„Delete"/„Pin" noch „Report" (D-79) —
+   `viewer_id` träfe wegen `author=None` ohnehin nie zu, eine Hülle hat nichts mehr zu melden oder
+   zu pinnen. „Delete" nur am eigenen Kommentar, „Report" nur an fremden (nie beides zugleich);
+   „Pin" dagegen an jedem, eigenen wie fremden (FR-B21/FR-B24). {% endcomment %}
 <article id="c-{{ comment.number }}" class="comment{% if comment.is_tombstone %} comment--tombstone{% endif %}">
   <p class="comment__meta">
     <span class="comment__number">#{{ comment.number }}</span>
@@ -28,6 +29,7 @@
       {% if comment.author_id == viewer_id %}
         <a class="tap-target" href="{% url 'posts:comment_delete' post_pk=post.pk pk=comment.pk %}">{% translate "Delete" %}</a>
       {% endif %}
+      {% include "posts/_comment_pin.html" with is_pinned=comment.is_pinned %}
     </p>
     {% if comment.author_id != viewer_id %}
       {% comment %} Melden (Task 6.5, FR-B18): eigener Bereich je Kommentar, mit HTMX öffnet der

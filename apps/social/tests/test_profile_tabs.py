@@ -84,10 +84,13 @@ def test_tabs_are_plain_links_without_javascript_hooks(gated_client, alex, jamie
     assert 'role="tab"' not in tabs
 
 
-def test_the_pinboard_shows_a_coming_soon_placeholder(gated_client, alex, jamie):
+def test_the_pinboard_shows_the_empty_state_when_nothing_is_pinned(gated_client, alex, jamie):
+    """Die Pinnwand selbst (Task 7.2, FR-B22) hat ihre eigenen Tests in
+    `test_pinboard_tab.py`; hier nur, dass der Tab lädt, ohne dass jemand
+    etwas gepinnt hat."""
     html = _get(gated_client, alex, "/u/jamie/")
 
-    assert "Coming soon" in html
+    assert "Nothing pinned yet." in html
 
 
 def test_the_friends_tab_requires_login(gated_client, jamie):

@@ -1,6 +1,6 @@
 """
-Seiten mit Beiträgen (Task 5.5, FR-B6; Task 5.6 nutzt dieselben Bausteine) und
-Kommentaren (Task 6.4, FR-B17).
+Seiten mit Beiträgen (Task 5.5, FR-B6; Task 5.6 nutzt dieselben Bausteine),
+Kommentaren (Task 6.4, FR-B17) und der Pinnwand (Task 7.2, FR-B22).
 
 Jede Liste liest über `Post.objects.visible_to()` (FR-B9) und bereitet die
 Karten so vor, dass eine Seite mit zehn Beiträgen nicht mehr Abfragen kostet
@@ -9,10 +9,11 @@ Kombinationsnamen.
 """
 
 from django.core.paginator import Paginator
+from django.db.models import Q
 
 from . import combinations, seen
 from .markdown import EXCERPT_LENGTH, truncate_at_word_boundary
-from .models import Comment, Post
+from .models import Comment, Pin, Post
 
 PAGE_SIZE = 10
 #: So viele Beiträge zeigt das Grid der Color Infos höchstens (FR-B7); alle stehen auf der
@@ -127,3 +128,38 @@ def author_comments_page(viewer, author, raw_page):
     for comment in page:
         comment.new_count = new_counts.get(comment.pk, 0)
     return {"comments_page": page}
+
+
+def pinboard_page(viewer, profile, raw_page):
+    """
+    Eine Seite mit den Pins von `profile` (Task 7.2, FR-B22), zuletzt gepinnt
+    zuerst (`Pin.Meta.ordering`). Ein einziges Modell trägt beide Zielarten
+    (D-82), eine Abfrage genügt für beide zusammen — kein Zusammenführen
+    zweier getrennter Listen in Python.
+
+    Post- wie Kommentar-Pins laufen über `Post.objects.visible_to(viewer)`
+    (FR-B9, D-78) — für einen Kommentar-Pin über dessen Beitrag, genau wie
+    `author_comments_page()`. Ein gelöschter Beitrag nimmt seinen Pin ohnehin
+    mit sich (Kaskade, Task 7.1); ein zur Hülle gewordener Kommentar bleibt
+    als Zeile bestehen (D-79) und wird deshalb hier zusätzlich ausgeschlossen
+    (`comment__deleted_at__isnull=True`) — sonst gäbe es einen Eintrag ohne
+    Autorenkarte. Die volle Sichtbarkeitsprüfung samt eigenem Test (auch für
+    eine künftige „nur Freunde"-Regel) ist Aufgabe von Task 7.3.
+    """
+    pins = (
+        Pin.objects.filter(profile=profile)
+        .filter(
+            Q(post__in=Post.objects.visible_to(viewer))
+            | Q(
+                comment__post__in=Post.objects.visible_to(viewer),
+                comment__deleted_at__isnull=True,
+            )
+        )
+        .select_related("post__author", "comment__author", "comment__post")
+        .prefetch_related(
+            "post__author__color_assignments__combination",
+            "comment__author__color_assignments__combination",
+        )
+    )
+    page = Paginator(pins, PAGE_SIZE).get_page(page_number(raw_page))
+    return {"pinboard_page": page}

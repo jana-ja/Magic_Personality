@@ -1,0 +1,15 @@
+{% load i18n %}
+{% comment %} Pin-Knopf des Beitrags (Task 7.1, FR-B21, D-82). Ein Formular statt eines
+   Links: ein Pin ändert etwas, braucht also POST und funktioniert so auch ohne
+   JavaScript. Mit HTMX tauscht der Knopf nur sich selbst aus (`hx-target` auf
+   die eigene `id`), der Zustand steckt allein in der Beschriftung — nicht nur
+   in einer Farbe (NFR-6). {% endcomment %}
+<span id="post-pin" class="post__pin">
+  <form method="post" action="{% url 'posts:pin' pk=post.pk %}"
+        hx-post="{% url 'posts:pin' pk=post.pk %}" hx-target="#post-pin" hx-swap="outerHTML">
+    {% csrf_token %}
+    <button type="submit" class="tap-target">
+      {% if is_pinned %}{% translate "Unpin" %}{% else %}{% translate "Pin" %}{% endif %}
+    </button>
+  </form>
+</span>

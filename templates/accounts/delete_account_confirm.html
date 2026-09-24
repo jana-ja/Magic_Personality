@@ -14,6 +14,9 @@
   <p>
     {% translate "Comments you wrote under other people's posts lose your name and text; they stay only if someone has replied to them, otherwise they disappear too." %}
   </p>
+  <p>
+    {% translate "Your own pins disappear, and so do other people's pins on your posts. A pin on one of your comments disappears from view the same way the comment itself does, above." %}
+  </p>
 
   <form method="post" action="{% url 'delete_account' %}">
     {% csrf_token %}

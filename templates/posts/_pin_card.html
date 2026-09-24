@@ -1,0 +1,62 @@
+{% load i18n posts_tags social_tags %}
+{% comment %} Eintrag der Pinnwand (Task 7.2, FR-B22) — dieselben .post-card-Klassen wie
+   Beitrags- und Kommentar-Karte, damit alle Listen gleich aussehen. Erwartet `pin` (mit
+   vorgeladenem `.post`/`.comment`, `apps.posts.listing.pinboard_page()`) und `is_owner`
+   (zeigt dann „Unpin"). Die Autorenkarte zeigt die Autorin bzw. den Autor des Originals,
+   nicht die pinnende Person (FR-B22) — die ganze Karte führt auf das Original, die einzige
+   Volltext-Ansicht; bei einem Kommentar mit Sprung zum Anker.
+
+   Der „Unpin"-Knopf ist ein **eigenes** Formular, keine Einbindung von `_post_pin.html`/
+   `_comment_pin.html`: Auf der Beitragsseite tauscht derselbe Knopf nur seine Beschriftung,
+   weil das Ziel dort sichtbar bleibt, ob gepinnt oder nicht — hier zeigt die Liste nur
+   Gepinntes, ein Klick soll also die ganze Karte entfernen (`hx-target="closest
+   .post-card"`, `apps.posts.views._pinboard_unpin_response()`), nicht nur ihre Beschriftung
+   tauschen und eine schon gelöste Karte stehen lassen. `context=pinboard` sagt dem View, dass
+   der Aufruf von hier kommt. {% endcomment %}
+<article class="post-card">
+  {% if pin.comment_id %}
+    <p class="post-card__meta">
+      <span class="pin-card__kind">{% translate "Comment" %}</span>
+      <span aria-hidden="true">·</span>
+      <time datetime="{{ pin.comment.created_at|date:'c' }}">{{ pin.comment.created_at|date:"Y-m-d" }}</time>
+    </p>
+    <div class="post-card__author">{% author_card pin.comment.author size="small" %}</div>
+    <h3 class="post-card__title">
+      <a class="post-card__link" href="{% url 'posts:detail' pk=pin.comment.post_id %}#c-{{ pin.comment.number }}">{{ pin.comment.post.title }}</a>
+    </h3>
+    <p class="post-card__excerpt">{{ pin.comment.body|comment_excerpt }}</p>
+    {% if is_owner %}
+      <span class="comment__pin">
+        <form method="post" action="{% url 'posts:comment_pin' post_pk=pin.comment.post_id pk=pin.comment.pk %}"
+              hx-post="{% url 'posts:comment_pin' post_pk=pin.comment.post_id pk=pin.comment.pk %}"
+              hx-target="closest .post-card" hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" name="context" value="pinboard">
+          <button type="submit" class="tap-target">{% translate "Unpin" %}</button>
+        </form>
+      </span>
+    {% endif %}
+  {% else %}
+    <p class="post-card__meta">
+      <span class="pin-card__kind">{% translate "Post" %}</span>
+      <span aria-hidden="true">·</span>
+      <time datetime="{{ pin.post.created_at|date:'c' }}">{{ pin.post.created_at|date:"Y-m-d" }}</time>
+    </p>
+    <div class="post-card__author">{% author_card pin.post.author size="small" %}</div>
+    <h3 class="post-card__title">
+      <a class="post-card__link" href="{% url 'posts:detail' pk=pin.post.pk %}">{{ pin.post.title }}</a>
+    </h3>
+    <p class="post-card__excerpt">{{ pin.post.body|excerpt }}</p>
+    {% if is_owner %}
+      <span class="post__pin">
+        <form method="post" action="{% url 'posts:pin' pk=pin.post.pk %}"
+              hx-post="{% url 'posts:pin' pk=pin.post.pk %}"
+              hx-target="closest .post-card" hx-swap="outerHTML">
+          {% csrf_token %}
+          <input type="hidden" name="context" value="pinboard">
+          <button type="submit" class="tap-target">{% translate "Unpin" %}</button>
+        </form>
+      </span>
+    {% endif %}
+  {% endif %}
+</article>

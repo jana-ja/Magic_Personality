@@ -16,6 +16,7 @@
     <li>{% translate "Test history: each time you take the personality test, the date, your points per color, and the resulting combination are stored privately in your own history." %}</li>
     <li>{% translate "Posts: the posts you write — title, text, the color combination you choose (if any), and when you wrote or last edited them. Posts are visible to everyone who is logged in, together with your nickname, and appear on your profile and in the Color Infos." %}</li>
     <li>{% translate "Comments: the comments you write under posts — text, the date, and a number that stays the same even if earlier comments are deleted. Comments are visible to everyone who is logged in, together with your nickname." %}</li>
+    <li>{% translate "Pins: which posts and comments you've pinned to your own pinboard, and when. Pins are visible to everyone who is logged in, together with your nickname — pinning something does not make it more visible to anyone else, since it was already visible to every logged-in person." %}</li>
     <li>{% translate "Reports: if you report someone's post, the report is stored with the post, your optional reason, and who you are. Only the site owner can see it; nothing happens automatically." %}</li>
     <li>{% translate "Feedback: if you send feedback about the personality test, your rating, your message, the date, and the questionnaire version are stored. It is anonymous — not linked to your account or your IP address — so it cannot be found again for deletion later. Please do not put personal details into the message." %}</li>
     <li>{% translate "Security logs: to prevent abuse, the IP address of every attempt to enter the invite code, register, log in, or send feedback is recorded, together with the attempted email address for login attempts. The IP address is not stored with the feedback itself." %}</li>
@@ -33,6 +34,7 @@
     <li>{% translate "Account, profile, and test history: for as long as your account exists." %}</li>
     <li>{% translate "Posts: until you delete them or your account. Reports: until the reported post or the account of the person who reported it is deleted." %}</li>
     <li>{% translate "Comments: until you delete them. Deleting your account removes your name and text from every comment you wrote elsewhere, too — if nobody has replied to it, it disappears completely; if someone has, it stays as an anonymous \"deleted\" entry so their reply still makes sense." %}</li>
+    <li>{% translate "Pins: until you unpin them or delete your account. Deleting your account also removes any pins other people made on your posts; a pin on one of your comments stops being shown once that comment does (see Comments above)." %}</li>
     <li>{% translate "Feedback: kept until it is no longer needed and then deleted by hand; it survives the deletion of your account, because it is not linked to it." %}</li>
     <li>{% translate "Security logs (IP addresses of invite-code, registration, login, and feedback attempts): currently kept indefinitely — there is no automatic cleanup yet. Removable manually on request (see below)." %}</li>
     <li>{% translate "Backups: 14 days on a rolling basis, then deleted automatically." %}</li>
@@ -43,7 +45,8 @@
     <li>{% translate "Delete individual test history entries yourself, any time, from your profile page." %}</li>
     <li>{% translate "Edit or delete your own posts yourself, any time, from the post's page. Deleting a post also removes every comment and report about it." %}</li>
     <li>{% translate "Delete your own comments yourself, any time, from the post they're on." %}</li>
-    <li>{% translate "Delete your entire account yourself, any time, from your profile page — this immediately and permanently removes your account, profile, color assignment, test history, posts, and the reports you sent, together with all reports about your posts, and removes your name and text from your comments elsewhere (see \"How long\" above)." %}</li>
+    <li>{% translate "Unpin your own pins yourself, any time, from your pinboard or the original post or comment." %}</li>
+    <li>{% translate "Delete your entire account yourself, any time, from your profile page — this immediately and permanently removes your account, profile, color assignment, test history, posts, pins, and the reports you sent, together with all reports about your posts, and removes your name and text from your comments elsewhere (see \"How long\" above)." %}</li>
     {% url 'about' as about_url %}
     <li>
       {% blocktranslate trimmed %}

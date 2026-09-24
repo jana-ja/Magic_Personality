@@ -1,12 +1,13 @@
 """
 Django-Admin für Beiträge, Meldungen (Task 5.1, 5.7, 6.5, D-71, D-81),
-Kommentare (Task 6.1, D-79) und den Stand des Zählers neuer Kommentare
-(Task 6.6, `PostSeen`). Nutzerdaten sind nur lesbar: Anlegen und Ändern
-läuft ausschließlich über die Views bzw. `apps.posts.comments`/`apps.posts.seen`,
-die Längen, Farbcode und Rechte prüfen. Löschen bleibt bei Beiträgen und
-Meldungen möglich (D-81: die Projektinhaberin löscht gemeldete Beiträge
-hier), bei Kommentaren nicht — siehe `CommentAdmin`; gemeldete Kommentare
-werden über eine eigene Aktion auf `ReportAdmin` zur Hülle gemacht (Task 6.5).
+Kommentare (Task 6.1, D-79), den Stand des Zählers neuer Kommentare
+(Task 6.6, `PostSeen`) und die Pinnwand (Task 7.1, `Pin`, D-82). Nutzerdaten
+sind nur lesbar: Anlegen und Ändern läuft ausschließlich über die Views bzw.
+`apps.posts.comments`/`apps.posts.seen`/`apps.posts.pins`, die Längen,
+Farbcode und Rechte prüfen. Löschen bleibt bei Beiträgen und Meldungen
+möglich (D-81: die Projektinhaberin löscht gemeldete Beiträge hier), bei
+Kommentaren nicht — siehe `CommentAdmin`; gemeldete Kommentare werden über
+eine eigene Aktion auf `ReportAdmin` zur Hülle gemacht (Task 6.5).
 """
 
 from django.contrib import admin
@@ -15,7 +16,7 @@ from django.utils import timezone
 from django.utils.html import format_html
 
 from .comments import make_tombstone
-from .models import Comment, Post, PostSeen, Report
+from .models import Comment, Pin, Post, PostSeen, Report
 
 
 class ReadOnlyAdmin(admin.ModelAdmin):
@@ -24,6 +25,26 @@ class ReadOnlyAdmin(admin.ModelAdmin):
 
     def has_change_permission(self, request, obj=None):
         return False
+
+
+def _target_kind(obj):
+    """„Comment" oder „Post" — gemeinsam für `ReportAdmin` und `PinAdmin`
+    (Task 7.1): beide haben dieselben zwei möglichen Zielarten (`Report`/
+    `Pin.Meta.constraints`, je genau eines von `post`/`comment`)."""
+    return "Comment" if obj.comment_id else "Post"
+
+
+def _target_link(obj):
+    """Link auf die öffentliche Seite des Ziels — Gegenstück zu `_target_kind()`."""
+    if obj.comment_id:
+        url = (
+            reverse("posts:detail", kwargs={"pk": obj.comment.post_id}) + f"#c-{obj.comment.number}"
+        )
+        return format_html(
+            '<a href="{}">#{} on “{}”</a>', url, obj.comment.number, obj.comment.post.title
+        )
+    url = reverse("posts:detail", kwargs={"pk": obj.post_id})
+    return format_html('<a href="{}">{}</a>', url, obj.post.title)
 
 
 @admin.register(Post)
@@ -87,20 +108,11 @@ class ReportAdmin(ReadOnlyAdmin):
 
     @admin.display(description="type")
     def target_kind(self, obj):
-        return "Comment" if obj.comment_id else "Post"
+        return _target_kind(obj)
 
     @admin.display(description="target")
     def target_link(self, obj):
-        if obj.comment_id:
-            url = (
-                reverse("posts:detail", kwargs={"pk": obj.comment.post_id})
-                + f"#c-{obj.comment.number}"
-            )
-            return format_html(
-                '<a href="{}">#{} on “{}”</a>', url, obj.comment.number, obj.comment.post.title
-            )
-        url = reverse("posts:detail", kwargs={"pk": obj.post_id})
-        return format_html('<a href="{}">{}</a>', url, obj.post.title)
+        return _target_link(obj)
 
     @admin.display(description="reason")
     def short_reason(self, obj):
@@ -185,3 +197,22 @@ class PostSeenAdmin(ReadOnlyAdmin):
     list_display = ["profile", "post", "last_seen_number"]
     list_select_related = ["profile", "post"]
     search_fields = ["profile__nickname", "post__title"]
+
+
+@admin.register(Pin)
+class PinAdmin(ReadOnlyAdmin):
+    """Nur zum Nachsehen (D-71) — die Pinnwand selbst kennt keine Moderation,
+    Pins legt und löst ausschließlich `apps.posts.pins` (Task 7.1)."""
+
+    list_display = ["profile", "target_kind", "target_link", "created_at"]
+    list_select_related = ["profile", "post", "comment", "comment__post"]
+    search_fields = ["profile__nickname", "post__title", "comment__body", "comment__post__title"]
+    date_hierarchy = "created_at"
+
+    @admin.display(description="type")
+    def target_kind(self, obj):
+        return _target_kind(obj)
+
+    @admin.display(description="target")
+    def target_link(self, obj):
+        return _target_link(obj)

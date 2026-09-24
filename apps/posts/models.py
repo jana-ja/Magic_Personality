@@ -1,7 +1,8 @@
 """
 Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78), Meldungen (Task 5.7/6.5,
-FR-B10, D-81), Kommentare (Task 6.1, FR-B14, FR-B15, D-79) und der Stand des
-Zählers neuer Kommentare (Task 6.6, FR-B20, D-79).
+FR-B10, D-81), Kommentare (Task 6.1, FR-B14, FR-B15, D-79), der Stand des
+Zählers neuer Kommentare (Task 6.6, FR-B20, D-79) und die Pinnwand
+(Task 7.1, FR-B21, FR-B23/FR-B24, D-82).
 
 `Post.author` verweist auf `accounts.Profile`, nicht auf `accounts.User`
 (D-78) — wie `Friendship` (D-22): die Autorenkarte braucht nur das
@@ -311,3 +312,59 @@ class PostSeen(models.Model):
 
     def __str__(self):
         return f"{self.profile} @ {self.post} (#{self.last_seen_number})"
+
+
+class Pin(models.Model):
+    """
+    Ein Eintrag der Pinnwand (Task 7.1, FR-B21, FR-B23/FR-B24, D-82): reiner
+    Verweis auf einen Beitrag oder Kommentar, **eigene wie fremde** — anders
+    als bei `Report` muss niemand zustimmen, die Inhalte sind ohnehin für
+    alle Angemeldeten sichtbar (FR-B24). Kopiert nichts; verschwindet mit dem
+    Original (Kaskade) oder — sobald ein Kommentar zur Hülle wird, ohne dass
+    die Zeile selbst verschwindet (D-79) — aus der Anzeige (Task 7.3, FR-B23).
+
+    Genau eines von `post`/`comment` ist gesetzt, einmal je Person und Ziel —
+    dieselbe Konstruktion wie bei `Report` (Check-Constraint plus zwei
+    partielle Unique-Constraints statt einer einzigen über beide Spalten
+    hinweg, die sonst zwei Pins derselben Person zuließe, solange nur je eine
+    Spalte `NULL` bleibt).
+    """
+
+    profile = models.ForeignKey("accounts.Profile", on_delete=models.CASCADE, related_name="pins")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, null=True, blank=True, related_name="pins"
+    )
+    comment = models.ForeignKey(
+        Comment, on_delete=models.CASCADE, null=True, blank=True, related_name="pins"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(post__isnull=False, comment__isnull=True)
+                    | Q(post__isnull=True, comment__isnull=False)
+                ),
+                name="pin_exactly_one_of_post_or_comment",
+            ),
+            models.UniqueConstraint(
+                fields=["profile", "post"],
+                condition=Q(post__isnull=False),
+                name="pin_once_per_person_and_post",
+            ),
+            models.UniqueConstraint(
+                fields=["profile", "comment"],
+                condition=Q(comment__isnull=False),
+                name="pin_once_per_person_and_comment",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.profile} → {self.post or self.comment}"
+
+    @property
+    def target(self):
+        """Das gepinnte Ding (immer genau eines gesetzt) — wie `Report.target`."""
+        return self.post or self.comment

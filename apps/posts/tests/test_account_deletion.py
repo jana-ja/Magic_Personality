@@ -1,10 +1,12 @@
 """
 Tests für Account-Löschung und Datenschutz mit Beiträgen (Task 5.8, FR-B12,
-D-78, D-81) und Kommentaren (Task 6.3, FR-B19, D-79).
+D-78, D-81), Kommentaren (Task 6.3, FR-B19, D-79) und Pins (Task 7.3,
+FR-B23, D-82).
 
 Die Kaskade selbst (Beitrag und Meldung verschwinden mit Profil bzw. Beitrag)
-steht schon in test_models.py und test_reports.py; hier geht es um den echten
-Weg über die View und um das, was Nutzende darüber lesen.
+steht schon in test_models.py und test_reports.py, die Pin-Kaskade in
+test_pins.py; hier geht es um den echten Weg über die View und um das, was
+Nutzende darüber lesen.
 """
 
 import pytest
@@ -12,7 +14,7 @@ from django.db import models
 
 from apps.accounts.models import Profile, User
 from apps.posts.comments import create_comment
-from apps.posts.models import Comment, Post, Report
+from apps.posts.models import Comment, Pin, Post, PostSeen, Report
 
 pytestmark = pytest.mark.django_db
 
@@ -81,12 +83,16 @@ def test_the_deleted_posts_page_is_gone(member, author, robin):
 
 
 def test_every_relation_from_posts_to_a_person_deletes_with_the_person():
-    """Beiträge und Meldungen gehören der Person: jeder Verweis der Posts-App auf
-    ein Profil kaskadiert — mit **einer** bewussten, hier ausdrücklich benannten
-    Ausnahme seit Task 6.3: `Comment.author` (D-79, `PROTECT`, weil ein
-    Kommentar erst zur Hülle werden muss, siehe die Tests unten)."""
+    """Beiträge, Meldungen, der Zähler-Stand und Pins gehören der Person: jeder
+    Verweis der Posts-App auf ein Profil kaskadiert — mit **einer** bewussten,
+    hier ausdrücklich benannten Ausnahme seit Task 6.3: `Comment.author`
+    (D-79, `PROTECT`, weil ein Kommentar erst zur Hülle werden muss, siehe die
+    Tests unten). `Pin` seit Task 7.1/7.3 mit aufgenommen — dieselbe Regel
+    gilt für neue Modelle, ohne dass dieser Test von Hand daran erinnert
+    werden müsste, sähe eine Änderung an `Pin.profile` sie nicht als bewusste
+    Ausnahme aus."""
     exceptions = {(Comment, "author"): models.PROTECT}
-    for model in (Post, Report, Comment):
+    for model in (Post, Report, Comment, PostSeen, Pin):
         for field in model._meta.fields:
             if field.is_relation and field.related_model is Profile:
                 expected = exceptions.get((model, field.name), models.CASCADE)
@@ -144,6 +150,52 @@ def test_other_peoples_comments_and_their_authorship_stay(member, author, robin,
     assert theirs.body == "staying"
 
 
+# Pins (Task 7.1/7.3, FR-B21, FR-B23, D-82) -----------------------------------------------
+
+
+def test_deleting_the_account_removes_the_persons_own_pins(member, author, robin):
+    """`Pin.profile` verweist mit `CASCADE` auf `Profile` (Task 7.1) — dieselbe
+    Kaskade wie bei Beiträgen und Meldungen, hier über den echten Weg geprüft."""
+    theirs = Post.objects.create(author=robin, title="Theirs", body="b")
+    own_pin = Pin.objects.create(profile=author, post=theirs)
+
+    member.post(DELETE_URL)
+
+    assert not Pin.objects.filter(pk=own_pin.pk).exists()
+    assert Post.objects.filter(pk=theirs.pk).exists()  # der Beitrag selbst bleibt
+
+
+def test_deleting_the_account_removes_pins_others_made_on_their_posts(member, author, robin):
+    """`Pin.post` verweist ebenfalls mit `CASCADE` auf `Post` — der Beitrag
+    verschwindet mit dem Account (D-78), sein Pin also mit ihm."""
+    mine = Post.objects.create(author=author, title="Mine", body="b")
+    foreign_pin = Pin.objects.create(profile=robin, post=mine)
+
+    member.post(DELETE_URL)
+
+    assert not Pin.objects.filter(pk=foreign_pin.pk).exists()
+    assert Profile.objects.filter(nickname="robin").exists()
+
+
+def test_a_pin_on_a_tombstoned_comment_disappears_from_the_pinboard(member, author, robin):
+    """Anders als ein Beitrag verschwindet ein fremder Kommentar der gelöschten
+    Person nicht (`Comment.author` ist `PROTECT`, Task 6.3) — er wird zur
+    Hülle, die Zeile bleibt. Ihr Pin bleibt deshalb technisch bestehen, aber
+    `apps.posts.listing.pinboard_page()` blendet ihn aus (FR-B23, Task 7.3)."""
+    theirs = Post.objects.create(author=robin, title="Theirs", body="b")
+    mine = create_comment(post=theirs, author=author, body="my comment")
+    pin = Pin.objects.create(profile=robin, comment=mine)
+
+    member.post(DELETE_URL)
+    member.force_login(robin.user)
+
+    mine.refresh_from_db()
+    assert mine.is_tombstone
+    assert Pin.objects.filter(pk=pin.pk).exists()  # die Zeile bleibt …
+    html = member.get("/u/robin/").content.decode()
+    assert '<article class="post-card">' not in html  # … aber wird nicht angezeigt
+
+
 # Löschen des eigenen Kommentars (der View, FR-B16) --------------------------------------------
 
 
@@ -196,6 +248,13 @@ def test_the_confirmation_page_names_posts_reports_and_comments(member):
     assert "Comments you wrote under other people" in html
 
 
+def test_the_confirmation_page_names_pins(member):
+    html = member.get(DELETE_URL).content.decode()
+
+    assert "Your own pins disappear" in html
+    assert "other people's pins on your posts" in html
+
+
 def test_the_confirmation_page_does_not_delete_anything(member, author):
     Post.objects.create(author=author, title="Mine", body="b")
 
@@ -218,7 +277,9 @@ def test_the_privacy_page_covers_posts_and_reports(gated_client):
     # wie löschbar
     assert "Edit or delete your own posts yourself" in html
     assert "Deleting a post also removes every comment and report about it." in html
-    assert "posts, and the reports you sent, together with all reports about your posts" in html
+    assert (
+        "posts, pins, and the reports you sent, together with all reports about your posts" in html
+    )
 
 
 def test_the_privacy_page_covers_comments(gated_client):
@@ -232,6 +293,18 @@ def test_the_privacy_page_covers_comments(gated_client):
     assert 'anonymous "deleted" entry' in html
     # wie löschbar
     assert "Delete your own comments yourself, any time, from the post they" in html
+
+
+def test_the_privacy_page_covers_pins(gated_client):
+    html = gated_client.get("/privacy/").content.decode()
+
+    # welche Daten
+    assert "Pins: which posts and comments you've pinned" in html
+    assert "pinning something does not make it more visible to anyone else" in html
+    # wie lange
+    assert "Pins: until you unpin them or delete your account." in html
+    # wie löschbar
+    assert "Unpin your own pins yourself, any time" in html
 
 
 def test_the_privacy_page_still_covers_everything_else(gated_client):

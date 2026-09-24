@@ -2,9 +2,9 @@
 Views der Posts-App: Beitrag schreiben, bearbeiten, löschen (Task 5.3,
 FR-B1 bis FR-B4, FR-B11), die Beitragsseite (Task 5.4, FR-B5), Kommentare
 darauf (Task 6.2, FR-B13, FR-B15, FR-B18), Kommentare löschen (Task 6.3,
-FR-B16), Beiträge melden (Task 5.7, FR-B10) und Kommentare melden
-(Task 6.5, FR-B18). Die Listen (Task 5.5, 5.6) kommen mit den eigenen
-Tasks.
+FR-B16), Beiträge melden (Task 5.7, FR-B10), Kommentare melden
+(Task 6.5, FR-B18) und Pinnen (Task 7.1/7.2, FR-B21, FR-B22, D-82). Die
+Listen (Task 5.5, 5.6, 7.2) kommen mit den eigenen Tasks.
 
 Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 `Post.objects.visible_to()` (FR-B9).
@@ -13,6 +13,7 @@ Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -26,7 +27,8 @@ from .comments import create_comment, make_tombstone
 from .decorators import author_only, current_profile
 from .forms import CommentForm, PostForm, ReportForm
 from .markdown import render_markdown
-from .models import Comment, Post, Report
+from .models import Comment, Pin, Post, Report
+from .pins import toggle_comment_pin, toggle_post_pin
 from .seen import mark_seen
 
 
@@ -133,7 +135,7 @@ def delete_post(request, post, profile):
 
 def _post_extras(post, profile):
     """Der Teil des Beitragsseiten-Kontexts, der nichts mit Kommentaren zu tun
-    hat (Task 5.4): Farbkombination, Autorenrechte, Meldestatus."""
+    hat (Task 5.4): Farbkombination, Autorenrechte, Melde- und Pin-Status."""
     combination = None
     if post.colors:
         combination = {
@@ -147,6 +149,8 @@ def _post_extras(post, profile):
         # Nur fremde Beiträge lassen sich melden (FR-B10).
         "already_reported": not is_author
         and Report.objects.filter(reporter=profile, post=post).exists(),
+        # Pinnen geht bei eigenen wie fremden Beiträgen (FR-B21/FR-B24).
+        "is_pinned": Pin.objects.filter(profile=profile, post=post).exists(),
     }
 
 
@@ -176,8 +180,9 @@ def _comments_context(post, *, viewer_id, reply_number=None, comment_form=None):
     durch, um „Delete" nur am eigenen Kommentar zu zeigen (Task 6.3,
     FR-B16) — ein bloßer Vergleich, kein zweiter Zugriffsschutz: den trifft
     ausschließlich der View `delete_comment` selbst. Dasselbe gilt für
-    `already_reported_comment_ids` (Task 6.5, FR-B18): eine Abfrage für die
-    ganze Liste, nicht eine je Kommentar.
+    `already_reported_comment_ids` (Task 6.5, FR-B18) und `pinned_comment_ids`
+    (Task 7.1, FR-B21): je eine Abfrage für die ganze Liste, nicht eine je
+    Kommentar.
     """
     replying_to = _find_replyable(post, reply_number)
     if comment_form is None:
@@ -190,11 +195,19 @@ def _comments_context(post, *, viewer_id, reply_number=None, comment_form=None):
         .select_related("author", "reply_to")
         .prefetch_related("author__color_assignments__combination")
     )
+    comment_ids = [comment.pk for comment in comments]
     already_reported_comment_ids = set(
-        Report.objects.filter(
-            reporter_id=viewer_id, comment_id__in=[comment.pk for comment in comments]
-        ).values_list("comment_id", flat=True)
+        Report.objects.filter(reporter_id=viewer_id, comment_id__in=comment_ids).values_list(
+            "comment_id", flat=True
+        )
     )
+    pinned_comment_ids = set(
+        Pin.objects.filter(profile_id=viewer_id, comment_id__in=comment_ids).values_list(
+            "comment_id", flat=True
+        )
+    )
+    for comment in comments:
+        comment.is_pinned = comment.pk in pinned_comment_ids
     return {
         "post": post,
         "comments": comments,
@@ -452,3 +465,77 @@ def comment_report_thanks(request, post_pk, pk):
     if not Report.objects.filter(reporter=profile, comment=comment).exists():
         return redirect("posts:comment_report", post_pk=post.pk, pk=comment.pk)
     return _comment_report_response(request, post, comment, sent=True)
+
+
+def _pinboard_unpin_response(request, profile, pinned):
+    """
+    `None`, wenn der Aufruf nicht von der eigenen Pinnwand kommt (verstecktes
+    Feld `context=pinboard` in `_pin_card.html`, Task 7.2) oder kein Lösen war
+    — die Aufruferin (`pin_post()`/`pin_comment()`) baut dann ihre gewohnte
+    Antwort. Sonst die Antwort fürs Entfernen der ganzen Karte: Anders als auf
+    der Beitragsseite, wo derselbe Knopf nur seine Beschriftung tauscht (das
+    Ziel bleibt sichtbar, ob gepinnt oder nicht), zeigt die Pinnwand nur
+    Gepinntes — ein bloßer Beschriftungswechsel ließe eine schon gelöste Karte
+    stehen, bis die Seite neu lädt. Mit HTMX eine leere Antwort auf die
+    schließende Karte (`hx-target="closest .post-card"` in `_pin_card.html`
+    entfernt sie); ohne JavaScript eine Weiterleitung zurück auf die eigene
+    Pinnwand statt auf den Beitrag.
+    """
+    if pinned or request.POST.get("context") != "pinboard":
+        return None
+    if _is_htmx(request):
+        return HttpResponse("")
+    return redirect("social:profile_detail", nickname=profile.nickname)
+
+
+@login_required
+@require_http_methods(["POST"])
+def pin_post(request, pk):
+    """
+    FR-B21, D-82: den Beitrag an die eigene Pinnwand heften oder wieder
+    lösen — ein Knopf, ein Zustand. Anders als beim Melden geht das bei
+    eigenen **und** fremden Beiträgen (FR-B24): niemand muss zustimmen, der
+    Beitrag ist ohnehin für jede angemeldete Person sichtbar.
+
+    Mit HTMX kommt nur der Baustein `#post-pin` zurück (der Knopf tauscht
+    seine eigene Beschriftung aus), ohne JavaScript eine Weiterleitung auf
+    die Beitragsseite (FR-B21: „ohne JavaScript nutzbar", wie bei Kommentaren)
+    — außer von der eigenen Pinnwand aus (`_pinboard_unpin_response()`,
+    Task 7.2).
+    """
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
+    pinned = toggle_post_pin(profile, post)
+    pinboard_response = _pinboard_unpin_response(request, profile, pinned)
+    if pinboard_response is not None:
+        return pinboard_response
+    if _is_htmx(request):
+        return render(request, "posts/_post_pin.html", {"post": post, "is_pinned": pinned})
+    return redirect("posts:detail", pk=post.pk)
+
+
+@login_required
+@require_http_methods(["POST"])
+def pin_comment(request, post_pk, pk):
+    """
+    Wie `pin_post()`, für einen Kommentar (FR-B21, D-82). Eine Hülle lässt
+    sich nicht pinnen (D-79: sie hat nichts mehr zu pinnen) — dieselbe
+    stille Ablehnung wie beim Melden (`report_comment`), nicht als Fehler,
+    weil ein regulärer Aufruf über die Seite ohnehin nie an eine Hülle
+    gerät: Dort steht kein Pin-Knopf.
+    """
+    profile = current_profile(request)
+    post = get_object_or_404(Post.objects.visible_to(profile), pk=post_pk)
+    comment = get_object_or_404(Comment, pk=pk, post=post)
+    if comment.is_tombstone:
+        return redirect("posts:detail", pk=post.pk)
+
+    pinned = toggle_comment_pin(profile, comment)
+    pinboard_response = _pinboard_unpin_response(request, profile, pinned)
+    if pinboard_response is not None:
+        return pinboard_response
+    if _is_htmx(request):
+        context = {"post": post, "comment": comment, "is_pinned": pinned}
+        return render(request, "posts/_comment_pin.html", context)
+    anchor = reverse("posts:detail", kwargs={"pk": post.pk}) + f"#c-{comment.number}"
+    return redirect(anchor)

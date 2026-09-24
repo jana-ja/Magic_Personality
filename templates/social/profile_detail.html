@@ -2,18 +2,27 @@
 {% load i18n %}
 
 {% block tab_content %}
-  {% comment %} Tab "Pinboard" (Standardtab, Task 4.3/4.7, D-73). Hauptbereich: die Pinnwand für
-     Favoriten (PRD §8.2) — bis zu ihrer Umsetzung ein Coming-soon-Platzhalter ohne Knöpfe oder
-     Links ohne Ziel. Daneben die Sidebar mit den Kurzinfos; im DOM steht sie hinter dem
+  {% comment %} Tab "Pinboard" (Standardtab, Task 4.3/4.7/7.2, FR-B22, D-73). Hauptbereich: die
+     Pins der Person, zuletzt gepinnt zuerst (`apps.posts.listing.pinboard_page()`). Daneben die
+     Sidebar mit den Kurzinfos, unverändert seit Task 4.7; im DOM steht sie hinter dem
      Hauptbereich, mobil landet sie damit darunter (FR-P16). {% endcomment %}
   <div class="profile-layout">
     <div class="profile-layout__main">
       <section class="profile-pinboard" aria-labelledby="pinboard-heading">
         <h2 id="pinboard-heading">{% translate "Pinboard" %}</h2>
-        <p class="profile-pinboard__soon">
-          <strong>{% translate "Coming soon" %}</strong><br>
-          {% translate "Soon you'll be able to pin your favorites here — your own or other people's posts and comments." %}
-        </p>
+
+        {% if pinboard_page %}
+          <ul class="post-list">
+            {% for pin in pinboard_page %}
+              <li>{% include "posts/_pin_card.html" with pin=pin is_owner=is_owner %}</li>
+            {% endfor %}
+          </ul>
+          {% include "posts/_pagination.html" with page=pinboard_page %}
+        {% elif is_owner %}
+          <p>{% translate "You haven't pinned anything yet. Open a post or a comment and use its Pin button to add it here." %}</p>
+        {% else %}
+          <p>{% translate "Nothing pinned yet." %}</p>
+        {% endif %}
       </section>
     </div>
 

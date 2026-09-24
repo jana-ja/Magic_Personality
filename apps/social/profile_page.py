@@ -142,8 +142,10 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     if tab == SETTINGS:
         return context
 
-    # Pinboard-Tab (Task 4.7): die Sidebar zeigt Kurzinfos — Punkte des
-    # übernommenen Testergebnisses (D-70) und eine Freundesvorschau.
+    # Pinboard-Tab (Task 4.7/7.2): die Sidebar zeigt Kurzinfos — Punkte des
+    # übernommenen Testergebnisses (D-70) und eine Freundesvorschau. Die Pins
+    # selbst legt der View dazu (`apps.posts.listing.pinboard_page()`), wie
+    # bei „Posts"/„Comments".
     context["score_bars"] = score_bars(test_result.ordered_scores) if test_result else None
     friends = friendships.accepted_friends(profile)
     context["friends_count"] = len(friends)
