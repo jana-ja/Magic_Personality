@@ -1,9 +1,11 @@
 """
-Tests für den Pinnwand-Tab (Task 7.2, FR-B22, D-82).
+Tests für den Pinnwand-Tab (Task 7.2/7.3, FR-B22, FR-B23, D-82).
 
 Das Pinnen selbst (`Pin`, Datenbank-Constraints, Kaskade) deckt
 `test_pins.py` ab (Task 7.1); hier geht es um die Liste: Reihenfolge, die
-Karte je Eintrag, eigenes vs. fremdes Profil und den leeren Zustand.
+Karte je Eintrag, eigenes vs. fremdes Profil, den leeren Zustand und (Task 7.3)
+die volle Sichtbarkeitsprüfung. Die Kaskade bei Account-Löschung steht in
+`test_account_deletion.py`.
 """
 
 import re
@@ -15,7 +17,7 @@ from django.utils import timezone
 
 from apps.posts.comments import create_comment
 from apps.posts.listing import PAGE_SIZE
-from apps.posts.models import Pin, Post
+from apps.posts.models import Pin, Post, PostQuerySet
 
 pytestmark = pytest.mark.django_db
 
@@ -231,7 +233,7 @@ def test_ten_pins_fit_on_a_page_and_the_rest_goes_on(member, author, robin):
     assert "Page 1 of 3" in first and "Page 3 of 3" in third
 
 
-# Hüllen (Vorgriff auf die volle Sichtbarkeitsprüfung in Task 7.3) --------------------------
+# Sichtbarkeit und Hüllen (Task 7.3, FR-B23, D-78, D-82) ------------------------------------
 
 
 def test_a_tombstoned_pinned_comment_does_not_crash_or_appear(member, author, post, comment):
@@ -244,6 +246,30 @@ def test_a_tombstoned_pinned_comment_does_not_crash_or_appear(member, author, po
 
     assert response.status_code == 200
     assert _cards(response.content.decode()) == []
+
+
+def test_a_pinned_post_disappears_if_visible_to_is_replaced(member, author, post, monkeypatch):
+    """Bereitschaft für „nur Freunde" (FR-B9, D-78): Ein Pin läuft über
+    `Post.objects.visible_to()`, nicht über eine eigene Prüfung — ersetzt man
+    sie durch eine, die nichts durchlässt, verschwindet der Pin mit, ohne dass
+    `pinboard_page()` selbst angefasst werden müsste."""
+    _pin(author, post=post)
+    monkeypatch.setattr(PostQuerySet, "visible_to", lambda self, profile: self.none())
+
+    html = member.get(URL).content.decode()
+
+    assert _cards(html) == []
+
+
+def test_a_pinned_comment_disappears_if_visible_to_is_replaced(
+    member, author, post, comment, monkeypatch
+):
+    _pin(author, comment=comment)
+    monkeypatch.setattr(PostQuerySet, "visible_to", lambda self, profile: self.none())
+
+    html = member.get(URL).content.decode()
+
+    assert _cards(html) == []
 
 
 # Abfragen ----------------------------------------------------------------------------------

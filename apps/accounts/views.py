@@ -60,7 +60,9 @@ def delete_account(request):
     den Rest: Profil, Farbzuordnung und Testhistorie hängen an `Profile`
     bzw. `User` und verschwinden mit ihm, ohne dass diese View sie
     einzeln anfassen muss. Ebenso Beiträge, Meldungen der Person und alle
-    Meldungen zu ihren Beiträgen (Task 5.8, FR-B12, D-78, D-81).
+    Meldungen zu ihren Beiträgen (Task 5.8, FR-B12, D-78, D-81) sowie ihre
+    eigenen Pins und alle fremden Pins auf ihre Beiträge (Task 7.1/7.3,
+    FR-B23, D-82; `Pin.profile`/`Pin.post` verweisen ebenfalls kaskadierend).
 
     Kommentare sind die eine Ausnahme (Task 6.3, FR-B19, D-79):
     `Comment.author` verweist mit `on_delete=PROTECT` auf `Profile`, nicht
@@ -68,7 +70,10 @@ def delete_account(request):
     zugehöriges Profil zu hinterlassen. `tombstone_comments_by()` macht
     deshalb **vorher** jeden Kommentar der Person zur Hülle (Text und Autor
     geleert, die Zeile bleibt); unter den eigenen Beiträgen verschwinden sie
-    ohnehin gleich darauf mit dem Beitrag selbst (`Post`-Kaskade).
+    ohnehin gleich darauf mit dem Beitrag selbst (`Post`-Kaskade). Ein Pin auf
+    einer so zur Hülle gewordenen Zeile bleibt aus demselben Grund bestehen —
+    `apps.posts.listing.pinboard_page()` blendet ihn beim Anzeigen aus
+    (Task 7.3, FR-B23), statt ihn hier zu löschen.
     """
     if request.method == "POST":
         user = request.user

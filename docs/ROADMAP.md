@@ -856,9 +856,19 @@ Anlass: Der Platzhalter „Coming soon" aus v1.2 wird ersetzt. Gestaltung und Be
 #### 7.3 · Sichtbarkeit und Aufräumen
 **Abhängig von:** 7.2 · **Anforderungen:** FR-B23, D-78, D-82
 **Fertig, wenn:**
-- [ ] Die Anzeige filtert über `visible_to` der **ansehenden** Person; Hüllen und gelöschte Originale erscheinen nicht.
-- [ ] Account-Löschung entfernt die Pins der Person und alle Pins auf ihre Beiträge; Kommentare, die zu Hüllen werden, verschwinden aus fremden Pinnwänden.
-- [ ] Test: mit ersetzter (verschärfter) `visible_to` erscheint der Pin nicht; Hülle; Account-Löschung.
+- [x] Die Anzeige filtert über `visible_to` der **ansehenden** Person; Hüllen und gelöschte Originale erscheinen nicht.
+- [x] Account-Löschung entfernt die Pins der Person und alle Pins auf ihre Beiträge; Kommentare, die zu Hüllen werden, verschwinden aus fremden Pinnwänden.
+- [x] Test: mit ersetzter (verschärfter) `visible_to` erscheint der Pin nicht; Hülle; Account-Löschung.
+
+> Umsetzung: Der größte Teil stand technisch schon aus Task 7.1/7.2 — `pinboard_page()` ging von Anfang an über `Post.objects.visible_to(viewer)` (auch für Kommentar-Pins, über deren Beitrag) und schloss Hüllen aus (`comment__deleted_at__isnull=True`), weil das im Browser schon in 7.2 als Absturz auffiel (`AttributeError` beim Rendern der Autorenkarte einer Hülle). Gelöschte Originale verschwinden über die Fremdschlüssel-Kaskade (`Pin.post`/`Pin.comment`, `on_delete=CASCADE`, Task 7.1) automatisch mit dem Original, ganz ohne eigene Prüfung. Task 7.3 bringt dafür den **ausdrücklichen Nachweis**: einen Test mit ersetzter `visible_to()` (Bereitschaft für „nur Freunde", D-78) und die Kaskade über den echten Weg der Account-Löschung, nicht nur am Modell.
+>
+> `test_every_relation_from_posts_to_a_person_deletes_with_the_person` (Task 5.9) kannte `Pin` und `PostSeen` noch nicht — beide jetzt aufgenommen: derselbe Wächter, der jede künftige, nicht ausdrücklich begründete Abweichung von `CASCADE` auf `Profile` fängt, gilt jetzt für alle fünf Modelle der Posts-App. Gegenprobe (`Pin.profile` testweise auf `PROTECT`) ließ ihn wie erwartet anschlagen.
+>
+> **Datenschutz- und Bestätigungsseite** (Zusage aus Task 5.8s Umsetzungsnotiz: „Kommentare und Pins kommen mit 6.3 und 7.3 in dieselben Texte") — beide um Pins ergänzt: was gespeichert wird (sichtbar für alle Angemeldeten wie Beiträge/Kommentare, Pinnen macht nichts sichtbarer, das stand schon vorher), wie lange (bis zum Lösen oder zur Account-Löschung) und wie löschbar (selbst lösen, oder über die Account-Löschung). Die Aufzählung der Account-Löschung („…posts, and the reports you sent…") bekam dabei ein Wort mehr (“posts, **pins**, and the reports…“) — ein bestehender Test prüfte genau diese Zeichenkette und musste entsprechend angepasst werden.
+>
+> 7 neue Tests: Sichtbarkeits-Gegenprobe für Beitrags- **und** Kommentar-Pin (`test_pinboard_tab.py`), Account-Löschung entfernt eigene Pins/fremde Pins auf eigene Beiträge, ein Pin auf eine erst durch die Account-Löschung entstandene Hülle bleibt als Zeile bestehen, aber verschwindet aus der Anzeige, Bestätigungs- und Datenschutzseite nennen Pins (`test_account_deletion.py`). Mutationsproben für die Kaskaden-Erweiterung und (ein zweites Mal, jetzt über den echten Account-Löschungs-Weg statt nur direkt erzeugter Daten) für den Hüllen-Filter bestätigt.
+>
+> Im Browser nachvollzogen (`claude_leaving`/`claude_staying`, danach entfernt): `claude_staying` pinnt einen Beitrag von `claude_leaving`, einen eigenen Beitrag und einen Kommentar, den `claude_leaving` unter `claude_staying`s Beitrag geschrieben hat; `claude_leaving` löscht den eigenen Account über die echte Bestätigungsseite (die jetzt den neuen Pin-Absatz zeigt). Danach: `claude_leaving`s Beitrag und sein Pin sind weg, der Kommentar ist eine Hülle (Autor `None`), die Pin-Zeile darauf existiert in der Datenbank weiterhin — `claude_staying`s Pinnwand zeigt trotzdem den leeren Zustand, keine Karte.
 
 #### 7.4 · Release-Durchsicht v1.5
 **Abhängig von:** 7.3 · **Anforderungen:** PRD §11 (v1.5)
