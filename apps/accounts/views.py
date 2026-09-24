@@ -16,6 +16,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 
 from apps.core.models import RegistrationAttempt
 from apps.core.rate_limit import rate_limit
+from apps.posts.comments import tombstone_comments_by
 from apps.quiz.models import TestResult
 
 from .forms import RegistrationForm
@@ -59,12 +60,21 @@ def delete_account(request):
     den Rest: Profil, Farbzuordnung und Testhistorie hängen an `Profile`
     bzw. `User` und verschwinden mit ihm, ohne dass diese View sie
     einzeln anfassen muss. Ebenso Beiträge, Meldungen der Person und alle
-    Meldungen zu ihren Beiträgen (Task 5.8, FR-B12, D-78, D-81). Beim Ergänzen
-    von Kommentaren in v1.4 kommt hier ein Schritt vor `user.delete()` dazu
-    (Task 6.3: Kommentare unter fremden Beiträgen werden zu Hüllen).
+    Meldungen zu ihren Beiträgen (Task 5.8, FR-B12, D-78, D-81).
+
+    Kommentare sind die eine Ausnahme (Task 6.3, FR-B19, D-79):
+    `Comment.author` verweist mit `on_delete=PROTECT` auf `Profile`, nicht
+    `CASCADE` — `user.delete()` bräche sonst ab, statt eine Zeile ohne
+    zugehöriges Profil zu hinterlassen. `tombstone_comments_by()` macht
+    deshalb **vorher** jeden Kommentar der Person zur Hülle (Text und Autor
+    geleert, die Zeile bleibt); unter den eigenen Beiträgen verschwinden sie
+    ohnehin gleich darauf mit dem Beitrag selbst (`Post`-Kaskade).
     """
     if request.method == "POST":
         user = request.user
+        profile = Profile.objects.filter(user=user).first()
+        if profile is not None:
+            tombstone_comments_by(profile)
         user.delete()
         logout(request)
         return redirect(settings.LOGOUT_REDIRECT_URL)

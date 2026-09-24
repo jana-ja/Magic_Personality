@@ -1,5 +1,6 @@
 """
-Seiten mit Beiträgen (Task 5.5, FR-B6; Task 5.6 nutzt dieselben Bausteine).
+Seiten mit Beiträgen (Task 5.5, FR-B6; Task 5.6 nutzt dieselben Bausteine) und
+Kommentaren (Task 6.4, FR-B17).
 
 Jede Liste liest über `Post.objects.visible_to()` (FR-B9) und bereitet die
 Karten so vor, dass eine Seite mit zehn Beiträgen nicht mehr Abfragen kostet
@@ -9,8 +10,9 @@ Kombinationsnamen.
 
 from django.core.paginator import Paginator
 
-from . import combinations
-from .models import Post
+from . import combinations, seen
+from .markdown import EXCERPT_LENGTH, truncate_at_word_boundary
+from .models import Comment, Post
 
 PAGE_SIZE = 10
 #: So viele Beiträge zeigt das Grid der Color Infos höchstens (FR-B7); alle stehen auf der
@@ -26,12 +28,25 @@ def _with_authors(posts):
     return posts.select_related("author").prefetch_related("author__color_assignments__combination")
 
 
-def cards_for(posts):
-    """Für das Template: je Beitrag `{"post", "label"}`, `label` ist der
-    Kombinationsname oder `None` bei einem allgemeinen Beitrag."""
+def cards_for(posts, new_counts=None):
+    """
+    Für das Template: je Beitrag `{"post", "label", "new_count"}`, `label`
+    ist der Kombinationsname oder `None` bei einem allgemeinen Beitrag.
+    `new_count` (Task 6.6) ist nur ungleich 0, wenn `new_counts` (von
+    `apps.posts.seen.new_counts_by_post()`) mitgegeben wird — also nur auf
+    der eigenen Seite „Posts", nicht bei einer fremden.
+    """
     posts = list(posts)
     labels = combinations.combination_labels(post.colors for post in posts)
-    return [{"post": post, "label": labels.get(post.colors)} for post in posts]
+    new_counts = new_counts or {}
+    return [
+        {
+            "post": post,
+            "label": labels.get(post.colors),
+            "new_count": new_counts.get(post.pk, 0),
+        }
+        for post in posts
+    ]
 
 
 def page_number(raw):
@@ -48,10 +63,16 @@ def author_posts_page(viewer, author, raw_page):
     Eine Seite mit den Beiträgen von `author`, die `viewer` sehen darf, neueste
     zuerst (Task 5.5). Eine ungültige Seitennummer landet freundlich auf der
     ersten, eine zu große auf der letzten Seite statt auf einem Fehler.
+
+    Die „n neu"-Markierung je Karte (Task 6.6) gibt es nur, wenn `viewer` die
+    eigene Seite ansieht (`seen.new_counts_by_post()` sonst gar nicht erst
+    aufgerufen) — auf einer fremden Seite gibt es dafür ohnehin nie einen
+    Stand.
     """
     posts = Post.objects.visible_to(viewer).filter(author=author)
     page = Paginator(posts, PAGE_SIZE).get_page(page_number(raw_page))
-    return {"posts_page": page, "post_cards": cards_for(page)}
+    new_counts = seen.new_counts_by_post(viewer) if viewer.pk == author.pk else None
+    return {"posts_page": page, "post_cards": cards_for(page, new_counts)}
 
 
 def combination_grid(viewer, code):
@@ -72,3 +93,37 @@ def combination_posts_page(viewer, code, raw_page):
     posts = _with_authors(Post.objects.visible_to(viewer).filter(colors=code))
     page = Paginator(posts, COMBINATION_PAGE_SIZE).get_page(page_number(raw_page))
     return {"posts_page": page, "grid_posts": list(page)}
+
+
+def comment_excerpt(body):
+    """
+    Klartext-Auszug eines Kommentars (Task 6.4): Kommentare sind schon
+    Klartext (D-80), anders als `apps.posts.markdown.excerpt()` also kein
+    Markdown-Parsing nötig — nur Leerraum zusammengezogen und an einer
+    Wortgrenze gekürzt, mit derselben Länge wie bei Beiträgen.
+    """
+    return truncate_at_word_boundary(" ".join(body.split()), EXCERPT_LENGTH)
+
+
+def author_comments_page(viewer, author, raw_page):
+    """
+    Eine Seite mit den Kommentaren von `author` (Task 6.4, FR-B17), neueste
+    zuerst. Hüllen tauchen nie auf: Sie haben keinen Autor mehr (D-79), fallen
+    also schon durch `author=author` heraus. Kommentare unter Beiträgen, die
+    `viewer` nicht sehen darf, ebenso — über `Post.objects.visible_to()`
+    (FR-B9, D-78), nicht über eine eigene Sichtbarkeitsregel.
+
+    Die „n neu"-Markierung je Kommentar (Task 6.6: neue Antworten auf genau
+    diesen Kommentar) gibt es nur auf der eigenen Seite — wie bei
+    `author_posts_page()`.
+    """
+    comments = (
+        Comment.objects.filter(author=author, post__in=Post.objects.visible_to(viewer))
+        .select_related("post")
+        .order_by("-created_at", "-pk")
+    )
+    page = Paginator(comments, PAGE_SIZE).get_page(page_number(raw_page))
+    new_counts = seen.new_counts_by_comment(viewer) if viewer.pk == author.pk else {}
+    for comment in page:
+        comment.new_count = new_counts.get(comment.pk, 0)
+    return {"comments_page": page}

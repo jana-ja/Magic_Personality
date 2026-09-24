@@ -1,0 +1,47 @@
+{% load i18n social_tags %}
+{% comment %} Ein Kommentar (Task 6.2/6.3/6.5, FR-B13 bis FR-B16, FR-B18, D-79/D-81). Anker
+   `c-<nummer>` — Ziel eines "↪ #m"-Verweises und der Weiterleitung nach dem Absenden ohne
+   JavaScript. Text als Klartext: `urlize` erkennt Links (mit `rel="nofollow"`, escaped),
+   `linebreaks` macht Absätze/Zeilenumbrüche daraus (D-80) — kein Markdown, anders als bei
+   Beiträgen. Eine Hülle (nur in der Liste, wenn beantwortet — `Comment.objects.for_post`) zeigt
+   nur ihre Nummer, keinen Autor, keinen Text und weder „Reply"/„Delete" noch „Report" (D-79) —
+   `viewer_id` träfe wegen `author=None` ohnehin nie zu, und eine Hülle hat nichts mehr zu melden.
+   „Delete" nur am eigenen Kommentar, „Report" nur an fremden (nie beides zugleich). {% endcomment %}
+<article id="c-{{ comment.number }}" class="comment{% if comment.is_tombstone %} comment--tombstone{% endif %}">
+  <p class="comment__meta">
+    <span class="comment__number">#{{ comment.number }}</span>
+    {% if comment.reply_to_id %}
+      <a class="comment__reply-ref" href="#c-{{ comment.reply_to.number }}">↪ #{{ comment.reply_to.number }}</a>
+    {% endif %}
+  </p>
+
+  {% if comment.is_tombstone %}
+    <p class="comment__deleted">{% translate "deleted" %}</p>
+  {% else %}
+    {% author_card comment.author size="small" %}
+    <p class="comment__date">
+      <time datetime="{{ comment.created_at|date:'c' }}">{{ comment.created_at|date:"Y-m-d H:i" }}</time>
+    </p>
+    <div class="comment__body">{{ comment.body|urlize|linebreaks }}</div>
+    <p class="comment__actions">
+      <a class="tap-target" href="?reply={{ comment.number }}#comment-form">{% translate "Reply" %}</a>
+      {% if comment.author_id == viewer_id %}
+        <a class="tap-target" href="{% url 'posts:comment_delete' post_pk=post.pk pk=comment.pk %}">{% translate "Delete" %}</a>
+      {% endif %}
+    </p>
+    {% if comment.author_id != viewer_id %}
+      {% comment %} Melden (Task 6.5, FR-B18): eigener Bereich je Kommentar, mit HTMX öffnet der
+         Link das Formular an Ort und Stelle. Der Zustand „schon gemeldet" kommt vorgerechnet aus
+         der View (`already_reported_comment_ids`), keine Abfrage je Kommentar. {% endcomment %}
+      <div id="report-comment-{{ comment.pk }}" class="comment__report" aria-live="polite">
+        {% if comment.pk in already_reported_comment_ids %}
+          <p class="report-note">{% translate "You have reported this comment." %}</p>
+        {% else %}
+          <a class="tap-target" href="{% url 'posts:comment_report' post_pk=post.pk pk=comment.pk %}"
+             hx-get="{% url 'posts:comment_report' post_pk=post.pk pk=comment.pk %}"
+             hx-target="#report-comment-{{ comment.pk }}" hx-swap="innerHTML">{% translate "Report" %}</a>
+        {% endif %}
+      </div>
+    {% endif %}
+  {% endif %}
+</article>

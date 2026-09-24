@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}{% translate "Report comment" %}{% endblock %}
+
+{% block content %}
+  {% comment %} Melden eines Kommentars ohne JavaScript (Task 6.5): dieselbe Seite wie der
+     Baustein auf der Beitragsseite. {% endcomment %}
+  <h1>{% translate "Report comment" %}</h1>
+  <p>{% blocktranslate with number=comment.number %}You are reporting comment #{{ number }}.{% endblocktranslate %}</p>
+
+  <div id="report-comment-{{ comment.pk }}" aria-live="polite">
+    {% include "posts/_comment_report_body.html" %}
+  </div>
+
+  <p><a class="tap-target" href="{% url 'posts:detail' pk=post.pk %}#c-{{ comment.number }}">{% translate "Back to the post" %}</a></p>
+{% endblock %}

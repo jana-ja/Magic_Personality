@@ -1,0 +1,45 @@
+{% load i18n %}
+{% comment %} Kommentarbereich der Beitragsseite (Task 6.2, FR-B13, FR-B15, FR-B18): Liste und
+   Formular in einem Baustein, damit die View bei HTMX nur `#comments` austauschen muss — der
+   neue Kommentar erscheint ohne Seitenwechsel, und ein danach frisch aufgebauter Kontext (kein
+   `?reply=` in einer POST-Anfrage) setzt „Replying to" von selbst zurück. Live-Region: ein neuer
+   oder abgelehnter Kommentar wird Screenreadern angesagt. Ohne JavaScript liefert dieselbe View
+   die ganze Seite; das Formular funktioniert unverändert (FR-B15: „ohne JavaScript nutzbar"). {% endcomment %}
+<section id="comments" class="comments" aria-live="polite" aria-labelledby="comments-heading">
+  <h2 id="comments-heading">
+    {% blocktranslate count counter=comments|length %}{{ counter }} comment{% plural %}{{ counter }} comments{% endblocktranslate %}
+  </h2>
+
+  {% if comments %}
+    <ol class="comment-list">
+      {% for comment in comments %}
+        <li>{% include "posts/_comment.html" %}</li>
+      {% endfor %}
+    </ol>
+  {% endif %}
+
+  <form method="post" id="comment-form" class="comment-form" action="{% url 'posts:comment' pk=post.pk %}"
+        hx-post="{% url 'posts:comment' pk=post.pk %}" hx-target="#comments" hx-swap="outerHTML">
+    {% csrf_token %}
+    {{ comment_form.reply_to }}
+
+    {% if comment_form.non_field_errors %}
+      <ul class="form-errors" role="alert">
+        {% for error in comment_form.non_field_errors %}<li>{{ error }}</li>{% endfor %}
+      </ul>
+    {% endif %}
+
+    {% if replying_to %}
+      <p class="comment-form__replying">
+        {% blocktranslate with number=replying_to.number %}Replying to #{{ number }}{% endblocktranslate %}
+        <a href="{% url 'posts:detail' pk=post.pk %}#comment-form">{% translate "Cancel" %}</a>
+      </p>
+    {% endif %}
+
+    <label for="{{ comment_form.body.id_for_label }}">{{ comment_form.body.label }}</label>
+    {{ comment_form.body }}
+    {% for error in comment_form.body.errors %}<p class="form-errors" role="alert">{{ error }}</p>{% endfor %}
+
+    <button type="submit">{% translate "Post comment" %}</button>
+  </form>
+</section>

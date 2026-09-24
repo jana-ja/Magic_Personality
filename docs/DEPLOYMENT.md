@@ -209,6 +209,19 @@ Danach in `/admin/` mit den normalen Zugangsdaten anmelden. Weitere Admins lasse
 
 **Ein viertes Mal geprobt** (2026-09-20, Task 5.9/Release-Durchsicht v1.3), diesmal ausdrücklich mit den neuen Tabellen `posts_post` und `posts_report`: `scripts/backup.sh` gegen den laufenden `db`-Container, Einspielen in eine Wegwerf-Datenbank (Schritt 2). Verglichen wurden vorher und nachher Zeilenzahlen (19 Beiträge, 1 Meldung, 4 Profile) samt Inhalts-Prüfsummen über Beiträge, Meldungen, Profile und Testergebnisse sowie alle Constraints und Indizes beider Tabellen (Textlänge, kanonischer Farbcode, nichtleerer Titel, `UNIQUE (reporter, post)`, drei Fremdschlüssel) — 24 Zeilen, identisch. Die Fremdschlüssel stehen in der Datenbank auf `NO ACTION`, das Kaskadieren beim Löschen leistet wie im ganzen Projekt Django; ein direktes `DELETE` per SQL nähme Kinder nicht mit. Wegwerf-Datenbank und Dump danach gelöscht.
 
+**Ein fünftes Mal geprobt** (2026-09-23, Task 6.7/Release-Durchsicht v1.4), diesmal mit den neuen Tabellen `posts_comment` und `posts_postseen`: `scripts/backup.sh` gegen den laufenden `db`-Container, Einspielen in eine Wegwerf-Datenbank (Schritt 2), mit eigens angelegten Testdaten (2 Profile, 1 Beitrag, 3 Kommentare — davon einer eine Antwort und einer eine Hülle —, 1 `PostSeen`-Zeile), damit der Vergleich auch wirklich Inhalt bewegt statt nur Nullen gegen Nullen zu prüfen. Verglichen wurden Zeilenzahlen (4 Profile, 1 Beitrag, 3 Kommentare, 1 `PostSeen`-Zeile), eine Inhalts-Prüfsumme über Nummer, Text und Autor aller Kommentare sowie der Wasserstand (`last_seen_number`) der `PostSeen`-Zeile — identisch. `\d posts_comment`/`\d posts_postseen` zeigten alle Constraints aus `apps.posts.models` korrekt wiederhergestellt: `comment_unique_number_per_post`, `comment_body_max_length`, die drei Fremdschlüssel von `posts_comment` (Autor, Beitrag, `reply_to`) sowie `post_seen_once_per_person_and_post` und die beiden Fremdschlüssel von `posts_postseen`. Testdaten, Wegwerf-Datenbank und Dump danach gelöscht.
+
+## Release-Hinweise v1.4 (Kommentare)
+
+Wie v1.3 braucht v1.4 ein **vollständiges** Deployment:
+
+- **Migrationen:** `posts.0003_comment` bis `posts.0005_postseen` — zwei neue Tabellen (`Comment`, Task 6.1; `PostSeen`, Task 6.6) und eine Änderung an `posts_report` (`0004_report_comment`, Task 6.5: `comment` als zweites, nullbares Ziel neben `post`, s. `Report.Meta.constraints`); `posts_post` selbst unverändert. Deshalb `scripts/deploy_full.sh`, nicht `scripts/deploy.sh`. Seeds ändern sich nicht, keine neue Abhängigkeit (Kommentare sind Klartext, D-80, kein zweiter Markdown-Renderer).
+- **Neue Adressen** (alle hinter Gate und Login): `/posts/<id>/comment/`, `/posts/<id>/comments/<id>/` samt `delete/`, `report/`, `report/thanks/`. `compose*.yaml`, `Dockerfile` und `Caddyfile` sind unverändert.
+- **Admin:** Kommentare unter „Comments" (nur lesbar, keine `delete_selected`-Aktion — stattdessen `tombstone_selected`, siehe Task 6.5), `PostSeen` unter „Post seens" (rein informativ, kein Löschen/Ändern von Hand vorgesehen).
+- **Datenschutz:** Die Datenschutzseite nennt Kommentare bereits (Task 6.3); Account-Löschung macht fremde Kommentare zu Hüllen statt sie zu entfernen (PROTECT auf `Comment.author`, D-79) — anders als bei Beiträgen und Meldungen, die mit dem Account verschwinden.
+
+Vor dem Deployment lässt sich mit dem Backup-Ablauf oben ein Dump ziehen; nach dem Deployment reicht ein Blick auf `/healthz` und ein Kommentar unter einem Beitrag.
+
 ## Release-Hinweise v1.3 (Beiträge)
 
 Anders als v1.2 braucht v1.3 ein **vollständiges** Deployment:

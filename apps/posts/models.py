@@ -1,6 +1,7 @@
 """
-Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78) und Meldungen (Task 5.7,
-FR-B10, D-81).
+Beiträge (Task 5.1, FR-B1, FR-B2, FR-B8, FR-B9, D-78), Meldungen (Task 5.7/6.5,
+FR-B10, D-81), Kommentare (Task 6.1, FR-B14, FR-B15, D-79) und der Stand des
+Zählers neuer Kommentare (Task 6.6, FR-B20, D-79).
 
 `Post.author` verweist auf `accounts.Profile`, nicht auf `accounts.User`
 (D-78) — wie `Friendship` (D-22): die Autorenkarte braucht nur das
@@ -22,13 +23,15 @@ Stelle ergänzen (Test in Task 7.4).
 
 from django.core.validators import MaxLengthValidator, RegexValidator
 from django.db import models
-from django.db.models import Q
+from django.db.models import Exists, OuterRef, Q
 from django.db.models.functions import Length
 from django.db.models.lookups import LessThanOrEqual
 from django.utils.translation import gettext_lazy as _
 
 TITLE_MAX_LENGTH = 120
 BODY_MAX_LENGTH = 10_000
+# Klartext (D-80), deutlich kürzer als ein Beitrag (Task 6.1, FR-B13).
+COMMENT_MAX_LENGTH = 2000
 
 # Genau die kanonischen Codes: höchstens einmal je Farbe, in WUBRG-
 # Reihenfolge, leer erlaubt. Dieselbe Regel wie `apps.colors.utils.is_canonical`,
@@ -106,13 +109,24 @@ class Post(models.Model):
 
 class Report(models.Model):
     """
-    Meldung eines Beitrags (Task 5.7, FR-B10, D-81). Sichtbar nur für die
-    Projektinhaberin im Django-Admin; es gibt kein automatisches Ausblenden.
+    Meldung eines Beitrags oder eines Kommentars (Task 5.7/6.5, FR-B10,
+    FR-B18, D-81). Sichtbar nur für die Projektinhaberin im Django-Admin; es
+    gibt kein automatisches Ausblenden.
 
-    Einmal je Person und Beitrag (Unique-Constraint). Die Meldung verschwindet
-    mit dem gemeldeten Beitrag und mit dem Account der meldenden Person
-    (Kaskade, D-81). Ab v1.4 kommt `comment` als Alternative zu `post` dazu
-    (Task 6.5).
+    Genau eines von `post`/`comment` ist gesetzt (Check-Constraint — die
+    Views legen nie beide oder keines an, das hier ist die Absicherung in
+    der Datenbank). Einmal je Person und Ziel (zwei partielle
+    Unique-Constraints, je eine für `post` und `comment` — eine einzelne
+    über beide Spalten hinweg würde zwei Meldungen derselben Person
+    zulassen, solange nur jeweils die andere Spalte `NULL` ist). Die Grenze
+    aus FR-B11/FR-B18 zählt **beide** zusammen: `profile.reports.all()`
+    kennt keine Unterscheidung nach Ziel.
+
+    Die Meldung verschwindet mit dem gemeldeten Eintrag (Kaskade) und mit
+    dem Account der meldenden Person (D-81). Wird ein Kommentar zur Hülle
+    gemacht (Task 6.3/6.5), bleibt seine Zeile bestehen — die Meldung dazu
+    bleibt deshalb ebenfalls bestehen, bis die Projektinhaberin sie im
+    Admin als bearbeitet markiert.
     """
 
     MAX_REASON_LENGTH = 500
@@ -120,7 +134,12 @@ class Report(models.Model):
     reporter = models.ForeignKey(
         "accounts.Profile", on_delete=models.CASCADE, related_name="reports"
     )
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="reports")
+    post = models.ForeignKey(
+        Post, on_delete=models.CASCADE, null=True, blank=True, related_name="reports"
+    )
+    comment = models.ForeignKey(
+        "Comment", on_delete=models.CASCADE, null=True, blank=True, related_name="reports"
+    )
     reason = models.CharField(max_length=MAX_REASON_LENGTH, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     # Gesetzt, sobald die Projektinhaberin die Meldung im Admin als bearbeitet markiert.
@@ -129,14 +148,166 @@ class Report(models.Model):
     class Meta:
         ordering = ["-created_at"]
         constraints = [
+            models.CheckConstraint(
+                condition=(
+                    Q(post__isnull=False, comment__isnull=True)
+                    | Q(post__isnull=True, comment__isnull=False)
+                ),
+                name="report_exactly_one_of_post_or_comment",
+            ),
             models.UniqueConstraint(
-                fields=["reporter", "post"], name="report_once_per_person_and_post"
+                fields=["reporter", "post"],
+                condition=Q(post__isnull=False),
+                name="report_once_per_person_and_post",
+            ),
+            models.UniqueConstraint(
+                fields=["reporter", "comment"],
+                condition=Q(comment__isnull=False),
+                name="report_once_per_person_and_comment",
             ),
         ]
 
     def __str__(self):
-        return f"{self.reporter} → {self.post}"
+        return f"{self.reporter} → {self.post or self.comment}"
 
     @property
     def is_open(self):
         return self.handled_at is None
+
+    @property
+    def target(self):
+        """Das gemeldete Ding, gleich welcher Art (immer genau eines gesetzt)."""
+        return self.post or self.comment
+
+
+class CommentQuerySet(models.QuerySet):
+    def for_post(self, post):
+        """
+        Die Kommentare eines Beitrags für die Anzeige (Task 6.2, FR-B13, D-79):
+        älteste zuerst (`Meta.ordering`), ohne Hüllen ohne Antworten — sie
+        tragen nichts mehr bei, sobald niemand mehr auf sie verweist.
+
+        `Exists()` statt eines `annotate(Count(...))`: fragt nur „gibt es
+        mindestens eine Antwort", ohne für jeden Kommentar alle seine
+        Antworten zu zählen.
+        """
+        has_a_reply = self.model.objects.filter(reply_to=OuterRef("pk"))
+        return (
+            self.filter(post=post)
+            .annotate(has_reply=Exists(has_a_reply))
+            .exclude(deleted_at__isnull=False, has_reply=False)
+        )
+
+
+class Comment(models.Model):
+    """
+    Kommentar unter einem Beitrag (Task 6.1, FR-B13 bis FR-B16, D-79). **Flach**
+    (kein Baum): `reply_to` verweist höchstens auf einen Kommentar desselben
+    Beitrags, eine Antwort auf eine Antwort verweist auf diese, nicht
+    verschachtelt.
+
+    `number` ist die Nummer **je Beitrag** (`#1`, `#2`, …, `unique (post,
+    number)`), vergeben von `apps.posts.comments.create_comment()` atomar aus
+    `Post.comment_seq` — nie hier direkt zuweisen. Sie wird **nie neu
+    vergeben**, auch wenn der Kommentar später zur Hülle wird (s. u.).
+
+    **Löschen** (Task 6.3) setzt `deleted_at` und leert `body`/`author` — die
+    Zeile selbst bleibt (**Hülle**), damit Nummern und `reply_to`-Verweise
+    anderer Kommentare stabil bleiben; es gibt bewusst keine
+    `Comment.objects.delete()`-Stelle im Anwendungscode. Deshalb ist `author`
+    nullbar und **nicht** kaskadierend mit `Profile` verknüpft
+    (`on_delete=PROTECT`, anders als bei `Post.author`/`Report.reporter`,
+    D-78): Löscht jemand den eigenen Account, muss der Löschvorgang jeden
+    eigenen Kommentar **zuerst** zur Hülle machen (Task 6.3) — vergisst er
+    das, bricht `PROTECT` den Vorgang, statt eine Zeile mit Autor, aber ohne
+    zugehöriges Profil zu hinterlassen. `test_account_deletion.py`s Wächter
+    (Task 5.9) nennt genau dieses Feld als bewusste Ausnahme von der sonst
+    durchgängigen Kaskade.
+
+    Kommentare sind **nicht bearbeitbar**: bei Verweisen bliebe sonst unklar,
+    worauf sich eine Antwort einmal bezogen hat (anders als bei `Post`, D-72).
+
+    **Anzeige** (Task 6.2): `objects.for_post(post)` ist der Weg, auf dem eine
+    Seite Kommentare liest — er lässt Hüllen ohne Antworten aus (D-79: „Eine
+    Hülle wird nur angezeigt, wenn auf sie geantwortet wurde"). Eine Hülle mit
+    Antworten bleibt drin, damit deren „↪ #n"-Verweise ein Ziel behalten.
+    """
+
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="comments")
+    # None: entweder eine Hülle (deleted_at gesetzt), oder — künftig denkbar,
+    # heute nicht vorgesehen — ein Kommentar ohne zurechenbare Person.
+    author = models.ForeignKey(
+        "accounts.Profile",
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name="comments",
+    )
+    number = models.PositiveIntegerField()
+    # Klartext (D-80), nicht Markdown: kürzer, weniger Angriffsfläche. Leer nur
+    # bei einer Hülle — die Datenbank erzwingt das nicht (dafür bräuchte es
+    # einen Constraint mit deleted_at), `apps.posts.comments` erzwingt es.
+    body = models.TextField(blank=True, validators=[MaxLengthValidator(COMMENT_MAX_LENGTH)])
+    reply_to = models.ForeignKey(
+        "self", on_delete=models.SET_NULL, null=True, blank=True, related_name="replies"
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    deleted_at = models.DateTimeField(null=True, blank=True)
+
+    objects = CommentQuerySet.as_manager()
+
+    class Meta:
+        ordering = ["number"]
+        indexes = [
+            # Profil-Tab „Comments" (Task 6.4).
+            models.Index(fields=["author", "-created_at"]),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["post", "number"], name="comment_unique_number_per_post"
+            ),
+            models.CheckConstraint(
+                condition=LessThanOrEqual(Length("body"), COMMENT_MAX_LENGTH),
+                name="comment_body_max_length",
+            ),
+        ]
+
+    def __str__(self):
+        return f"#{self.number} on {self.post}"
+
+    @property
+    def is_tombstone(self):
+        return self.deleted_at is not None
+
+
+class PostSeen(models.Model):
+    """
+    Der Stand des Zählers neuer Kommentare (Task 6.6, FR-B20, D-79):
+    `last_seen_number` ist die höchste Kommentar-Nummer dieses Beitrags, die
+    `profile` schon gesehen hat — technisch derselbe Wert wie
+    `Post.comment_seq` zum Zeitpunkt des letzten Aufrufs, nicht live daran
+    gekoppelt (`apps.posts.seen.mark_seen()` schreibt ihn fest).
+
+    Es gibt nur eine Zeile je Person und Beitrag — auch wenn beide Gründe
+    aus FR-B20 zutreffen (Autorin/Autor **und** eigener Kommentar
+    darunter), reicht ein gemeinsamer Stand: „neu" bemisst sich ohnehin an
+    derselben Zahl. Eine Zeile entsteht nur für Personen mit einem der
+    beiden Gründe (`mark_seen()` prüft das) — für alle anderen gäbe es nie
+    eine „neu"-Markierung, eine Zeile wäre also Verschwendung.
+    """
+
+    profile = models.ForeignKey(
+        "accounts.Profile", on_delete=models.CASCADE, related_name="post_seen"
+    )
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name="seen_by")
+    last_seen_number = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(
+                fields=["profile", "post"], name="post_seen_once_per_person_and_post"
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.profile} @ {self.post} (#{self.last_seen_number})"

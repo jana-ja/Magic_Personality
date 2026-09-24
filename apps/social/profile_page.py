@@ -15,6 +15,7 @@ from apps.colors import pentagon
 from apps.colors.content import LOCALE
 from apps.colors.field import color_field_context
 from apps.colors.models import Color, ColorCombination
+from apps.posts import seen as comment_seen
 
 from . import friendships
 from .models import Friendship
@@ -69,6 +70,7 @@ FRIENDS_PREVIEW_LIMIT = 8
 PINBOARD = "pinboard"
 FRIENDS = "friends"
 POSTS = "posts"
+COMMENTS = "comments"
 HISTORY = "history"
 SETTINGS = "settings"
 
@@ -82,10 +84,15 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
 
     `is_owner` schaltet die Bearbeiten-Zugänge und alles Private ein.
     `tab`: `PINBOARD` (Standard, bei der eigenen Person mit dem
-    Bearbeiten-Formular), `POSTS` (Beiträge, Task 5.5), `FRIENDS` (Freundesliste,
-    bei der eigenen Person zusätzlich die offenen Anfragen) sowie die nur der eigenen Person
-    vorbehaltenen `HISTORY` (Testhistorie) und `SETTINGS` (Einstellungen) —
-    die beiden rufen nur Views auf, die vorher `owner_only` passiert haben.
+    Bearbeiten-Formular), `POSTS` (Beiträge, Task 5.5), `COMMENTS` (Kommentare,
+    Task 6.4), `FRIENDS` (Freundesliste, bei der eigenen Person zusätzlich die
+    offenen Anfragen) sowie die nur der eigenen Person vorbehaltenen `HISTORY`
+    (Testhistorie) und `SETTINGS` (Einstellungen) — die beiden rufen nur Views
+    auf, die vorher `owner_only` passiert haben.
+
+    `new_comment_count` (Task 6.6, FR-B20) steht ebenfalls nur für die
+    eigene Person: neue Kommentare unter eigenen Beiträgen oder als
+    Antwort auf eigene Kommentare, fürs Abzeichen am Reiter „Posts".
 
     `editing` (`"nickname"`, `"bio"` oder `"colors"`, Task 4.5/4.6) schaltet den jeweiligen
     Bereich der Seite in den Bearbeiten-Modus, `edit_form` ist dessen
@@ -109,6 +116,7 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
     if is_owner:
         received = list(friendships.pending_requests_received(profile))
         context["friend_request_count"] = len(received)
+        context["new_comment_count"] = comment_seen.total_new_comment_count(profile)
     else:
         context.update(relationship_context(viewer_profile, profile))
 
@@ -121,6 +129,10 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
 
     if tab == POSTS:
         # Die Beiträge selbst legt der View dazu (`apps.posts.listing`, Task 5.5).
+        return context
+
+    if tab == COMMENTS:
+        # Die Kommentare selbst legt der View dazu (`apps.posts.listing`, Task 6.4).
         return context
 
     if tab == HISTORY:

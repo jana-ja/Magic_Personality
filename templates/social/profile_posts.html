@@ -16,7 +16,7 @@
     {% if post_cards %}
       <ul class="post-list">
         {% for card in post_cards %}
-          <li>{% include "posts/_post_card.html" with post=card.post label=card.label %}</li>
+          <li>{% include "posts/_post_card.html" with post=card.post label=card.label new_count=card.new_count %}</li>
         {% endfor %}
       </ul>
       {% include "posts/_pagination.html" with page=posts_page %}

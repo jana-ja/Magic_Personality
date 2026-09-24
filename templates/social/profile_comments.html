@@ -1,0 +1,24 @@
+{% extends "social/profile_base.html" %}
+{% load i18n %}
+
+{% block tab_content %}
+  {% comment %} Tab "Comments" (Task 6.4, FR-B17): die Kommentare dieses Profils, neueste zuerst.
+     Hüllen tauchen nie auf (kein Autor mehr, D-79); jede Karte führt mit einem Sprung zum
+     Kommentar selbst auf dessen Beitrag. {% endcomment %}
+  <section aria-labelledby="comments-heading">
+    <h2 id="comments-heading">{% translate "Comments" %}</h2>
+
+    {% if comments_page %}
+      <ul class="post-list">
+        {% for comment in comments_page %}
+          <li>{% include "posts/_comment_card.html" %}</li>
+        {% endfor %}
+      </ul>
+      {% include "posts/_pagination.html" with page=comments_page %}
+    {% elif is_owner %}
+      <p>{% translate "You haven't written any comments yet." %}</p>
+    {% else %}
+      <p>{% blocktranslate with name=profile.nickname %}{{ name }} hasn't written any comments yet.{% endblocktranslate %}</p>
+    {% endif %}
+  </section>
+{% endblock %}
