@@ -2,7 +2,8 @@
 Views der Social-App: fremde Profile ansehen (Task 3.1, FR-S1), nach
 Nickname suchen (Task 3.2, FR-S2), nach Farbkombination suchen
 (Task 3.3, FR-S3) und Freundschaften (Task 3.4, FR-S4). Die Tabs „Posts"
-(Task 5.5) und „Comments" (Task 6.4) lesen aus `apps.posts.listing`.
+(Task 5.5), „Comments" (Task 6.4) und „Pinboard" (Task 7.2) lesen aus
+`apps.posts.listing`.
 
 Freundeslisten und Graph (3.5) kommen mit dem eigenen Task hinzu.
 """
@@ -55,13 +56,16 @@ def profile_detail(request, nickname):
     umgekehrt.
 
     Seit Task 4.3 (FR-P11) ist das der Tab „Pinboard" (Standardtab);
-    die Freundesliste steht im Tab „Friends" (`profile_friends`).
-    Weiterhin je Profil: Freundschaftsstatus (FR-S4, Task 3.4) im Kopf
-    und die Punkte des übernommenen Testergebnisses (D-70).
+    die Freundesliste steht im Tab „Friends" (`profile_friends`). Seit
+    Task 7.2 (FR-B22) zeigt er die Pins der Person (`apps.posts.listing`,
+    wie bei „Posts"/„Comments") statt eines Platzhalters. Weiterhin je
+    Profil: Freundschaftsstatus (FR-S4, Task 3.4) im Kopf und die Punkte
+    des übernommenen Testergebnisses (D-70).
     """
     profile = get_object_or_404(Profile, nickname__iexact=nickname)
     viewer_profile = _current_profile(request)
     context = profile_page.profile_context(profile, viewer_profile)
+    context.update(listing.pinboard_page(viewer_profile, profile, request.GET.get("page")))
     return render(request, "social/profile_detail.html", context)
 
 

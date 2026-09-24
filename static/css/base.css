@@ -929,12 +929,13 @@ button {
   text-align: center;
 }
 
-.profile-pinboard__soon {
-  padding: var(--space-4);
-  border: 1px dashed var(--color-border);
-  border-radius: 0.5rem;
-  color: var(--color-muted);
-  text-align: center;
+/* Zähler auf der Pinnwand-Karte (Task 7.2, FR-B22) — derselbe Chip wie
+   .post__combination, nur mit eigenem Namen: hier geht es nicht um eine
+   Kombination, sondern die Art des Ziels ("Post"/"Comment"). */
+.pin-card__kind {
+  padding: 0 var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
 }
 
 /* Bereiche einzeln bearbeiten (Task 4.5, FR-P12) ------------------------- */
@@ -1560,6 +1561,16 @@ main button {
   z-index: 1;
   width: fit-content;
   margin-bottom: var(--space-2);
+}
+
+/* Derselbe Grund wie bei .post-card__author: die Pinnwand (Task 7.2)
+   bindet den Pin-Knopf in eine .post-card ein, deren gespannte Fläche ihn
+   sonst unerreichbar machen würde. Auf der Beitragsseite/unter einem
+   Kommentar (Task 7.1, außerhalb jeder Karte) ändert das nichts. */
+.post__pin,
+.comment__pin {
+  position: relative;
+  z-index: 1;
 }
 
 .posts-head__links {

@@ -3,8 +3,8 @@ Views der Posts-App: Beitrag schreiben, bearbeiten, löschen (Task 5.3,
 FR-B1 bis FR-B4, FR-B11), die Beitragsseite (Task 5.4, FR-B5), Kommentare
 darauf (Task 6.2, FR-B13, FR-B15, FR-B18), Kommentare löschen (Task 6.3,
 FR-B16), Beiträge melden (Task 5.7, FR-B10), Kommentare melden
-(Task 6.5, FR-B18) und Pinnen (Task 7.1, FR-B21, D-82). Die Listen
-(Task 5.5, 5.6) kommen mit den eigenen Tasks.
+(Task 6.5, FR-B18) und Pinnen (Task 7.1/7.2, FR-B21, FR-B22, D-82). Die
+Listen (Task 5.5, 5.6, 7.2) kommen mit den eigenen Tasks.
 
 Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 `Post.objects.visible_to()` (FR-B9).
@@ -13,6 +13,7 @@ Jeder View verlangt eine Anmeldung (FR-B8) und liest Beiträge nur über
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.db import IntegrityError, transaction
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
@@ -466,6 +467,27 @@ def comment_report_thanks(request, post_pk, pk):
     return _comment_report_response(request, post, comment, sent=True)
 
 
+def _pinboard_unpin_response(request, profile, pinned):
+    """
+    `None`, wenn der Aufruf nicht von der eigenen Pinnwand kommt (verstecktes
+    Feld `context=pinboard` in `_pin_card.html`, Task 7.2) oder kein Lösen war
+    — die Aufruferin (`pin_post()`/`pin_comment()`) baut dann ihre gewohnte
+    Antwort. Sonst die Antwort fürs Entfernen der ganzen Karte: Anders als auf
+    der Beitragsseite, wo derselbe Knopf nur seine Beschriftung tauscht (das
+    Ziel bleibt sichtbar, ob gepinnt oder nicht), zeigt die Pinnwand nur
+    Gepinntes — ein bloßer Beschriftungswechsel ließe eine schon gelöste Karte
+    stehen, bis die Seite neu lädt. Mit HTMX eine leere Antwort auf die
+    schließende Karte (`hx-target="closest .post-card"` in `_pin_card.html`
+    entfernt sie); ohne JavaScript eine Weiterleitung zurück auf die eigene
+    Pinnwand statt auf den Beitrag.
+    """
+    if pinned or request.POST.get("context") != "pinboard":
+        return None
+    if _is_htmx(request):
+        return HttpResponse("")
+    return redirect("social:profile_detail", nickname=profile.nickname)
+
+
 @login_required
 @require_http_methods(["POST"])
 def pin_post(request, pk):
@@ -477,11 +499,16 @@ def pin_post(request, pk):
 
     Mit HTMX kommt nur der Baustein `#post-pin` zurück (der Knopf tauscht
     seine eigene Beschriftung aus), ohne JavaScript eine Weiterleitung auf
-    die Beitragsseite (FR-B21: „ohne JavaScript nutzbar", wie bei Kommentaren).
+    die Beitragsseite (FR-B21: „ohne JavaScript nutzbar", wie bei Kommentaren)
+    — außer von der eigenen Pinnwand aus (`_pinboard_unpin_response()`,
+    Task 7.2).
     """
     profile = current_profile(request)
     post = get_object_or_404(Post.objects.visible_to(profile), pk=pk)
     pinned = toggle_post_pin(profile, post)
+    pinboard_response = _pinboard_unpin_response(request, profile, pinned)
+    if pinboard_response is not None:
+        return pinboard_response
     if _is_htmx(request):
         return render(request, "posts/_post_pin.html", {"post": post, "is_pinned": pinned})
     return redirect("posts:detail", pk=post.pk)
@@ -504,6 +531,9 @@ def pin_comment(request, post_pk, pk):
         return redirect("posts:detail", pk=post.pk)
 
     pinned = toggle_comment_pin(profile, comment)
+    pinboard_response = _pinboard_unpin_response(request, profile, pinned)
+    if pinboard_response is not None:
+        return pinboard_response
     if _is_htmx(request):
         context = {"post": post, "comment": comment, "is_pinned": pinned}
         return render(request, "posts/_comment_pin.html", context)

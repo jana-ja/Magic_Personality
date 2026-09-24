@@ -1,6 +1,8 @@
 """
-Tests für Pinnwand-Platzhalter und Sidebar (Task 4.7, FR-P14, D-70, D-73):
-alle Kartenzustände rendern fehlerfrei, die Pinnwand zeigt den Platzhalter.
+Tests für die Pinnwand-Sidebar (Task 4.7, FR-P14, D-70, D-73): alle
+Kartenzustände rendern fehlerfrei. Die Pinnwand selbst (Task 7.2, FR-B22)
+kommt mit echten Pins in `test_pinboard_tab.py`; hier nur ihr Leerzustand,
+weil `alex`/`jamie` in diesem Modul nie etwas pinnen.
 """
 
 import re
@@ -71,17 +73,20 @@ def _friends_card(html):
 # Pinnwand ------------------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("who", ["alex", "jamie"])
-def test_the_pinboard_shows_the_placeholder_for_own_and_foreign_profiles(
-    gated_client, alex, jamie, who
-):
-    html = _get(gated_client, alex, f"/u/{who}/")
+def test_the_empty_pinboard_shows_the_owners_hint_on_the_own_profile(gated_client, alex):
+    html = _get(gated_client, alex, "/u/alex/")
 
-    assert "Coming soon" in html
-    assert "favorites" in html
+    assert "haven't pinned anything yet" in html
+    assert "Pin" in html
 
 
-def test_the_placeholder_offers_no_dead_buttons_or_links(gated_client, alex, jamie):
+def test_the_empty_pinboard_shows_a_plain_note_on_a_foreign_profile(gated_client, alex, jamie):
+    html = _get(gated_client, alex, "/u/jamie/")
+
+    assert "Nothing pinned yet." in html
+
+
+def test_the_empty_pinboard_offers_no_dead_buttons_or_links(gated_client, alex, jamie):
     html = _get(gated_client, alex)
     section = re.search(r'<section class="profile-pinboard".*?</section>', html, re.S).group(0)
 
