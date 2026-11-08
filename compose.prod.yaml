@@ -18,9 +18,19 @@
 # X-Forwarded-For nur deshalb vertrauen, weil "web" nie direkt von
 # außen erreichbar ist).
 
+# Docker rotiert json-file-Logs von sich aus nicht. Begrenzt jeden Container auf
+# 3 x 10 MB. Wirkt erst für neu erstellte Container ("up -d" erledigt
+# das nach dieser Änderung).
+x-logging: &default-logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
 services:
   db:
     restart: unless-stopped
+    logging: *default-logging
     # Nächtlicher pg_dump landet hier hinein, nicht auf den
     # Host-Dateisystem (Task 2.14, ARCHITECTURE.md §11.4,
     # scripts/backup.sh). Eigenes Volume statt eines Unterordners in
@@ -41,10 +51,12 @@ services:
     # Datei zu bearbeiten — einfach in der Server-.env setzen.
     image: ghcr.io/jana-ja/magic_personality:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    logging: *default-logging
 
   caddy:
     image: caddy:2
     restart: unless-stopped
+    logging: *default-logging
     env_file:
       - .env
     ports:
