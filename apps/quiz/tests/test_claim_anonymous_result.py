@@ -139,6 +139,22 @@ def test_claimed_result_page_shows_the_score_bars(gated_client, published_questi
     assert html.count('class="score-bar"') == 5
 
 
+def test_claimed_result_page_shows_the_banner(gated_client, published_questionnaire, user):
+    """Auch die eingelöste Ergebnisseite zeigt das Banner der Kombination (D-73)."""
+    _response, scores = _submit_all(gated_client, published_questionnaire)
+    token = anonymous_result.sign(
+        questionnaire_version=published_questionnaire.version, scores=scores
+    )
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
+
+    gated_client.force_login(user)
+    response = gated_client.post(CLAIM_URL, {"token": token})
+
+    html = response.content.decode()
+    assert 'class="profile-banner profile-banner--compact"' in html
+    assert html.count("--segment-color:") == len(combination.color_codes)
+
+
 # Manipulierte oder veraltete Daten werden abgewiesen (Roadmap 2.11) --------
 
 

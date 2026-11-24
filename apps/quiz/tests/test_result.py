@@ -110,6 +110,45 @@ def test_result_page_bars_name_each_color_for_screen_readers(gated_client, publi
     assert bars.count('class="visually-hidden"') == 5
 
 
+# Banner in den Farben der Kombination, wie im Profilkopf (D-73, NFR-6) -----
+
+
+def _banner(html):
+    return re.search(r'<div class="profile-banner[^"]*".*?</div>', html, re.S).group(0)
+
+
+def test_result_page_shows_a_banner_stripe_per_color_of_the_combination(
+    gated_client, published_questionnaire
+):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
+    hex_by_code = dict(Color.objects.values_list("code", "hex"))
+
+    banner = _banner(response.content.decode())
+
+    hexes = re.findall(r"--segment-color: (#[0-9A-Fa-f]{6})", banner)
+    assert hexes == [hex_by_code[code] for code in combination.color_codes]
+    assert "profile-banner__stripe--neutral" not in banner
+
+
+def test_result_page_banner_is_the_compact_variant(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    assert '<div class="profile-banner profile-banner--compact"' in response.content.decode()
+
+
+def test_result_page_banner_is_decorative_and_carries_no_text_or_link(
+    gated_client, published_questionnaire
+):
+    """Name und Link stehen auf der Seitenfläche, nicht auf den Farben (NFR-6)."""
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    banner = _banner(response.content.decode())
+    assert 'aria-hidden="true"' in banner.split(">")[0]
+    assert "<a " not in banner
+    assert re.sub(r"<[^>]+>", "", banner).strip() == ""
+
+
 # FR-T14: eingeloggt landet das Ergebnis automatisch in der Historie --------
 
 

@@ -1,0 +1,13 @@
+{% comment %} Banner aus gleichbreiten Streifen der Kombinationsfarben in WUBRG-Reihenfolge (Task 4.2, D-73) — dieselben
+   `segments` wie beim Profilbild (apps/accounts/avatar.py), Farben nur über die Custom Property je Streifen. Ohne
+   Farben ein neutraler Balken. Reine Dekoration (aria-hidden): kein Text auf den Farben, damit der Kontrast nicht
+   von der Farbwahl abhängt (NFR-6); die Farben nennen Kombinationsname und Text daneben. Optional `modifier`
+   (z. B. "compact") für eine Variante. Genutzt vom Profilkopf (social/_profile_header.html) und der
+   Ergebnisseite des Tests (quiz/result.html). {% endcomment %}
+<div class="profile-banner{% if modifier %} profile-banner--{{ modifier }}{% endif %}" aria-hidden="true">
+  {% for segment in segments %}
+    <span class="profile-banner__stripe" style="--segment-color: {{ segment.hex }};"></span>
+  {% empty %}
+    <span class="profile-banner__stripe profile-banner__stripe--neutral"></span>
+  {% endfor %}
+</div>

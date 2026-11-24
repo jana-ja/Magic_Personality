@@ -819,6 +819,12 @@ button {
   background: var(--color-border);
 }
 
+/* Niedrigere Variante für die Ergebnisseite des Tests (colors/_banner.html). */
+.profile-banner--compact {
+  height: 4rem;
+  margin-bottom: var(--space-3);
+}
+
 .profile-head__body {
   display: flex;
   flex-wrap: wrap;
