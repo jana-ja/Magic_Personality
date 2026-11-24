@@ -93,7 +93,6 @@ def take_test(request):
                 "combination_url": reverse(
                     "colors:combination", kwargs={"code": combination.code.lower()}
                 ),
-                "scores": scores,
                 "score_bars": score_bars(ordered_scores(scores)),
                 "segments": avatar.segments(combination.color_codes),
                 "test_result": test_result,
@@ -194,7 +193,6 @@ def claim_anonymous_result(request):
     context = {
         "combination": combination,
         "combination_url": reverse("colors:combination", kwargs={"code": combination.code.lower()}),
-        "scores": scores,
         "score_bars": score_bars(ordered_scores(scores)),
         "segments": avatar.segments(combination.color_codes),
         "test_result": test_result,

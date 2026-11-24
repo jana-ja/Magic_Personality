@@ -42,6 +42,13 @@ def _submit_all(client, questionnaire, *, choose="first"):
     return response, tally([(answer, 1) for answer in chosen_answers])
 
 
+def _points_per_color(html):
+    """Buchstabe -> Punkte aus den Balken der Ergebnisseite (colors/_score_bars.html)."""
+    pattern = r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>'
+    pairs = re.findall(pattern, html, re.S)
+    return {code: int(points) for code, points in pairs}
+
+
 @pytest.fixture
 def user():
     user = User.objects.create_user(email="alex@example.com", password="a-long-enough-password")
@@ -55,10 +62,8 @@ def user():
 def test_result_page_shows_the_points_of_all_five_colors(gated_client, published_questionnaire):
     response, scores = _submit_all(gated_client, published_questionnaire)
 
-    html = response.content.decode()
-    for code, points in scores.items():
-        assert f"<dt>{code}</dt>" in html
-        assert f"<dd>{points}</dd>" in html
+    shown = _points_per_color(response.content.decode())
+    assert shown == {code: scores.get(code, 0) for code in "WUBRG"}
 
 
 def test_result_page_links_to_the_matching_color_infos_page(gated_client, published_questionnaire):
