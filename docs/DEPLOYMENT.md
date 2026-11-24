@@ -38,7 +38,7 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
 
    ```env
    SECRET_KEY=<generierter Wert>
-   ALLOWED_HOSTS=<domain>
+   ALLOWED_HOSTS=<domain>,localhost
    INVITE_CODE=<frei gewählt, mit dem kleinen Nutzerkreis geteilt>
 
    POSTGRES_USER=magic_personality
@@ -50,6 +50,8 @@ Task 1.12 (`docs/ROADMAP.md`), ARCHITECTURE.md §11. Bringt v0.1 auf den kleinen
    ```
 
    `DATABASE_URL` und `SECURE_SSL_REDIRECT` müssen hier **nicht** stehen — `compose.yaml` setzt `DATABASE_URL` selbst auf den internen Compose-Hostnamen `db`, und `SECURE_SSL_REDIRECT` hat in `config/settings/prod.py` bereits den passenden Default `True` (D-52).
+
+   `localhost` gehört in `ALLOWED_HOSTS`, weil der Healthcheck aus `compose.yaml` innerhalb des Containers `http://localhost:8000/healthz` aufruft. Fehlt der Eintrag, antwortet Django mit 400 und `web` bleibt dauerhaft `unhealthy`, obwohl die Seite von außen funktioniert. Von außen ist `localhost` nicht nutzbar, weil Caddy nur Anfragen für `DOMAIN` weiterleitet.
 
 ## Erstes Deployment
 
@@ -75,7 +77,7 @@ Danach prüfen:
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml ps          # alle drei "healthy"/"running"
 docker compose -f compose.yaml -f compose.prod.yaml logs caddy  # Zertifikat ausgestellt? Fehler beim ACME-Challenge?
-curl -I https://<domain>/healthz                                 # 200, ohne Zugangssperre erreichbar
+curl -i https://<domain>/healthz                                 # 200, ohne Zugangssperre erreichbar (nur GET: "curl -I" sendet HEAD und bekommt 405)
 curl -I https://<domain>/                                        # 302 auf /gate/ — alles andere ist gesperrt
 ```
 
@@ -276,4 +278,6 @@ docker compose down --remove-orphans        # danach erneut
 
 **Caddy bekommt kein Zertifikat:** `docker compose -f compose.yaml -f compose.prod.yaml logs caddy` — meistens entweder DNS zeigt noch nicht auf den Server, oder Port 80/443 ist von außen nicht erreichbar (Firewall, Cloud-Security-Group).
 
-**`web` bleibt dauerhaft "unhealthy":** Vor D-52 tatsächlich passiert — der interne Healthcheck lief ohne `X-Forwarded-Proto` gegen `SECURE_SSL_REDIRECT=True` und scheiterte an einem SSL-Handshake auf einem reinen HTTP-Socket. Mit `SECURE_REDIRECT_EXEMPT` behoben; falls es doch wieder auftaucht, `docker compose -f compose.yaml -f compose.prod.yaml logs web` prüfen.
+**`web` bleibt dauerhaft "unhealthy", die Seite läuft aber:** `docker inspect --format '{{json .State.Health.Log}}' <web-container>` zeigt die Ursache. Bei `HTTP Error 400` fehlt `localhost` in `ALLOWED_HOSTS` in der Server-`.env`; ergänzen, dann `docker compose -f compose.yaml -f compose.prod.yaml up -d web`.
+
+**`web` bleibt dauerhaft "unhealthy" (SSL-Handshake-Fehler):** Vor D-52 tatsächlich passiert — der interne Healthcheck lief ohne `X-Forwarded-Proto` gegen `SECURE_SSL_REDIRECT=True` und scheiterte an einem SSL-Handshake auf einem reinen HTTP-Socket. Mit `SECURE_REDIRECT_EXEMPT` behoben; falls es doch wieder auftaucht, `docker compose -f compose.yaml -f compose.prod.yaml logs web` prüfen.
