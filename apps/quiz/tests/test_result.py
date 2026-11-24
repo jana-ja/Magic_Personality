@@ -8,10 +8,13 @@ selbst nachgerechnet (die Auswertungsregel hat schon ihre eigenen
 Tests in test_evaluation.py).
 """
 
+import re
+
 import pytest
 
 from apps.accounts.models import ColorAssignment, Profile, User
-from apps.colors.models import ColorCombination
+from apps.colors import pentagon
+from apps.colors.models import Color, ColorCombination
 from apps.quiz.evaluation import evaluate_combination
 from apps.quiz.models import TestResult
 from apps.quiz.scoring import tally
@@ -63,6 +66,48 @@ def test_result_page_links_to_the_matching_color_infos_page(gated_client, publis
     combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
 
     assert f'href="/colors/{combination.code.lower()}/"' in response.content.decode()
+
+
+# Punkte als Farbbalken, wie in der Colors-Karte des Profils (D-70, NFR-6) ---
+
+
+def _score_bars(html):
+    return re.search(r'<ul class="score-bars"[^>]*>.*?</ul>', html, re.S).group(0)
+
+
+def test_result_page_shows_the_score_bars_in_wubrg_order(gated_client, published_questionnaire):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    labels = re.findall(r'score-bar__label">(\w)</span>', bars)
+    values = re.findall(r'score-bar__value">(\d+)</span>', bars)
+    assert labels == ["W", "U", "B", "R", "G"]
+    assert values == [str(scores.get(code, 0)) for code in labels]
+
+
+def test_result_page_bars_are_relative_to_the_highest_score(gated_client, published_questionnaire):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+
+    top = max(scores.values())
+    expected = [str(round(scores.get(code, 0) / top * 100)) for code in "WUBRG"]
+    bars = _score_bars(response.content.decode())
+    assert re.findall(r"--bar-width: (\d+)%", bars) == expected
+
+
+def test_result_page_bars_use_the_halo_color_of_each_corner(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    expected = [pentagon.halo_color(code, Color.objects.get(code=code).hex) for code in "WUBRG"]
+    assert re.findall(r"--bar-color: ([^;]+);", bars) == expected
+
+
+def test_result_page_bars_name_each_color_for_screen_readers(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    assert "aria-label=" in bars.split(">")[0]
+    assert bars.count('class="visually-hidden"') == 5
 
 
 # FR-T14: eingeloggt landet das Ergebnis automatisch in der Historie --------

@@ -342,6 +342,14 @@ button {
   margin: 0;
 }
 
+/* Ergebnisseite: dieselben Balken wie in der Colors-Karte des Profils
+   (templates/colors/_score_bars.html), hier in der breiten Hauptspalte
+   begrenzt, damit die Zahl rechts nah am Balken bleibt. */
+.quiz-score-bars {
+  max-width: 24rem;
+  margin-bottom: var(--space-3);
+}
+
 .quiz-scores {
   display: flex;
   flex-direction: column;

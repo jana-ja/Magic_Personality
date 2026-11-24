@@ -20,6 +20,7 @@ from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from apps.colors.models import Color
+from apps.colors.score_bars import ordered_scores
 
 
 def default_choice_points():
@@ -162,7 +163,7 @@ class TestResult(models.Model):
         `scores` als jsonb und sortiert die Schlüssel dabei selbst um
         (B, G, R, U, W) — die gespeicherte Reihenfolge taugt also nicht
         für die Anzeige."""
-        return [(code, self.scores.get(code, 0)) for code, _label in Color.Code.choices]
+        return ordered_scores(self.scores)
 
 
 class Feedback(models.Model):

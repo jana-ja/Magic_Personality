@@ -11,6 +11,10 @@
     <a href="{{ combination_url }}">{% translate "See it in Color Infos" %}</a>
   </p>
 
+  {% comment %} Dieselben Balken wie in der Colors-Karte des Profils (colors/_score_bars.html, D-70): Buchstabe
+     und Zahl stehen dabei, der Balken ist nur Anschauung (NFR-6). {% endcomment %}
+  <div class="quiz-score-bars">{% include "colors/_score_bars.html" %}</div>
+
   <dl class="quiz-scores">
     {% for code, points in scores.items %}
       <div class="quiz-scores__row">

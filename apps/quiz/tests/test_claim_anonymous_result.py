@@ -122,6 +122,23 @@ def test_claimed_result_page_does_not_set_a_new_token(gated_client, published_qu
     assert "localStorage.setItem" not in response.content.decode()
 
 
+def test_claimed_result_page_shows_the_score_bars(gated_client, published_questionnaire, user):
+    """Auch die eingelöste Ergebnisseite zeigt die Farbbalken (D-70) — sie
+    rendert dieselbe Vorlage wie `take_test()`, braucht aber ihren eigenen
+    Kontext."""
+    _response, scores = _submit_all(gated_client, published_questionnaire)
+    token = anonymous_result.sign(
+        questionnaire_version=published_questionnaire.version, scores=scores
+    )
+
+    gated_client.force_login(user)
+    response = gated_client.post(CLAIM_URL, {"token": token})
+
+    html = response.content.decode()
+    assert '<ul class="score-bars"' in html
+    assert html.count('class="score-bar"') == 5
+
+
 # Manipulierte oder veraltete Daten werden abgewiesen (Roadmap 2.11) --------
 
 

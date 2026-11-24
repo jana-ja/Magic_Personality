@@ -11,10 +11,10 @@ Vorlage anzuzeigen, bis Task 4.5 die Bereiche einzeln bearbeitbar macht.
 
 from apps.accounts import avatar
 from apps.accounts.forms import BioForm, ColorsForm, NicknameForm
-from apps.colors import pentagon
 from apps.colors.content import LOCALE
 from apps.colors.field import color_field_context
-from apps.colors.models import Color, ColorCombination
+from apps.colors.models import ColorCombination
+from apps.colors.score_bars import score_bars
 from apps.posts import seen as comment_seen
 
 from . import friendships
@@ -158,28 +158,6 @@ def profile_context(profile, viewer_profile, *, tab=PINBOARD, editing=None, edit
             context["test_results"] = history_with_combinations(profile, assignment)
             context.update(color_field_context(set(edit_form["colors"].value() or [])))
     return context
-
-
-def score_bars(ordered_scores):
-    """
-    Punkte je Farbe als Balken (Task 4.7, D-70, NFR-6): Buchstabe **und**
-    Zahl stehen dabei, der Balken ist nur zusätzliche Anschauung, die Farbe
-    kein alleiniger Unterschied. Länge relativ zum höchsten Wert der
-    Verteilung. Die Balkenfarbe ist die Halo-Farbe der Ecke (Weiß wäre als
-    `Color.hex` auf hellem Grund kaum zu sehen, D-42).
-    """
-    colors = {color.code: color for color in Color.objects.all()}
-    top = max((points for _code, points in ordered_scores), default=0) or 1
-    return [
-        {
-            "code": code,
-            "name": colors[code].name,
-            "points": points,
-            "percent": round(points / top * 100),
-            "color": pentagon.halo_color(code, colors[code].hex),
-        }
-        for code, points in ordered_scores
-    ]
 
 
 def edit_form_for(section, profile, data=None):
