@@ -6,19 +6,19 @@
 {% block content %}
   <h1>{% translate "Your results" %}</h1>
 
+  {% comment %} Banner in den Farben der Kombination, wie im Profilkopf (colors/_banner.html, D-73): reine
+     Dekoration ohne eigenen Link — Name und Link stehen darunter auf der Seitenfläche (NFR-6). {% endcomment %}
+  {% include "colors/_banner.html" with modifier="compact" %}
+
   <p>
     {% blocktranslate with name=combination.name %}Your result is <strong>{{ name }}</strong>.{% endblocktranslate %}
     <a href="{{ combination_url }}">{% translate "See it in Color Infos" %}</a>
   </p>
 
-  <dl class="quiz-scores">
-    {% for code, points in scores.items %}
-      <div class="quiz-scores__row">
-        <dt>{{ code }}</dt>
-        <dd>{{ points }}</dd>
-      </div>
-    {% endfor %}
-  </dl>
+  {% comment %} Punkte je Farbe (FR-T13) als dieselben Balken wie in der Colors-Karte des Profils
+     (colors/_score_bars.html, D-70): Buchstabe und Zahl stehen dabei, der Balken ist nur Anschauung
+     (NFR-6) — deshalb keine zusätzliche Zahlenliste. {% endcomment %}
+  <div class="quiz-score-bars">{% include "colors/_score_bars.html" %}</div>
 
   {% if test_result %}
     <p>{% translate "This result has been saved to your test history." %}</p>

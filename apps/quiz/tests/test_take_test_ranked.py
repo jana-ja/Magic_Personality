@@ -5,6 +5,8 @@ und die zweitbeste werden gewählt und geben 2 bzw. 1 Punkt.
 Nutzt `published_ranked_questionnaire` (conftest.py).
 """
 
+import re
+
 import pytest
 
 from apps.quiz.forms import TakeTestForm
@@ -12,6 +14,13 @@ from apps.quiz.forms import TakeTestForm
 pytestmark = pytest.mark.django_db
 
 TAKE_TEST_URL = "/quiz/"
+
+
+def _points_per_color(html):
+    """Buchstabe -> Punkte aus den Balken der Ergebnisseite (colors/_score_bars.html)."""
+    pattern = r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>'
+    pairs = re.findall(pattern, html, re.S)
+    return {code: int(points) for code, points in pairs}
 
 
 def _answers(questionnaire):
@@ -62,9 +71,7 @@ def test_best_answer_gives_two_points_and_second_best_one(
 
     html = gated_client.post(TAKE_TEST_URL, data).content.decode()
 
-    for color, points in {"W": 3, "G": 2, "B": 1, "U": 0, "R": 0}.items():
-        assert f"<dt>{color}</dt>" in html
-        assert f"<dt>{color}</dt>\n        <dd>{points}</dd>" in html
+    assert _points_per_color(html) == {"W": 3, "U": 0, "B": 1, "R": 0, "G": 2}
 
 
 def test_same_answer_for_both_places_is_rejected(gated_client, published_ranked_questionnaire):

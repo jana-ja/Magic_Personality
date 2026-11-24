@@ -8,10 +8,13 @@ selbst nachgerechnet (die Auswertungsregel hat schon ihre eigenen
 Tests in test_evaluation.py).
 """
 
+import re
+
 import pytest
 
 from apps.accounts.models import ColorAssignment, Profile, User
-from apps.colors.models import ColorCombination
+from apps.colors import pentagon
+from apps.colors.models import Color, ColorCombination
 from apps.quiz.evaluation import evaluate_combination
 from apps.quiz.models import TestResult
 from apps.quiz.scoring import tally
@@ -39,6 +42,13 @@ def _submit_all(client, questionnaire, *, choose="first"):
     return response, tally([(answer, 1) for answer in chosen_answers])
 
 
+def _points_per_color(html):
+    """Buchstabe -> Punkte aus den Balken der Ergebnisseite (colors/_score_bars.html)."""
+    pattern = r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>'
+    pairs = re.findall(pattern, html, re.S)
+    return {code: int(points) for code, points in pairs}
+
+
 @pytest.fixture
 def user():
     user = User.objects.create_user(email="alex@example.com", password="a-long-enough-password")
@@ -52,10 +62,8 @@ def user():
 def test_result_page_shows_the_points_of_all_five_colors(gated_client, published_questionnaire):
     response, scores = _submit_all(gated_client, published_questionnaire)
 
-    html = response.content.decode()
-    for code, points in scores.items():
-        assert f"<dt>{code}</dt>" in html
-        assert f"<dd>{points}</dd>" in html
+    shown = _points_per_color(response.content.decode())
+    assert shown == {code: scores.get(code, 0) for code in "WUBRG"}
 
 
 def test_result_page_links_to_the_matching_color_infos_page(gated_client, published_questionnaire):
@@ -63,6 +71,87 @@ def test_result_page_links_to_the_matching_color_infos_page(gated_client, publis
     combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
 
     assert f'href="/colors/{combination.code.lower()}/"' in response.content.decode()
+
+
+# Punkte als Farbbalken, wie in der Colors-Karte des Profils (D-70, NFR-6) ---
+
+
+def _score_bars(html):
+    return re.search(r'<ul class="score-bars"[^>]*>.*?</ul>', html, re.S).group(0)
+
+
+def test_result_page_shows_the_score_bars_in_wubrg_order(gated_client, published_questionnaire):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    labels = re.findall(r'score-bar__label">(\w)</span>', bars)
+    values = re.findall(r'score-bar__value">(\d+)</span>', bars)
+    assert labels == ["W", "U", "B", "R", "G"]
+    assert values == [str(scores.get(code, 0)) for code in labels]
+
+
+def test_result_page_bars_are_relative_to_the_highest_score(gated_client, published_questionnaire):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+
+    top = max(scores.values())
+    expected = [str(round(scores.get(code, 0) / top * 100)) for code in "WUBRG"]
+    bars = _score_bars(response.content.decode())
+    assert re.findall(r"--bar-width: (\d+)%", bars) == expected
+
+
+def test_result_page_bars_use_the_halo_color_of_each_corner(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    expected = [pentagon.halo_color(code, Color.objects.get(code=code).hex) for code in "WUBRG"]
+    assert re.findall(r"--bar-color: ([^;]+);", bars) == expected
+
+
+def test_result_page_bars_name_each_color_for_screen_readers(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    bars = _score_bars(response.content.decode())
+    assert "aria-label=" in bars.split(">")[0]
+    assert bars.count('class="visually-hidden"') == 5
+
+
+# Banner in den Farben der Kombination, wie im Profilkopf (D-73, NFR-6) -----
+
+
+def _banner(html):
+    return re.search(r'<div class="profile-banner[^"]*".*?</div>', html, re.S).group(0)
+
+
+def test_result_page_shows_a_banner_stripe_per_color_of_the_combination(
+    gated_client, published_questionnaire
+):
+    response, scores = _submit_all(gated_client, published_questionnaire)
+    combination = evaluate_combination(scores, threshold=published_questionnaire.result_threshold)
+    hex_by_code = dict(Color.objects.values_list("code", "hex"))
+
+    banner = _banner(response.content.decode())
+
+    hexes = re.findall(r"--segment-color: (#[0-9A-Fa-f]{6})", banner)
+    assert hexes == [hex_by_code[code] for code in combination.color_codes]
+    assert "profile-banner__stripe--neutral" not in banner
+
+
+def test_result_page_banner_is_the_compact_variant(gated_client, published_questionnaire):
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    assert '<div class="profile-banner profile-banner--compact"' in response.content.decode()
+
+
+def test_result_page_banner_is_decorative_and_carries_no_text_or_link(
+    gated_client, published_questionnaire
+):
+    """Name und Link stehen auf der Seitenfläche, nicht auf den Farben (NFR-6)."""
+    response, _scores = _submit_all(gated_client, published_questionnaire)
+
+    banner = _banner(response.content.decode())
+    assert 'aria-hidden="true"' in banner.split(">")[0]
+    assert "<a " not in banner
+    assert re.sub(r"<[^>]+>", "", banner).strip() == ""
 
 
 # FR-T14: eingeloggt landet das Ergebnis automatisch in der Historie --------

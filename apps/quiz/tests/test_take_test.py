@@ -7,11 +7,20 @@ seeds/questionnaire_v1.json; der
 hier geprüfte Mechanismus kennt die Fragenzahl nirgends fest verdrahtet.
 """
 
+import re
+
 import pytest
 
 pytestmark = pytest.mark.django_db
 
 TAKE_TEST_URL = "/quiz/"
+
+
+def _points_per_color(html):
+    """Buchstabe -> Punkte aus den Balken der Ergebnisseite (colors/_score_bars.html)."""
+    pattern = r'score-bar__label">(\w)</span>.*?score-bar__value">(\d+)</span>'
+    pairs = re.findall(pattern, html, re.S)
+    return {code: int(points) for code, points in pairs}
 
 
 def _field_name(question):
@@ -92,11 +101,10 @@ def test_submission_computes_the_correct_tally(gated_client, published_questionn
 
     response = gated_client.post(TAKE_TEST_URL, data)
 
-    html = response.content.decode()
+    shown = _points_per_color(response.content.decode())
     for color in {answer.color for answer in chosen}:
         count = sum(1 for answer in chosen if answer.color == color)
-        assert f"<dt>{color}</dt>" in html
-        assert f"<dd>{count}</dd>" in html
+        assert shown[color] == count
 
 
 def test_an_answer_from_a_different_question_is_rejected(gated_client, published_questionnaire):

@@ -1,0 +1,13 @@
+{% load i18n %}
+{% comment %} Punkte je Farbe als Balken (Task 4.7, D-70, NFR-6): Buchstabe und Zahl stehen dabei, der Balken ist
+   nur Anschauung. Erwartet `score_bars` aus apps/colors/score_bars.py. Genutzt von der Colors-Karte im Profil
+   (social/_card_colors.html) und der Ergebnisseite des Tests (quiz/result.html). {% endcomment %}
+<ul class="score-bars" aria-label="{% translate 'Points per color' %}">
+  {% for bar in score_bars %}
+    <li class="score-bar" title="{{ bar.name }}">
+      <span class="score-bar__label">{{ bar.code }}</span><span class="visually-hidden">{{ bar.name }}</span>
+      <span class="score-bar__track"><span class="score-bar__fill" style="--bar-width: {{ bar.percent }}%; --bar-color: {{ bar.color }};"></span></span>
+      <span class="score-bar__value">{{ bar.points }}</span>
+    </li>
+  {% endfor %}
+</ul>

@@ -12,9 +12,11 @@ from django.urls import reverse
 from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods, require_POST
 
+from apps.accounts import avatar
 from apps.accounts.color_assignments import adopt_test_result
 from apps.accounts.models import Profile
 from apps.colors.content import LOCALE
+from apps.colors.score_bars import ordered_scores, score_bars
 from apps.core.models import FeedbackAttempt
 from apps.core.rate_limit import client_ip, is_rate_limited, record_attempt
 
@@ -91,7 +93,8 @@ def take_test(request):
                 "combination_url": reverse(
                     "colors:combination", kwargs={"code": combination.code.lower()}
                 ),
-                "scores": scores,
+                "score_bars": score_bars(ordered_scores(scores)),
+                "segments": avatar.segments(combination.color_codes),
                 "test_result": test_result,
                 "anonymous_token": token,
                 "feedback_form": FeedbackForm(
@@ -190,7 +193,8 @@ def claim_anonymous_result(request):
     context = {
         "combination": combination,
         "combination_url": reverse("colors:combination", kwargs={"code": combination.code.lower()}),
-        "scores": scores,
+        "score_bars": score_bars(ordered_scores(scores)),
+        "segments": avatar.segments(combination.color_codes),
         "test_result": test_result,
         "anonymous_token": None,
         # Ohne das Formular zeigte result.html ein leeres, unbenutzbares Feedback-Feld.
